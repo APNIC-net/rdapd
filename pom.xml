@@ -115,13 +115,8 @@
                 <artifactId>maven-pmd-plugin</artifactId>
                 <version>${maven-pmd-plugin.version}</version>
                 <configuration>
-                    <excludes>
-                        <exclude>${src.generated.dir}</exclude>
-                    </excludes>
                     <targetJdk>${java.version}</targetJdk>
                     <verbose>true</verbose>
-                    <failOnViolation>${pmd.failOnViolation}</failOnViolation>
-                    <skip>${maven.quality.skip}</skip>
                 </configuration>
                 <executions>
                     <execution>
@@ -142,11 +137,7 @@
                 <version>${findbugs-maven-plugin.version}</version>
                 <configuration>
                     <classFilesDirectory>${project.build.outputDirectory}</classFilesDirectory>
-                    <includeFilterFile>${findbugs.include.configuration}</includeFilterFile>
-                    <excludeFilterFile>${findbugs.exclude.configuration}</excludeFilterFile>
                     <fork>true</fork>
-                    <failOnError>${findbugs.failOnError}</failOnError>
-                    <skip>${maven.quality.skip}</skip>
                 </configuration>
                 <executions>
                     <execution>
