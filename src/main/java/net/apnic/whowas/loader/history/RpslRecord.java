@@ -143,4 +143,14 @@ public class RpslRecord implements Comparable<RpslRecord> {
         }
         return Long.signum(gap);
     }
+
+    @Override
+    public int hashCode() {
+        return 31 + 31 * Long.hashCode(objectId) + 31 * Long.hashCode(sequenceId) + whence.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return o != null && o instanceof RpslRecord && compareTo((RpslRecord)o) == 0;
+    }
 }

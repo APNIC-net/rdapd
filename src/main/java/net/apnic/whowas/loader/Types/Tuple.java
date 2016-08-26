@@ -19,7 +19,7 @@ public class Tuple<S,T> {
 
     @Override
     public int hashCode() {
-        return (41 * (41 + s.hashCode())) + t.hashCode();
+        return 41 * (41 + s.hashCode()) + t.hashCode();
     }
 
     @Override

@@ -46,20 +46,14 @@ public class App {
             new Tuple<>(17, ObjectType.IRT)
     ).collect(Collectors.toMap(Tuple::fst, Tuple::snd));
 
-    private Map<Tuple<ObjectType, CIString>, Collection<RpslRecord>> index = Collections.emptyMap();
+    private Map<Tuple<ObjectType, CIString>, List<RpslRecord>> index = Collections.emptyMap();
     private final AVL<IP, History, IpInterval> tree = new AVL<>();
 
     public static void main(String[] args) {
         SpringApplication.run(App.class, args);
     }
 
-    private static <T> Set<T> setMerge(Collection<T> s1, Collection<T> s2) {
-        s1.addAll(s2);
-        //noinspection unchecked
-        return (Set) s1;
-    }
-
-    private static <T> List<T> listMerge(Collection<T> a, Collection<T> b) {
+    private static <T> List<T> listMerge(List<T> a, List<T> b) {
         List<T> l = new ArrayList<>(a.size() + b.size());
         l.addAll(a);
         l.addAll(b);
@@ -180,15 +174,14 @@ public class App {
             index = all.parallelStream().collect(HashMap::new, (m, r) -> {
                 Optional.ofNullable(OBJECT_CODES.get(r.getObjectType()))
                         .map(t -> new Tuple<>(t, CIString.ciString(r.getPrimaryKey())))
-                        .ifPresent(t -> m.merge(t, new HashSet<>(Collections.singleton(r)), App::setMerge));
-            }, (m, m1) -> m1.forEach((k, v) -> m.merge(k, v, App::setMerge)));
+                        .ifPresent(t -> m.merge(t, Collections.singletonList(r), App::listMerge));
+            }, (m, m1) -> m1.forEach((k, v) -> m.merge(k, v, App::listMerge)));
             LOGGER.info("Created index of all pkeys");
 
             // Update all RpslRecords to have chained whence/until dates
             index.replaceAll((k, v) -> {
-                ArrayList<RpslRecord> r = new ArrayList<>(v);
-                r.sort(null);
-                return linkDates(r);
+                v.sort(null);
+                return linkDates(v);
             });
             LOGGER.info("Linked dates for all records: {} total", index.keySet().size());
 

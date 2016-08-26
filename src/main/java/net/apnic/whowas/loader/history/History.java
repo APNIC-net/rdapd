@@ -139,7 +139,6 @@ public final class History {
         attrToProperty(base, rdap, AttributeType.STATUS, "type");
         attrToProperty(base, rdap, AttributeType.COUNTRY, "country");   // note: more than one country means NO entry!
         addRemarks(base, rdap);
-        addRelated(rpsl, rdap);
         addRaw(rpsl, rdap);
 
         return rdap;
@@ -187,11 +186,4 @@ public final class History {
         json.add("rpsl", raw);
     }
 
-    private void addRelated(RpslRecord parent, JsonObject json) {
-        JsonArray entities = new JsonArray();
-
-        for (RpslRecord child : parent.getChildren()) {
-
-        }
-    }
 }

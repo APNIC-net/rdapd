@@ -103,7 +103,7 @@ public class IP implements Comparable<IP> {
 
     @Override
     public boolean equals(Object other) {
-        return (other != null && other instanceof IP && address.equals(((IP) other).address));
+        return other != null && other instanceof IP && address.equals(((IP) other).address);
     }
 
     @Override

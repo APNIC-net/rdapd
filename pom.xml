@@ -6,26 +6,33 @@
       <modelVersion>4.0.0</modelVersion>
 
     <groupId>net.apnic.whowas</groupId>
-    <artifactId>data-loader</artifactId>
+    <artifactId>history-server</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <parent>
-        <groupId>net.apnic.pom</groupId>
-        <artifactId>spring-boot-pom</artifactId>
-        <version>1.0.2</version>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>1.4.0.RELEASE</version>
     </parent>
 
+    <scm>
+      <url>https://github.com/APNIC-net/whowas-service/</url>
+    </scm>
+
     <properties>
-        <docker.libraryName>whowas</docker.libraryName>
-        <docker.name>applications/${project.artifactId}</docker.name>
-        <docker.from>docker.apnic.net/base/openjdk-jre-headless:8</docker.from>
-        <docker.maintainer>software@apnic.net</docker.maintainer>
-        <docker.tags.1>latest</docker.tags.1>
-        <docker.tags.2>${project.version}</docker.tags.2>
-        <docker.entrypoint>["java", "-jar", "/app/${project.build.finalName}.${project.packaging}"]</docker.entrypoint>
-        <docker.assembly.baseDir>/app</docker.assembly.baseDir>
-        <docker.assembly.descriptorRef>artifact</docker.assembly.descriptorRef>
+        <!-- Encodings -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <!-- Default target Java version -->
+        <java.version>1.8</java.version>
+
+        <!-- plugin versions -->
+        <findbugs-maven-plugin.version>3.0.2</findbugs-maven-plugin.version>
+        <maven-checkstyle-plugin.version>2.15</maven-checkstyle-plugin.version>
+        <maven-pmd-plugin.version>3.5</maven-pmd-plugin.version>
+
     </properties>
 
     <dependencies>
@@ -80,11 +87,6 @@
             <version>1.2.3</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
     <profiles>
@@ -107,18 +109,55 @@
 
     <build>
         <plugins>
+            <!-- maven-pmd-plugin - http://maven.apache.org/plugins/maven-pmd-plugin/ -->
             <plugin>
-                <groupId>org.jolokia</groupId>
-                <artifactId>docker-maven-plugin</artifactId>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-pmd-plugin</artifactId>
+                <version>${maven-pmd-plugin.version}</version>
                 <configuration>
-                    <images>
-                        <image>
-                            <external>
-                                <type>props</type>
-                            </external>
-                        </image>
-                    </images>
+                    <excludes>
+                        <exclude>${src.generated.dir}</exclude>
+                    </excludes>
+                    <targetJdk>${java.version}</targetJdk>
+                    <verbose>true</verbose>
+                    <failOnViolation>${pmd.failOnViolation}</failOnViolation>
+                    <skip>${maven.quality.skip}</skip>
                 </configuration>
+                <executions>
+                    <execution>
+                        <id>pmd-check</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>pmd</goal>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- findbugs-maven-plugin - http://mojo.codehaus.org/findbugs-maven-plugin/ -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>findbugs-maven-plugin</artifactId>
+                <version>${findbugs-maven-plugin.version}</version>
+                <configuration>
+                    <classFilesDirectory>${project.build.outputDirectory}</classFilesDirectory>
+                    <includeFilterFile>${findbugs.include.configuration}</includeFilterFile>
+                    <excludeFilterFile>${findbugs.exclude.configuration}</excludeFilterFile>
+                    <fork>true</fork>
+                    <failOnError>${findbugs.failOnError}</failOnError>
+                    <skip>${maven.quality.skip}</skip>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>findbugs-findbugs</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>findbugs</goal>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
