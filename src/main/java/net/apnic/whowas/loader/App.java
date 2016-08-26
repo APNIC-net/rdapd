@@ -1,12 +1,12 @@
 package net.apnic.whowas.loader;
 
-import net.apnic.whowas.loader.IntervalTree.AVL.AVL;
-import net.apnic.whowas.loader.IntervalTree.IntervalTree;
-import net.apnic.whowas.loader.Progress.Bar;
-import net.apnic.whowas.loader.Types.IP;
-import net.apnic.whowas.loader.Types.IpInterval;
-import net.apnic.whowas.loader.Types.Parsing;
-import net.apnic.whowas.loader.Types.Tuple;
+import net.apnic.whowas.loader.intervaltree.avl.AVL;
+import net.apnic.whowas.loader.intervaltree.IntervalTree;
+import net.apnic.whowas.loader.progress.Bar;
+import net.apnic.whowas.loader.types.IP;
+import net.apnic.whowas.loader.types.IpInterval;
+import net.apnic.whowas.loader.types.Parsing;
+import net.apnic.whowas.loader.types.Tuple;
 import net.apnic.whowas.loader.history.History;
 import net.apnic.whowas.loader.history.RpslRecord;
 import net.ripe.db.whois.common.domain.CIString;
@@ -33,7 +33,7 @@ public class App {
     private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
 
     // Presence in the map serves as a proxy for relevance to this application
-    private static final Map<Integer, ObjectType> objectCodes = Stream.of(
+    private static final Map<Integer, ObjectType> OBJECT_CODES = Stream.of(
             new Tuple<>(3, ObjectType.DOMAIN),
             new Tuple<>(6, ObjectType.INETNUM),
             new Tuple<>(9, ObjectType.MNTNER),
@@ -178,7 +178,7 @@ public class App {
 
             // Construct an index of all objects by type and primary key
             index = all.parallelStream().collect(HashMap::new, (m, r) -> {
-                Optional.ofNullable(objectCodes.get(r.getObjectType()))
+                Optional.ofNullable(OBJECT_CODES.get(r.getObjectType()))
                         .map(t -> new Tuple<>(t, CIString.ciString(r.getPrimaryKey())))
                         .ifPresent(t -> m.merge(t, new HashSet<>(Collections.singleton(r)), App::setMerge));
             }, (m, m1) -> m1.forEach((k, v) -> m.merge(k, v, App::setMerge)));

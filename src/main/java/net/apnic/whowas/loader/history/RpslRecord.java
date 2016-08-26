@@ -28,7 +28,8 @@ public class RpslRecord implements Comparable<RpslRecord> {
     private final long objectId;
     private final long sequenceId;
 
-    public RpslRecord(int objectType, String primaryKey, long objectId, long sequenceId, LocalDateTime whence, LocalDateTime until, String raw, List<RpslRecord> children) {
+    public RpslRecord(int objectType, String primaryKey, long objectId, long sequenceId,
+                      LocalDateTime whence, LocalDateTime until, String raw, List<RpslRecord> children) {
         this.objectType = objectType;
         this.primaryKey = primaryKey;
         this.whence = whence;
@@ -49,8 +50,10 @@ public class RpslRecord implements Comparable<RpslRecord> {
      */
     public RpslRecord[] splitAt(LocalDateTime thence) {
         return new RpslRecord[] {
-                new RpslRecord(this.objectType, this.primaryKey, this.objectId, this.sequenceId, this.whence, thence, this.raw, this.children),
-                new RpslRecord(this.objectType, this.primaryKey, this.objectId, this.sequenceId, thence, this.until, this.raw, this.children)
+                new RpslRecord(this.objectType, this.primaryKey, this.objectId,
+                        this.sequenceId, this.whence, thence, this.raw, this.children),
+                new RpslRecord(this.objectType, this.primaryKey, this.objectId,
+                        this.sequenceId, thence, this.until, this.raw, this.children)
         };
     }
 
@@ -58,11 +61,13 @@ public class RpslRecord implements Comparable<RpslRecord> {
         List<RpslRecord> newChildren = new ArrayList<>(this.children.size() + 1);
         newChildren.addAll(this.children);
         newChildren.add(child);
-        return new RpslRecord(this.objectType, this.primaryKey, this.objectId, this.sequenceId, this.whence, this.until, this.raw, newChildren);
+        return new RpslRecord(this.objectType, this.primaryKey, this.objectId,
+                this.sequenceId, this.whence, this.until, this.raw, newChildren);
     }
 
     public RpslRecord withUntil(LocalDateTime until) {
-        return new RpslRecord(this.objectType, this.primaryKey, this.objectId, this.sequenceId, this.whence, until, this.raw, this.children);
+        return new RpslRecord(this.objectType, this.primaryKey, this.objectId,
+                this.sequenceId, this.whence, until, this.raw, this.children);
     }
 
     public Optional<RpslObject> getRpslObject() {
@@ -116,7 +121,8 @@ public class RpslRecord implements Comparable<RpslRecord> {
 
     @Override
     public String toString() {
-        return String.format("[%s - %s) %d: %s (%d children, %d bytes)", whence, until, objectType, primaryKey, children.size(), raw.length());
+        return String.format("[%s - %s) %d: %s (%d children, %d bytes)",
+                whence, until, objectType, primaryKey, children.size(), raw.length());
     }
 
     @Override

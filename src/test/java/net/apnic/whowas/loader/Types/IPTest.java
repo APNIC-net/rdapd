@@ -1,4 +1,4 @@
-package net.apnic.whowas.loader.Types;
+package net.apnic.whowas.loader.types;
 
 import org.junit.Test;
 

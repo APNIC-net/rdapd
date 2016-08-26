@@ -1,6 +1,6 @@
-package net.apnic.whowas.loader.Types;
+package net.apnic.whowas.loader.types;
 
-import net.apnic.whowas.loader.IntervalTree.Interval;
+import net.apnic.whowas.loader.intervaltree.Interval;
 
 public class IpInterval implements Interval<IP> {
     private final IP low, high;

@@ -1,4 +1,4 @@
-package net.apnic.whowas.loader.Types;
+package net.apnic.whowas.loader.types;
 
 import org.codehaus.jparsec.Parser;
 import org.codehaus.jparsec.Parsers;
@@ -10,7 +10,9 @@ import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.UnknownHostException;
 
-public class Parsing {
+public final class Parsing {
+    private Parsing() {}
+
     private static final Parser<IP> V4_ADDRESS =
             Patterns.many(CharPredicates.among("0123456789.")).toScanner("IPv4 address").source().map(s -> {
                 try {

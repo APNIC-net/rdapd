@@ -1,4 +1,4 @@
-package net.apnic.whowas.loader.Types;
+package net.apnic.whowas.loader.types;
 
 public class Tuple<S,T> {
     private final S s;

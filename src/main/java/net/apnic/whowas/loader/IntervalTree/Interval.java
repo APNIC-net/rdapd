@@ -1,4 +1,4 @@
-package net.apnic.whowas.loader.IntervalTree;
+package net.apnic.whowas.loader.intervaltree;
 
 public interface Interval<K extends Comparable<K>> extends Comparable<Interval<K>> {
     K low();

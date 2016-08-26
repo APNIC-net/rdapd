@@ -1,4 +1,4 @@
-package net.apnic.whowas.loader.Types;
+package net.apnic.whowas.loader.types;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -104,6 +104,11 @@ public class IP implements Comparable<IP> {
     @Override
     public boolean equals(Object other) {
         return (other != null && other instanceof IP && address.equals(((IP) other).address));
+    }
+
+    @Override
+    public int hashCode() {
+        return address.hashCode();
     }
 
     @Override

@@ -19,7 +19,7 @@ import java.util.stream.Stream;
  *
  * @author bje
  */
-public class History {
+public final class History {
     private static final Gson GSON = new Gson();
 
     private final Optional<String> rawJSON;
@@ -55,17 +55,17 @@ public class History {
      */
     public History appendUpdate(RpslRecord update) {
         // TODO: probably need to sort this, now
-        List<RpslRecord> records = new ArrayList<>(this.records.size() + 1);
-        Optional<RpslRecord> last = this.records.isEmpty()
+        List<RpslRecord> newRecords = new ArrayList<>(records.size() + 1);
+        Optional<RpslRecord> last = records.isEmpty()
                 ? Optional.empty()
-                : Optional.of(this.records.get(this.records.size() - 1));
+                : Optional.of(records.get(records.size() - 1));
 
-        records.addAll(this.records);
+        newRecords.addAll(records);
         last.filter(r -> r.getUntil().isAfter(update.getWhence()))
-                .ifPresent(r -> records.set(this.records.size() - 1, r.splitAt(update.getWhence())[0]));
-        records.add(update);
+                .ifPresent(r -> newRecords.set(records.size() - 1, r.splitAt(update.getWhence())[0]));
+        newRecords.add(update);
 
-        return new History(records, Optional.empty());
+        return new History(newRecords, Optional.empty());
     }
 
     /**
