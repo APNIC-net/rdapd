@@ -1,4 +1,6 @@
-WHOWAS query service
+# WHOWAS query service
+
+[![Build Status](https://travis-ci.org/APNIC-net/whowas-service.svg?branch=master)](https://travis-ci.org/APNIC-net/whowas-service)
 
 The WHOWAS query service takes historical data imported from the RIPE database
 `last` and `history` tables and produces an INR and timestamp indexed list of
