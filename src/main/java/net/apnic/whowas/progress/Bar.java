@@ -1,4 +1,4 @@
-package net.apnic.whowas.loader.progress;
+package net.apnic.whowas.progress;
 
 import org.apache.commons.lang3.StringUtils;
 

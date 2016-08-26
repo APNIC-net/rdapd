@@ -1,4 +1,4 @@
-package net.apnic.whowas.loader.history;
+package net.apnic.whowas.history;
 
 import net.ripe.db.whois.common.rpsl.RpslObject;
 import org.slf4j.Logger;

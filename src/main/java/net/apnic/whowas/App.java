@@ -1,14 +1,14 @@
-package net.apnic.whowas.loader;
+package net.apnic.whowas;
 
-import net.apnic.whowas.loader.intervaltree.avl.AVL;
-import net.apnic.whowas.loader.intervaltree.IntervalTree;
-import net.apnic.whowas.loader.progress.Bar;
-import net.apnic.whowas.loader.types.IP;
-import net.apnic.whowas.loader.types.IpInterval;
-import net.apnic.whowas.loader.types.Parsing;
-import net.apnic.whowas.loader.types.Tuple;
-import net.apnic.whowas.loader.history.History;
-import net.apnic.whowas.loader.history.RpslRecord;
+import net.apnic.whowas.intervaltree.avl.AVL;
+import net.apnic.whowas.intervaltree.IntervalTree;
+import net.apnic.whowas.progress.Bar;
+import net.apnic.whowas.types.IP;
+import net.apnic.whowas.types.IpInterval;
+import net.apnic.whowas.types.Parsing;
+import net.apnic.whowas.types.Tuple;
+import net.apnic.whowas.history.History;
+import net.apnic.whowas.history.RpslRecord;
 import net.ripe.db.whois.common.domain.CIString;
 import net.ripe.db.whois.common.rpsl.AttributeType;
 import net.ripe.db.whois.common.rpsl.ObjectType;

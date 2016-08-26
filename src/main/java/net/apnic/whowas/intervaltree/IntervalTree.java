@@ -1,6 +1,6 @@
-package net.apnic.whowas.loader.intervaltree;
+package net.apnic.whowas.intervaltree;
 
-import net.apnic.whowas.loader.types.Tuple;
+import net.apnic.whowas.types.Tuple;
 
 import java.util.Optional;
 import java.util.stream.Stream;

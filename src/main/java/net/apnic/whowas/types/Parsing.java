@@ -1,4 +1,4 @@
-package net.apnic.whowas.loader.types;
+package net.apnic.whowas.types;
 
 import org.codehaus.jparsec.Parser;
 import org.codehaus.jparsec.Parsers;

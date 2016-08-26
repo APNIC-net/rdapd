@@ -1,4 +1,4 @@
-package net.apnic.whowas.loader.history;
+package net.apnic.whowas.history;
 
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import com.fasterxml.jackson.annotation.JsonValue;

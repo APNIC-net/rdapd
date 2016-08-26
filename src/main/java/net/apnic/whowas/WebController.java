@@ -1,11 +1,11 @@
-package net.apnic.whowas.loader;
+package net.apnic.whowas;
 
-import net.apnic.whowas.loader.intervaltree.IntervalTree;
-import net.apnic.whowas.loader.types.IP;
-import net.apnic.whowas.loader.types.IpInterval;
-import net.apnic.whowas.loader.types.Parsing;
-import net.apnic.whowas.loader.types.Tuple;
-import net.apnic.whowas.loader.history.History;
+import net.apnic.whowas.intervaltree.IntervalTree;
+import net.apnic.whowas.types.IP;
+import net.apnic.whowas.types.IpInterval;
+import net.apnic.whowas.types.Parsing;
+import net.apnic.whowas.types.Tuple;
+import net.apnic.whowas.history.History;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.convert.converter.Converter;
