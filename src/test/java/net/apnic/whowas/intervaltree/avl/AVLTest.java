@@ -1,7 +1,7 @@
-package net.apnic.whowas.loader.intervaltree.avl;
+package net.apnic.whowas.intervaltree.avl;
 
-import net.apnic.whowas.loader.intervaltree.Interval;
-import net.apnic.whowas.loader.types.Tuple;
+import net.apnic.whowas.intervaltree.Interval;
+import net.apnic.whowas.types.Tuple;
 import org.junit.Test;
 
 import java.util.List;
