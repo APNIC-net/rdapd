@@ -1,45 +1,31 @@
 package net.apnic.whowas.intervaltree.avl;
 
-import net.apnic.whowas.intervaltree.Interval;
 import net.apnic.whowas.types.Tuple;
+import org.hamcrest.Description;
+import org.hamcrest.Matcher;
+import org.hamcrest.TypeSafeDiagnosingMatcher;
 import org.junit.Test;
+import org.nustaq.serialization.FSTConfiguration;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
-public class AVLTest {
-    private class IntInterval implements Interval<Integer> {
-        private final int l, h;
-        private IntInterval(int l, int h) {
-            this.l = l;
-            this.h = h;
-        }
-
-        @Override
-        public Integer low() {
-            return l;
-        }
-
-        @Override
-        public Integer high() {
-            return h;
-        }
-
-        @Override
-        public String toString() {
-            return "(" + l + " - " + h + ")";
-        }
-    }
+public class AvlTreeTest {
 
     @Test
     public void testInsert() throws Exception {
-        AVL<Integer, String, IntInterval> tree = new AVL<>();
+        AvlTree<Integer, String, IntInterval> tree = new AvlTree<>();
 
         tree.insert(new IntInterval(42, 59), "green tree");
         tree.insert(new IntInterval(33, 45), "corroboree");
@@ -49,7 +35,7 @@ public class AVLTest {
 
     @Test
     public void testExact() throws Exception {
-        AVL<Integer, String, IntInterval> tree = new AVL<>();
+        AvlTree<Integer, String, IntInterval> tree = new AvlTree<>();
         tree.insert(new IntInterval(42, 59), "green tree");
         tree.insert(new IntInterval(33, 45), "corroboree");
         tree.insert(new IntInterval(33, 44), "rocket");
@@ -63,7 +49,7 @@ public class AVLTest {
 
     @Test
     public void rangeTest() throws Exception {
-        AVL<Integer, String, IntInterval> tree = new AVL<>();
+        AvlTree<Integer, String, IntInterval> tree = new AvlTree<>();
         tree.insert(new IntInterval(42, 59), "green tree");
         tree.insert(new IntInterval(33, 45), "corroboree");
         tree.insert(new IntInterval(33, 44), "rocket");
@@ -76,7 +62,7 @@ public class AVLTest {
 
     @Test
     public void concurrencyTest() throws Exception {
-        AVL<Integer, Integer, IntInterval> tree = new AVL<>();
+        AvlTree<Integer, Integer, IntInterval> tree = new AvlTree<>();
         Random random = new Random();
         final int[] expected = { 0 };
         Stream.generate(() -> new IntInterval(random.nextInt(), random.nextInt()))
@@ -98,5 +84,57 @@ public class AVLTest {
         assertTrue("the intersecting stream is parallel", tree.intersecting(nearZero).isParallel());
         List<Integer> theNumbers = tree.intersecting(nearZero).map(Tuple::snd).collect(Collectors.toList());
         assertThat("There's the expected number of, er, numbers", theNumbers.size(), is(expected[0]));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testSerialization() throws Exception {
+        AvlTree<Integer, LocalDateTime, IntInterval> tree = new AvlTree<>();
+        Random random = new Random();
+        Stream.generate(() -> new IntInterval(random.nextInt(), random.nextInt()))
+                .limit(10000)
+                .map(i -> i.high() >= i.low() ? i : new IntInterval(i.high(), i.low()))
+                .forEach(i -> tree.update(i, random.nextInt(),
+                        (p, q) -> LocalDateTime.ofEpochSecond(random.nextInt(999999999), 0, ZoneOffset.UTC),
+                        j -> LocalDateTime.ofEpochSecond(random.nextInt(999999999), 0, ZoneOffset.UTC)));
+
+
+        FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
+        byte data[] = conf.asByteArray(tree);
+        AvlTree<Integer, LocalDateTime, IntInterval> tree2 = (AvlTree)conf.asObject(data);
+        assertThat("Serialise/deserialise is precise",
+                tree.iterator(), is(iteratorMatcher(tree2.iterator())));
+
+    }
+
+    private <T> Matcher<Iterator<T>> iteratorMatcher(Iterator<T> it) {
+        return new TypeSafeDiagnosingMatcher<Iterator<T>>() {
+            @Override
+            protected boolean matchesSafely(Iterator<T> item, Description mismatchDescription) {
+                int i = 0;
+                while (it.hasNext() && item.hasNext()) {
+                    Matcher<T> sub = equalTo(item.next());
+                    T nxt = it.next();
+                    if (!sub.matches(nxt)) {
+                        mismatchDescription.appendText("Mismatch in iterator at index " + i + ": ");
+                        sub.describeMismatch(nxt, mismatchDescription);
+                        mismatchDescription.appendText(", should be ");
+                        sub.describeTo(mismatchDescription);
+                        return false;
+                    }
+                    i++;
+                }
+                if (it.hasNext() != item.hasNext()) {
+                    mismatchDescription.appendText("Iterators are unequal lengths at index " + i);
+                    return false;
+                }
+                return true;
+            }
+
+            @Override
+            public void describeTo(Description description) {
+                description.appendText("Iterators should match precisely");
+            }
+        };
     }
 }

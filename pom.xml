@@ -21,6 +21,9 @@
     </scm>
 
     <properties>
+        <!-- Main class -->
+        <start-class>net.apnic.whowas.App</start-class>
+
         <!-- Encodings -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -28,11 +31,10 @@
         <!-- Default target Java version -->
         <java.version>1.8</java.version>
 
-        <!-- plugin versions -->
+        <!-- Plugin versions -->
         <findbugs-maven-plugin.version>3.0.2</findbugs-maven-plugin.version>
         <maven-checkstyle-plugin.version>2.15</maven-checkstyle-plugin.version>
         <maven-pmd-plugin.version>3.5</maven-pmd-plugin.version>
-
     </properties>
 
     <dependencies>
@@ -68,7 +70,21 @@
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>de.ruedigermoeller</groupId>
+            <artifactId>fst</artifactId>
+            <version>2.47</version>
+        </dependency>
+        <dependency>
+            <groupId>one.util</groupId>
+            <artifactId>streamex</artifactId>
+            <version>0.6.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>findbugs-annotations</artifactId>
+            <version>3.0.1</version>
+        </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -109,6 +125,11 @@
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+
             <!-- maven-pmd-plugin - http://maven.apache.org/plugins/maven-pmd-plugin/ -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -149,6 +170,47 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+
+            <!-- docker-maven-plugin - https://github.com/spotify/docker-maven-plugin -->
+            <plugin>
+                <groupId>com.spotify</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <version>0.4.12</version>
+                <executions>
+                    <execution>
+                        <id>build-image</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>build</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <imageName>apnic/history-server</imageName>
+                    <baseImage>openjdk:8-jre-alpine</baseImage>
+                    <pullOnBuild>true</pullOnBuild>
+                    <workdir>/app</workdir>
+                    <runs>
+                        <run>adduser -S -H -D history</run>
+                    </runs>
+                    <exposes>
+                        <expose>8080</expose>
+                    </exposes>
+                    <user>history</user>
+                    <entryPoint>["java", "-Xmx10G", "-jar", "${project.build.finalName}.jar"]</entryPoint>
+                    <resources>
+                        <resource>
+                            <targetPath>/app</targetPath>
+                            <directory>${project.build.directory}</directory>
+                            <include>${project.build.finalName}.jar</include>
+                        </resource>
+                    </resources>
+                    <imageTags>
+                        <imageTag>${project.version}</imageTag>
+                        <imageTag>latest</imageTag>
+                    </imageTags>
+                </configuration>
             </plugin>
         </plugins>
     </build>

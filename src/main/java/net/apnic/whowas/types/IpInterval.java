@@ -2,7 +2,9 @@ package net.apnic.whowas.types;
 
 import net.apnic.whowas.intervaltree.Interval;
 
-public class IpInterval implements Interval<IP> {
+import java.io.Serializable;
+
+public class IpInterval implements Interval<IP>, Serializable {
     private final IP low, high;
 
     public IpInterval(IP low, IP high) {

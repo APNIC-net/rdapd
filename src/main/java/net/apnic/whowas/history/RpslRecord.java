@@ -1,9 +1,11 @@
 package net.apnic.whowas.history;
 
+import net.ripe.db.whois.common.rpsl.AttributeType;
 import net.ripe.db.whois.common.rpsl.RpslObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -11,11 +13,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-public class RpslRecord implements Comparable<RpslRecord> {
+public class RpslRecord implements Comparable<RpslRecord>, Serializable {
     private static final Logger LOGGER = LoggerFactory.getLogger(RpslRecord.class);
 
     // Number of seconds after an ADD before which a DEL or UPD will elide the ADD altogether
-    private static final long PRIVATE_THRESHOLD = -60;
+    private static final long PRIVATE_THRESHOLD = 300;
 
     private final int objectType;
     private final String primaryKey;
@@ -75,13 +77,10 @@ public class RpslRecord implements Comparable<RpslRecord> {
             return Optional.empty();
         }
 
-        // RpslObject.parse() might throw a runtime exception, because THOSE ARE GREAT!
         try {
-            // Good data, bad data, I'm the data with the fake tabs
-            String workaround = raw.replace("\\t", "\t");
-            return Optional.of(RpslObject.parse(workaround));
-        } catch (IllegalArgumentException wut) {
-            LOGGER.error("Exception parsing RPSL data", wut);
+            return Optional.of(ObjectFilter.filterAttributes(a -> a.getType() != AttributeType.AUTH, RpslObject.parse(raw)));
+        } catch (IllegalArgumentException ex) {
+            LOGGER.error("Exception parsing RPSL data", ex);
             return Optional.empty();
         }
     }

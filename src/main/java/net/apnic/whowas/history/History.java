@@ -3,13 +3,15 @@ package net.apnic.whowas.history;
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.google.gson.*;
+import net.ripe.db.whois.common.domain.CIString;
 import net.ripe.db.whois.common.rpsl.AttributeType;
 import net.ripe.db.whois.common.rpsl.RpslAttribute;
 import net.ripe.db.whois.common.rpsl.RpslObject;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import javax.annotation.Nullable;
+import java.io.ObjectStreamException;
+import java.io.Serializable;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -19,17 +21,18 @@ import java.util.stream.Stream;
  *
  * @author bje
  */
-public final class History {
+public final class History implements Serializable {
     private static final Gson GSON = new Gson();
+    private static final long serialVersionUID = 1;
 
-    private final Optional<String> rawJSON;
+    private final transient @Nullable String rawJSON;
     private final List<RpslRecord> records;
 
     private History(List<RpslRecord> records, Optional<String> rawJSON) {
         if (records.isEmpty()) {
             throw new IllegalArgumentException("The list of records must not be empty");
         }
-        this.rawJSON = rawJSON;
+        this.rawJSON = rawJSON.orElse(null);
         this.records = records;
     }
 
@@ -97,6 +100,10 @@ public final class History {
         return records.get(0).getPrimaryKey();
     }
 
+    public List<RpslRecord> getRecords() {
+        return records;
+    }
+
     @JsonValue
     @JsonRawValue
     /**
@@ -107,12 +114,12 @@ public final class History {
      * @return the JSON for this History
      */
     public String toJson() {
-        return rawJSON.orElse(makeJson());
+        return rawJSON != null ? rawJSON : makeJson();
     }
 
     private JsonArray streamToJson(Stream<JsonElement> contents) {
         final JsonArray json = new JsonArray();
-        contents.forEach(json::add);
+        contents.sequential().forEach(json::add);
         return json;
     }
 
@@ -177,13 +184,23 @@ public final class History {
         });
     }
 
+    private String whitespaceNormalised(RpslObject object) {
+        return object.toString();
+    }
+
     private void addRaw(RpslRecord record, JsonObject json) {
         JsonArray raw = new JsonArray();
 
-        raw.add(record.getRaw());
-        record.getChildren().forEach(k -> raw.add(k.getRaw()));
+        raw.add(record.getRpslObject().map(this::whitespaceNormalised).get());
+        record.getChildren().stream()
+                .map(RpslRecord::getRpslObject)
+                .sorted(Comparator.comparing(k -> k.map(RpslObject::getKey).orElse(CIString.ciString(""))))
+                .forEach(k -> k.ifPresent(o -> raw.add(whitespaceNormalised(o))));
 
         json.add("rpsl", raw);
     }
 
+    private Object readResolve() throws ObjectStreamException {
+        return new History(records, Optional.empty());
+    }
 }

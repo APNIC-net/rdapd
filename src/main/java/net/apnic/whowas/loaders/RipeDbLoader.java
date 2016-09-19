@@ -2,7 +2,12 @@ package net.apnic.whowas.loaders;
 
 import net.apnic.whowas.history.History;
 import net.apnic.whowas.history.RpslRecord;
+import net.apnic.whowas.intervaltree.IntervalTree;
+import net.apnic.whowas.intervaltree.avl.AvlTree;
 import net.apnic.whowas.progress.Bar;
+import net.apnic.whowas.types.IP;
+import net.apnic.whowas.types.IpInterval;
+import net.apnic.whowas.types.Parsing;
 import net.apnic.whowas.types.Tuple;
 import net.ripe.db.whois.common.domain.CIString;
 import net.ripe.db.whois.common.rpsl.AttributeType;
@@ -30,7 +35,13 @@ public final class RipeDbLoader implements Loader {
     }
 
     @Override
-    public void loadInto(Consumer<History> consumer) {
+    public IntervalTree<IP, History, IpInterval> loadTree() throws Exception {
+        AvlTree<IP, History, IpInterval> avlTree = new AvlTree<>();
+        loadInto(r -> avlTree.insert(Parsing.parseInterval(r.getPrimaryKey()), r));
+        return avlTree;
+    }
+
+    private void loadInto(Consumer<History> consumer) {
         LOGGER.info("Begin database run");
 
         Function<String, String> query =
@@ -79,7 +90,8 @@ public final class RipeDbLoader implements Loader {
                 .map(index::get)
 
                 // Eliminate deletions and short-lived objects
-//                    .map(o -> o.stream())
+                // nb: short-lived objects should be merged in ::fromStream below, and deleted objects should
+                //   leave some kind of marker in the history output to distinguish from 'no data'
                 .map(o -> o.stream().filter(r -> !r.isDelete() && !r.isPrivate()))
 
                 // Convert to a History of the object
@@ -88,7 +100,11 @@ public final class RipeDbLoader implements Loader {
                 // Split up each History around its dependents
                 .map(h -> h.flatMap(hd -> splitOnDependents(index, hd)))
 
+                // Get rid of any histories which no longer exist
                 .flatMap(o -> o.map(Stream::of).orElse(Stream.empty()))
+
+                // Cache the JSON output
+//                .map(History::cached)
 
                 // Insert into tree
                 .forEach(consumer);

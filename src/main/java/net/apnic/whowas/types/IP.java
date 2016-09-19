@@ -1,10 +1,11 @@
 package net.apnic.whowas.types;
 
+import java.io.Serializable;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Optional;
 
-public class IP implements Comparable<IP> {
+public class IP implements Comparable<IP>, Serializable {
     private final InetAddress address;
 
     public IP(InetAddress address) {

@@ -1,0 +1,14 @@
+{
+  "properties": [
+    {
+      "name": "loader.kryo",
+      "type": "java.util.List<java.lang.String>",
+      "description": "Comma separated list of Kryo loaders to read."
+    },
+    {
+      "name": "loader.ripedb",
+      "type": "java.lang.String",
+      "description": "Description for loader.ripedb."
+    }
+  ]
+}
