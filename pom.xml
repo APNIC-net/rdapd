@@ -125,6 +125,27 @@
                 </dependency>
             </dependencies>
         </profile>
+        <profile>
+          <id>docker</id>
+          <build>
+            <plugins>
+              <plugin>
+                <groupId>com.spotify</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <version>0.4.12</version>
+                <executions>
+                  <execution>
+                    <id>build-image</id>
+                    <phase>package</phase>
+                    <goals>
+                      <goal>build</goal>
+                    </goals>
+                  </execution>
+                </executions>
+              </plugin>
+            </plugins>
+          </build>
+        </profile>
     </profiles>
 
     <build>
@@ -181,15 +202,6 @@
                 <groupId>com.spotify</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
                 <version>0.4.12</version>
-                <executions>
-                    <execution>
-                        <id>build-image</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>build</goal>
-                        </goals>
-                    </execution>
-                </executions>
                 <configuration>
                     <imageName>apnic/history-server</imageName>
                     <baseImage>openjdk:8-jre-alpine</baseImage>
