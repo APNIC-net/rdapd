@@ -1,14 +1,10 @@
 {
   "properties": [
     {
-      "name": "loader.kryo",
-      "type": "java.util.List<java.lang.String>",
-      "description": "Comma separated list of Kryo loaders to read."
-    },
-    {
-      "name": "loader.ripedb",
+      "name": "snapshot.file",
       "type": "java.lang.String",
-      "description": "Description for loader.ripedb."
+      "sourceType": "net.apnic.whowas.App",
+      "description": "A snapshot file to read on start-up."
     }
   ]
 }
