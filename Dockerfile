@@ -9,8 +9,9 @@ RUN cd /tmp && \
     rm -f apache-maven-$MAVEN_VERSION-bin.tar.gz
 
 COPY pom.xml build/
+# Download a large number of dependencies early, such that source file changes don't require this step to re-run
+RUN cd build && $M2_HOME/bin/mvn verify clean --fail-never
 COPY src/ build/src/
-RUN cd build && $M2_HOME/bin/mvn dependency:resolve
 RUN cd build && $M2_HOME/bin/mvn verify -DskipDocker && \
     mkdir /app && cp target/*.jar /app && \
     cd / && rm -rf build ${M2_HOME}
