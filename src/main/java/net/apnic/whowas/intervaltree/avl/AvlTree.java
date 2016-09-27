@@ -41,6 +41,15 @@ public class AvlTree<K extends Comparable<K>, V, I extends Interval<K>>
     }
 
     @Override
+    public int size() {
+        return size(root);
+    }
+
+    private int size(Optional<AvlNode<K, V, I>> node) {
+        return node.map(n -> 1 + size(n.left) + size(n.right)).orElse(0);
+    }
+
+    @Override
     public Iterator<Tuple<I, V>> iterator() {
         return Spliterators.iterator(spliterator());
     }
