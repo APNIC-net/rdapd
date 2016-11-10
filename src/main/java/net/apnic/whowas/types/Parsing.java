@@ -22,7 +22,7 @@ public final class Parsing {
                 }
             });
     private static final Parser<IP> V6_ADDRESS =
-            Patterns.many(CharPredicates.among("0123456789abcdef:")).toScanner("IPv6 address").source().map(s -> {
+            Patterns.many(CharPredicates.among("0123456789abcdefABCDEF:")).toScanner("IPv6 address").source().map(s -> {
                 try {
                     return new IP(Inet6Address.getByName(s));
                 } catch (UnknownHostException e) {

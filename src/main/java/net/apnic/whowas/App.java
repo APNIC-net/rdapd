@@ -81,7 +81,7 @@ public class App {
                 tree = loader.loadTree();
                 break;
             } catch (Exception ex) {
-                LOGGER.error("Failed to load data with {}: {}", loader, ex.getLocalizedMessage());
+                LOGGER.error("Failed to load data with {}: {}", loader, ex.getLocalizedMessage(), ex);
             }
         }
         LOGGER.info("Tree construction completed, {} entries", tree.size());
