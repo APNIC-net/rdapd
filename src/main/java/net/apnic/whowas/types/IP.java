@@ -1,6 +1,8 @@
 package net.apnic.whowas.types;
 
 import java.io.Serializable;
+import java.net.Inet4Address;
+import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Optional;
@@ -10,6 +12,16 @@ public class IP implements Comparable<IP>, Serializable {
 
     public IP(InetAddress address) {
         this.address = address;
+    }
+
+    public AddressFamily getAddressFamily() {
+        if (address instanceof Inet4Address) {
+            return AddressFamily.IPv4;
+        } else if (address instanceof Inet6Address) {
+            return AddressFamily.IPv6;
+        } else {
+            throw new IllegalArgumentException("IP address isn't a recognised address family");
+        }
     }
 
     @Override
@@ -115,5 +127,13 @@ public class IP implements Comparable<IP>, Serializable {
     @Override
     public String toString() {
         return address.getHostAddress();
+    }
+
+    /**
+     * The address family of this IP.
+     */
+    public enum AddressFamily {
+        IPv4,
+        IPv6
     }
 }

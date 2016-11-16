@@ -9,6 +9,7 @@ import org.codehaus.jparsec.pattern.Patterns;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.UnknownHostException;
+import java.util.OptionalInt;
 
 public final class Parsing {
     private Parsing() {}
@@ -30,24 +31,26 @@ public final class Parsing {
                 }
             });
 
-    private static final Parser<Void> WHITESPACE = Scanners.WHITESPACES.skipMany();
-    private static final Parser<Void> HYPHEN =
-            WHITESPACE.followedBy(Scanners.isChar('-')).followedBy(WHITESPACE);
+    private static final Parser<OptionalInt> CIDR =
+            Parsers.sequence(
+                    Scanners.isChar('/'),
+                    Scanners.INTEGER.map(Integer::parseInt).map(OptionalInt::of)
+            );
 
     private static final Parser<IpInterval> IP_RANGE =
-            Parsers.or(
-                    Parsers.sequence(V4_ADDRESS, HYPHEN, V4_ADDRESS, (a, h, b) -> new IpInterval(a, b)),
-                    Parsers.sequence(V4_ADDRESS, Scanners.isChar('/'), Scanners.INTEGER.map(Integer::parseInt),
-                            (a, s, b) -> new IpInterval(a, b)),
-                    Parsers.sequence(V6_ADDRESS, Scanners.isChar('/'), Scanners.INTEGER.map(Integer::parseInt),
-                            (a, s, b) -> new IpInterval(a, b)),
-                    V4_ADDRESS.map(a -> new IpInterval(a, 32))
+            Parsers.sequence(
+                    Parsers.longer(V4_ADDRESS, V6_ADDRESS),
+                    Parsers.or(CIDR, Parsers.EOF.map(x -> OptionalInt.empty())),
+                    (a, c) -> {
+                        int maxCidr = a.getAddressFamily() == IP.AddressFamily.IPv4 ? 32 : 128;
+                        int cidr = c.orElse(maxCidr);
+                        return new IpInterval(a, cidr);
+                    }
             );
 
     // A parser for a Thing;
     // is a function from a String;
     // to a list of pairs of Things and Strings.
-    // But in this case, there's neither pair nor list, it's just the Thing or another awesome runtime exception.
     public static IpInterval parseInterval(String thing) {
         return IP_RANGE.parse(thing);
     }
