@@ -1,6 +1,6 @@
 package net.apnic.whowas;
 
-import net.apnic.whowas.history.History;
+import net.apnic.whowas.history.ObjectHistory;
 import net.apnic.whowas.intervaltree.IntervalTree;
 import net.apnic.whowas.intervaltree.avl.AvlTree;
 import net.apnic.whowas.loaders.Loader;
@@ -34,14 +34,14 @@ import java.util.zip.InflaterInputStream;
 public class App {
     private final static Logger LOGGER = LoggerFactory.getLogger(App.class);
 
-    private volatile IntervalTree<IP, History, IpInterval> tree = new AvlTree<>();
+    private volatile IntervalTree<IP, ObjectHistory, IpInterval> tree = new AvlTree<>();
 
     public static void main(String[] args) {
         SpringApplication.run(App.class, args);
     }
 
     @Bean
-    public IntervalTree<IP, History, IpInterval> ipListIntervalTree() {
+    public IntervalTree<IP, ObjectHistory, IpInterval> ipListIntervalTree() {
         return tree;
     }
 
@@ -62,7 +62,7 @@ public class App {
             try (InputStream resourceStream = context.getResource("file:///" + snapshotFile).getInputStream();
                  InflaterInputStream zipStream = new InflaterInputStream(resourceStream);
                  FSTObjectInput objStream = new FSTObjectInput(zipStream)) {
-                 return (AvlTree<IP, History, IpInterval>)objStream.readObject();
+                 return (AvlTree<IP, ObjectHistory, IpInterval>)objStream.readObject();
             }
         };
     }

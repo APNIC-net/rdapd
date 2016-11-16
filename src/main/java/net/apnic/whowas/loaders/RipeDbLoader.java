@@ -1,6 +1,6 @@
 package net.apnic.whowas.loaders;
 
-import net.apnic.whowas.history.History;
+import net.apnic.whowas.history.ObjectHistory;
 import net.apnic.whowas.history.RpslRecord;
 import net.apnic.whowas.intervaltree.IntervalTree;
 import net.apnic.whowas.intervaltree.avl.AvlTree;
@@ -15,6 +15,8 @@ import net.ripe.db.whois.common.rpsl.ObjectType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcOperations;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -35,13 +37,14 @@ public final class RipeDbLoader implements Loader {
     }
 
     @Override
-    public IntervalTree<IP, History, IpInterval> loadTree() throws Exception {
-        AvlTree<IP, History, IpInterval> avlTree = new AvlTree<>();
+    public IntervalTree<IP, ObjectHistory, IpInterval> loadTree() throws Exception {
+        AvlTree<IP, ObjectHistory, IpInterval> avlTree = new AvlTree<>();
         loadInto(r -> avlTree.insert(Parsing.parseInterval(r.getPrimaryKey()), r));
         return avlTree;
     }
 
-    private void loadInto(Consumer<History> consumer) {
+    @Transactional(isolation = Isolation.REPEATABLE_READ, readOnly = true)
+    private void loadInto(Consumer<ObjectHistory> consumer) {
         LOGGER.info("Begin database run");
 
         Function<String, String> query =
@@ -83,8 +86,8 @@ public final class RipeDbLoader implements Loader {
                 // update progress
                 .peek(z -> bar.inc())
 
-                // Look for just inetnums (later: inetnums, aut-nums, inet6nums; same algorithm)
-                .filter(o -> o.fst() == ObjectType.INETNUM)
+                // Only IP addresses need to be stored in the interval tree
+                .filter(o -> o.fst() == ObjectType.INET6NUM)// || o.fst() == ObjectType.INET6NUM)
 
                 // Consider all instances of this object pkey
                 .map(index::get)
@@ -95,7 +98,7 @@ public final class RipeDbLoader implements Loader {
                 .map(o -> o.stream().filter(r -> !r.isDelete() && !r.isPrivate()))
 
                 // Convert to a History of the object
-                .flatMap(History::fromStream)
+                .flatMap(ObjectHistory::fromStream)
 
                 // Split up each History around its dependents
                 .map(h -> h.flatMap(hd -> splitOnDependents(index, hd)))

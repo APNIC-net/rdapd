@@ -21,14 +21,14 @@ import java.util.stream.Stream;
  *
  * @author bje
  */
-public final class History implements Serializable {
+public final class ObjectHistory implements Serializable {
     private static final Gson GSON = new Gson();
     private static final long serialVersionUID = 1;
 
     private final transient @Nullable String rawJSON;
     private final List<RpslRecord> records;
 
-    private History(List<RpslRecord> records, Optional<String> rawJSON) {
+    private ObjectHistory(List<RpslRecord> records, Optional<String> rawJSON) {
         if (records.isEmpty()) {
             throw new IllegalArgumentException("The list of records must not be empty");
         }
@@ -42,9 +42,9 @@ public final class History implements Serializable {
      * @param records the records to combine into the new History
      * @return a stream of one History if at least one record exists, else an empty stream
      */
-    public static Stream<History> fromStream(Stream<RpslRecord> records) {
+    public static Stream<ObjectHistory> fromStream(Stream<RpslRecord> records) {
         List<RpslRecord> rs = records.sorted().collect(Collectors.toList());
-        return rs.isEmpty() ? Stream.empty() : Stream.of(new History(rs, Optional.empty()));
+        return rs.isEmpty() ? Stream.empty() : Stream.of(new ObjectHistory(rs, Optional.empty()));
     }
 
     /**
@@ -56,7 +56,7 @@ public final class History implements Serializable {
      * @param update The new RpslRecord to append
      * @return A new History
      */
-    public History appendUpdate(RpslRecord update) {
+    public ObjectHistory appendUpdate(RpslRecord update) {
         // TODO: probably need to sort this, now
         List<RpslRecord> newRecords = new ArrayList<>(records.size() + 1);
         Optional<RpslRecord> last = records.isEmpty()
@@ -68,7 +68,7 @@ public final class History implements Serializable {
                 .ifPresent(r -> newRecords.set(records.size() - 1, r.splitAt(update.getWhence())[0]));
         newRecords.add(update);
 
-        return new History(newRecords, Optional.empty());
+        return new ObjectHistory(newRecords, Optional.empty());
     }
 
     /**
@@ -77,13 +77,13 @@ public final class History implements Serializable {
      * @param fn the function to map a record to a stream of records
      * @return a new History if there is at least one resulting record, or empty otherwise
      */
-    public Optional<History> flatMap(Function<RpslRecord, Stream<RpslRecord>> fn) {
+    public Optional<ObjectHistory> flatMap(Function<RpslRecord, Stream<RpslRecord>> fn) {
         List<RpslRecord> rs = records.stream().sequential().flatMap(fn).sorted().collect(Collectors.toList());
 
         if (rs.isEmpty()) {
             return Optional.empty();
         } else {
-            return Optional.of(new History(rs, Optional.empty()));
+            return Optional.of(new ObjectHistory(rs, Optional.empty()));
         }
     }
 
@@ -92,8 +92,8 @@ public final class History implements Serializable {
      *
      * @return A new History where the JSON representation is precomputed
      */
-    public History cached() {
-        return new History(records, Optional.of(makeJson()));
+    public ObjectHistory cached() {
+        return new ObjectHistory(records, Optional.of(makeJson()));
     }
 
     public String getPrimaryKey() {
@@ -201,6 +201,6 @@ public final class History implements Serializable {
     }
 
     private Object readResolve() throws ObjectStreamException {
-        return new History(records, Optional.empty());
+        return new ObjectHistory(records, Optional.empty());
     }
 }

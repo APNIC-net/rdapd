@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.stream.Stream;
 
-public class HistoryTest {
+public class ObjectHistoryTest {
 
     RpslRecord makeRPSL(int sequence, String key, String raw) {
         return new RpslRecord(
@@ -23,6 +23,6 @@ public class HistoryTest {
                 makeRPSL(1, "TEST-OBJECT",
                         "person: Testy McTestFace\nnic-hdl: TEST-OBJECT\nkey: value\n  value\n+         valymcvalue\n")
         );
-        final History history = History.fromStream(records).findFirst().get();
+        final ObjectHistory history = ObjectHistory.fromStream(records).findFirst().get();
     }
 }
