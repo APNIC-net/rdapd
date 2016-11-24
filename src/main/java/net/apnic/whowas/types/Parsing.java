@@ -37,7 +37,22 @@ public final class Parsing {
                     Scanners.INTEGER.map(Integer::parseInt).map(OptionalInt::of)
             );
 
-    private static final Parser<IpInterval> IP_RANGE =
+    private static final Parser<Void> HYPHEN =
+            Parsers.sequence(
+                    Scanners.WHITESPACES.optional(),
+                    Scanners.isChar('-'),
+                    Scanners.WHITESPACES.optional()
+            );
+
+    private static final Parser<IpInterval> IP4_START_END =
+            Parsers.sequence(
+                    V4_ADDRESS,
+                    HYPHEN,
+                    V4_ADDRESS,
+                    (f, h, t) -> new IpInterval(f, t)
+            );
+
+    private static final Parser<IpInterval> IP_CIDR =
             Parsers.sequence(
                     Parsers.longer(V4_ADDRESS, V6_ADDRESS),
                     Parsers.or(CIDR, Parsers.EOF.map(x -> OptionalInt.empty())),
@@ -48,10 +63,14 @@ public final class Parsing {
                     }
             );
 
-    // A parser for a Thing;
-    // is a function from a String;
-    // to a list of pairs of Things and Strings.
+    private static final Parser<IpInterval> IP_RANGE =
+            Parsers.longer(IP_CIDR, IP4_START_END);
+
     public static IpInterval parseInterval(String thing) {
-        return IP_RANGE.parse(thing);
+        try {
+            return IP_RANGE.parse(thing);
+        } catch (Exception e) {
+            throw new RuntimeException("Could not parse address " + thing, e);
+        }
     }
 }

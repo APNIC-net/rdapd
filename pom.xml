@@ -51,21 +51,6 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.codepoetics</groupId>
-            <artifactId>protonpack</artifactId>
-            <version>1.9</version>
-        </dependency>
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>2.7</version>
-        </dependency>
-        <dependency>
-            <groupId>org.rpsl4j</groupId>
-            <artifactId>rpsl4j-parser</artifactId>
-            <version>1.81</version>
-        </dependency>
-        <dependency>
             <groupId>org.jparsec</groupId>
             <artifactId>jparsec</artifactId>
             <version>2.2.1</version>
@@ -79,17 +64,40 @@
             <artifactId>fst</artifactId>
             <version>2.47</version>
         </dependency>
+        <!-- Persistent data structures, ported from Scala, specifically HAMT map -->
         <dependency>
-            <groupId>one.util</groupId>
-            <artifactId>streamex</artifactId>
-            <version>0.6.2</version>
+            <groupId>com.github.andrewoma.dexx</groupId>
+            <artifactId>collection</artifactId>
+            <version>0.6</version>
         </dependency>
+        <!-- RDAP POJOs and JSON bindings -->
+        <dependency>
+            <groupId>be.dnsbelgium</groupId>
+            <artifactId>rdap-core</artifactId>
+            <version>1.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.5</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-smile</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>com.google.code.findbugs</groupId>
             <artifactId>findbugs-annotations</artifactId>
             <version>3.0.1</version>
+            <scope>provided</scope>
         </dependency>
 
+        <!-- Testing dependencies -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>

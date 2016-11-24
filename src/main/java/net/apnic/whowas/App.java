@@ -1,12 +1,14 @@
 package net.apnic.whowas;
 
+import net.apnic.whowas.history.History;
 import net.apnic.whowas.history.ObjectHistory;
+import net.apnic.whowas.history.RelatedObjects;
 import net.apnic.whowas.intervaltree.IntervalTree;
-import net.apnic.whowas.intervaltree.avl.AvlTree;
 import net.apnic.whowas.loaders.Loader;
 import net.apnic.whowas.loaders.RipeDbLoader;
 import net.apnic.whowas.types.IP;
 import net.apnic.whowas.types.IpInterval;
+import net.apnic.whowas.types.Tuple;
 import org.nustaq.serialization.FSTObjectInput;
 import org.nustaq.serialization.FSTObjectOutput;
 import org.slf4j.Logger;
@@ -27,6 +29,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.stream.Stream;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterInputStream;
 
@@ -34,7 +40,9 @@ import java.util.zip.InflaterInputStream;
 public class App {
     private final static Logger LOGGER = LoggerFactory.getLogger(App.class);
 
-    private volatile IntervalTree<IP, ObjectHistory, IpInterval> tree = new AvlTree<>();
+    private final Executor executor = Executors.newSingleThreadExecutor();
+
+    private final History history = new History();
 
     public static void main(String[] args) {
         SpringApplication.run(App.class, args);
@@ -42,7 +50,33 @@ public class App {
 
     @Bean
     public IntervalTree<IP, ObjectHistory, IpInterval> ipListIntervalTree() {
-        return tree;
+        return new IntervalTree<IP, ObjectHistory, IpInterval>() {
+            @Override
+            public Optional<ObjectHistory> exact(IpInterval range) {
+                return history.getTree().exact(range)
+                        .flatMap(history::getObjectHistory);
+            }
+
+            @Override
+            public Stream<Tuple<IpInterval, ObjectHistory>> intersecting(IpInterval range) {
+                return history.getTree().intersecting(range)
+                        .flatMap(p -> history
+                                .getObjectHistory(p.snd())
+                                .map(Stream::of)
+                                .orElse(Stream.empty())
+                                .map(h -> new Tuple<>(p.fst(), h)));
+            }
+
+            @Override
+            public int size() {
+                return history.getTree().size();
+            }
+        };
+    }
+
+    @Bean
+    public RelatedObjects relatedObjects() {
+        return history::getObjectHistory;
     }
 
     @Bean
@@ -52,39 +86,64 @@ public class App {
         return new RipeDbLoader(operations);
     }
 
-    @Bean
-    @Order(value=1)
-    @ConditionalOnProperty(value="snapshot.file")
-    @SuppressWarnings("unchecked")
-    public Loader fileLoader(@Value("${snapshot.file}") String snapshotFile, ApplicationContext context) {
-        return () -> {
-            LOGGER.info("Restoring snapshot from file {}", snapshotFile);
-            try (InputStream resourceStream = context.getResource("file:///" + snapshotFile).getInputStream();
-                 InflaterInputStream zipStream = new InflaterInputStream(resourceStream);
-                 FSTObjectInput objStream = new FSTObjectInput(zipStream)) {
-                 return (AvlTree<IP, ObjectHistory, IpInterval>)objStream.readObject();
-            }
-        };
-    }
+//    @Bean
+//    @Order(value=1)
+//    @ConditionalOnProperty(value="snapshot.file")
+//    @SuppressWarnings("unchecked")
+//    public Loader fileLoader(@Value("${snapshot.file}") String snapshotFile, ApplicationContext context) {
+//        return (c) -> {
+//            LOGGER.info("Restoring snapshot from file {}", snapshotFile);
+//            try (InputStream resourceStream = context.getResource("file:///" + snapshotFile).getInputStream();
+//                 InflaterInputStream zipStream = new InflaterInputStream(resourceStream);
+//                 FSTObjectInput objStream = new FSTObjectInput(zipStream)) {
+//                 return objStream.readObject();
+//                throw new RuntimeException("No longer a valid approach");
+//            } catch (IOException ex) {
+//                LOGGER.error("IO exception during load", ex);
+//                throw new RuntimeException(ex);
+//            }
+//        };
+//    }
+    @Value("${snapshot.file}")
+    private String snapshotFile;
 
     @Autowired(required=false)
     private List<Loader> loaders;
 
+    @Autowired
+    ApplicationContext context;
+
     @PostConstruct
+    public void initialise() {
+        executor.execute(this::buildTree);
+    }
+
     public void buildTree() {
+        if (snapshotFile != null) {
+            LOGGER.info("Attempting to deserialise from {}", snapshotFile);
+            try (InputStream resourceStream = context.getResource("file:///" + snapshotFile).getInputStream();
+                InflaterInputStream zipStream = new InflaterInputStream(resourceStream);
+                FSTObjectInput objStream = new FSTObjectInput(zipStream)) {
+                history.deserialize((History)objStream.readObject());
+                return;
+            } catch (IOException | ClassNotFoundException ex) {
+                LOGGER.error("Exception during load", ex);
+            }
+        }
+
         LOGGER.info("Loading history from configured sources");
 
         // Try loaders in order until one succeeds
         for (Loader loader : loaders) {
             LOGGER.info("Invoking loader: {}", loader);
             try {
-                tree = loader.loadTree();
+                loader.loadWith(history::addRevision);
                 break;
             } catch (Exception ex) {
                 LOGGER.error("Failed to load data with {}: {}", loader, ex.getLocalizedMessage(), ex);
             }
         }
-        LOGGER.info("Tree construction completed, {} entries", tree.size());
+        LOGGER.info("Tree construction completed, {} entries", history.getTree().size());
     }
 
     @Bean
@@ -123,7 +182,7 @@ public class App {
         try (FileOutputStream fileOutput = new FileOutputStream(target);
              DeflaterOutputStream zipOutput = new DeflaterOutputStream(fileOutput);
              FSTObjectOutput objOutput = new FSTObjectOutput(zipOutput)) {
-            objOutput.writeObject(tree);
+            objOutput.writeObject(history);
         }
     }
 }

@@ -22,25 +22,28 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 public class AvlTreeTest {
+    int height(AvlNode<?, ?, ?> node) {
+        return node == null ? 0 : 1 + Math.max(height(node.left), height(node.right));
+    }
 
     @Test
     public void testInsert() throws Exception {
         AvlTree<Integer, String, IntInterval> tree = new AvlTree<>();
 
-        tree.insert(new IntInterval(42, 59), "green tree");
-        tree.insert(new IntInterval(33, 45), "corroboree");
-        tree.insert(new IntInterval(39, 39), "bleating tree");
-        assertThat("Three nodes has a max height of 2", tree.height(), is(2));
+        tree = tree.insert(new IntInterval(42, 59), "green tree");
+        tree = tree.insert(new IntInterval(33, 45), "corroboree");
+        tree = tree.insert(new IntInterval(39, 39), "bleating tree");
+        assertThat("Three nodes has a max height of 2", height(tree.getRoot()), is(2));
     }
 
     @Test
     public void testExact() throws Exception {
         AvlTree<Integer, String, IntInterval> tree = new AvlTree<>();
-        tree.insert(new IntInterval(42, 59), "green tree");
-        tree.insert(new IntInterval(33, 45), "corroboree");
-        tree.insert(new IntInterval(33, 44), "rocket");
-        tree.insert(new IntInterval(39, 39), "bleating tree");
-        tree.insert(new IntInterval(20, 39), "tusked");
+        tree = tree.insert(new IntInterval(42, 59), "green tree");
+        tree = tree.insert(new IntInterval(33, 45), "corroboree");
+        tree = tree.insert(new IntInterval(33, 44), "rocket");
+        tree = tree.insert(new IntInterval(39, 39), "bleating tree");
+        tree = tree.insert(new IntInterval(20, 39), "tusked");
         assertThat("finding a missing range gives nothing", tree.exact(new IntInterval(33, 46)), is(Optional.empty()));
         assertThat("finding a precise range gives its value", tree.exact(new IntInterval(33,45)), is(Optional.of("corroboree")));
         assertThat("equal starts don't matter", tree.exact(new IntInterval(33, 44)), is(Optional.of("rocket")));
@@ -50,11 +53,11 @@ public class AvlTreeTest {
     @Test
     public void rangeTest() throws Exception {
         AvlTree<Integer, String, IntInterval> tree = new AvlTree<>();
-        tree.insert(new IntInterval(42, 59), "green tree");
-        tree.insert(new IntInterval(33, 45), "corroboree");
-        tree.insert(new IntInterval(33, 44), "rocket");
-        tree.insert(new IntInterval(39, 39), "bleating tree");
-        tree.insert(new IntInterval(20, 39), "tusked");
+        tree = tree.insert(new IntInterval(42, 59), "green tree");
+        tree = tree.insert(new IntInterval(33, 45), "corroboree");
+        tree = tree.insert(new IntInterval(33, 44), "rocket");
+        tree = tree.insert(new IntInterval(39, 39), "bleating tree");
+        tree = tree.insert(new IntInterval(20, 39), "tusked");
         List<String> frogs = tree.intersecting(new IntInterval(40, 50)).map(Tuple::snd).collect(Collectors.toList());
         assertThat("there are three frogs in range", frogs.size(), is(3));
         assertThat("there are no frogs in negative-land", tree.intersecting(new IntInterval(-1, -1)).count(), is(0L));
@@ -64,21 +67,25 @@ public class AvlTreeTest {
     public void concurrencyTest() throws Exception {
         AvlTree<Integer, Integer, IntInterval> tree = new AvlTree<>();
         Random random = new Random();
-        final int[] expected = { 0 };
-        Stream.generate(() -> new IntInterval(random.nextInt(), random.nextInt()))
-                .limit(10000)
-                .map(i -> i.high() >= i.low() ? i : new IntInterval(i.high(), i.low()))
-                .forEach(i -> {
-                    if (i.low() <= 1000 && i.high() >= -1000) {
-                        expected[0]++;
-                    }
-                    tree.update(i, random.nextInt(), (p, q) -> {
-                        if (i.low() <= 1000 && i.high() >= -1000) {
-                            expected[0]--;
-                        }
-                        return p + q;
-                    }, j -> i.low());
-                });
+        int[] expected = { 0 };
+        for (int i = 0; i < 10000; i++) {
+            int a = random.nextInt(), b = random.nextInt();
+            if (a > b) {
+                int c = a;
+                a = b;
+                b = c;
+            }
+            IntInterval iv = new IntInterval(a, b);
+            if (iv.low() <= 1000 && iv.high() >= -1000) {
+                expected[0]++;
+            }
+            tree = tree.update(iv, random.nextInt(), (p, q) -> {
+                if (iv.low() <= 1000 && iv.high() >= -1000) {
+                    expected[0]--;
+                }
+                return p+q;
+            }, z -> iv.low());
+        }
 
         IntInterval nearZero = new IntInterval(-1000, 1000);
         assertTrue("the intersecting stream is parallel", tree.intersecting(nearZero).isParallel());

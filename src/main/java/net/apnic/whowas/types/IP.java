@@ -14,6 +14,10 @@ public class IP implements Comparable<IP>, Serializable {
         this.address = address;
     }
 
+    public InetAddress getAddress() {
+        return address;
+    }
+
     public AddressFamily getAddressFamily() {
         if (address instanceof Inet4Address) {
             return AddressFamily.IPv4;
