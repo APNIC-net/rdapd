@@ -41,39 +41,10 @@ public class Entity implements RdapObject, Serializable {
         // - events:  can I use this for applicability?
         // how to get related objects?
 
-//        person:         Byron Ellacott
-//        nic-hdl:        BE3-AP
-//        e-mail:         bje@apnic.net
-//        address:        PO Box 3646
-//        South Brisbane, QLD 4101, Australia
-//        phone:          +61-7-3858-3100
-//        fax-no:         +61-7-3858-3199
-//        country:        AU
-//        changed:        bje@apnic.net 20150720
-//        mnt-by:         MAINT-AU-BE3-AP
-//        remarks:        The lambda (λ) is a Greek character, often used in
-//        remarks:        computer science to denote an anonymous function
-//        remarks:        (occasionally called a lambda for this same reason)
-//        remarks:        because of the lambda calculus, a symbol manipulation
-//        remarks:        algebra which expresses computations.
-//        remarks:        無名関数を作るためにはラムダを使います
-//        source:         APNIC
-
         Contact contact = new Contact(EnumSet.allOf(VCardAttribute.class)
                 .stream()
                 .flatMap(a -> a.getProperty(rpslObject))
                 .collect(Collectors.toList()));
-
-//        String objectType = attributes.get(0).fst();
-//
-//        List<Contact.Property> properties = new Contact.Builder()
-//                .setFormattedName(attributes.get(0).snd())
-//                .build().getProperties();
-//
-//                Contact.Property.of("fn", Text.of()),
-//                Contact.Property.of("kind", Text.of(objectType.equals("person") ? "individual" : "group"))
-//        );
-//        contact.
 
         entity = new be.dnsbelgium.rdap.core.Entity(
                 /* links */     null,
