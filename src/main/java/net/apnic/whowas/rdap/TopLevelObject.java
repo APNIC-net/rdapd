@@ -24,12 +24,12 @@ public class TopLevelObject {
     private final List<Notice> notices;
 
     @JsonUnwrapped
-    private final RdapObject rdapObject;
+    private final Object object;
 
-    public TopLevelObject(Set<String> rdapConformance, List<Notice> notices, RdapObject rdapObject) {
+    public TopLevelObject(Set<String> rdapConformance, List<Notice> notices, Object object) {
         this.rdapConformance = rdapConformance;
         this.notices = notices;
-        this.rdapObject = rdapObject;
+        this.object = object;
     }
 
     public Set<String> getRdapConformance() {
@@ -40,20 +40,20 @@ public class TopLevelObject {
         return notices;
     }
 
-    public RdapObject getRdapObject() {
-        return rdapObject;
+    public Object getObject() {
+        return object;
     }
 
     /**
      * Construct a top level object using server defaults
      *
-     * @param rdapObject The object to wrap
+     * @param object The object to wrap
      * @return A top level object using server defaults
      */
-    public static TopLevelObject of(RdapObject rdapObject) {
+    public static TopLevelObject of(Object object) {
         return new TopLevelObject(
                 SERVER_CONFORMANCE,
                 SERVER_NOTICES,
-                rdapObject);
+                object);
     }
 }

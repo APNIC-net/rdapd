@@ -2,16 +2,16 @@ package net.apnic.whowas.history;
 
 import net.apnic.whowas.rdap.RdapObject;
 
-import java.io.*;
+import java.io.ObjectStreamException;
+import java.io.Serializable;
 import java.time.ZonedDateTime;
 
 /**
  * A Revision is one version of one object in a registry's history.
  */
 public class Revision implements Serializable {
-    private static final long serialVersionUID = 263521376882066215L;
+    private static final long serialVersionUID = -8401990997863142475L;
 
-    private final int sequence;
     private final ZonedDateTime validFrom;
     private final ZonedDateTime validUntil;
     private final RdapObject contents;
@@ -19,13 +19,11 @@ public class Revision implements Serializable {
     /**
      * Construct a new revision for an object.
      *
-     * @param sequence   The sequence number this revision has
      * @param validFrom  When this revision came into effect
      * @param validUntil When this revision was superseded
      * @param contents   The object's revision, as RDAP data
      */
-    public Revision(int sequence, ZonedDateTime validFrom, ZonedDateTime validUntil, RdapObject contents) {
-        this.sequence   = sequence;
+    public Revision(ZonedDateTime validFrom, ZonedDateTime validUntil, RdapObject contents) {
         this.validFrom  = validFrom;
         this.validUntil = validUntil;
         this.contents   = contents;
@@ -38,7 +36,7 @@ public class Revision implements Serializable {
      * @return A new Revision with an updated validity range
      */
     public Revision supersede(ZonedDateTime validUntil) {
-        return new Revision(sequence, validUntil, validUntil, contents);
+        return new Revision(validFrom, validUntil, contents);
     }
 
 
@@ -58,26 +56,24 @@ public class Revision implements Serializable {
 
     /* Serialization via a replacement wrapper to preserve immutability */
     private Object writeReplace() throws ObjectStreamException {
-        return new Wrapper(sequence, validFrom, validUntil, contents);
+        return new Wrapper(validFrom, validUntil, contents);
     }
 
     private static class Wrapper implements Serializable {
         private static final long serialVersionUID = 4063426002249141977L;
 
-        private int sequence;
         private ZonedDateTime validFrom;
         private ZonedDateTime validUntil;
         private RdapObject contents;
 
-        public Wrapper(int sequence, ZonedDateTime validFrom, ZonedDateTime validUntil, RdapObject contents) {
-            this.sequence = sequence;
+        private Wrapper(ZonedDateTime validFrom, ZonedDateTime validUntil, RdapObject contents) {
             this.validFrom = validFrom;
             this.validUntil = validUntil;
             this.contents = contents;
         }
 
         private Object readResolve() {
-            return new Revision(sequence, validFrom, validUntil, contents);
+            return new Revision(validFrom, validUntil, contents);
         }
     }
 }

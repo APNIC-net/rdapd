@@ -4,6 +4,7 @@ import be.dnsbelgium.rdap.core.Notice;
 import net.apnic.whowas.types.Tuple;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -18,17 +19,22 @@ public class RpslObject {
     }
 
     /**
-     * Retrieve a list of remarks attributes as RDAP Notice objects.
+     * Retrieve a list of text attributes as RDAP Notice objects.
      *
-     * @return a list of remarks attributes as RDAP Notice objects.
+     * If there are neither remarks nor descr attributes present,
+     * null will be returned rather than an empty list.
+     *
+     * @return a list of text attributes as RDAP Notice objects.
      */
     public List<Notice> getRemarks() {
-        return Stream.of(attributes)
-                .map(l -> new Notice("remarks", null, l.stream()
-                        .filter(o -> o.fst().equals("remarks"))
-                        .map(Tuple::snd)
-                        .collect(Collectors.toList()), null))
+        Notice remarks = new Notice("remarks", null, getAttribute("remarks"), null);
+        Notice descr   = new Notice("description", null, getAttribute("descr"), null);
+
+        List<Notice> notices = Stream.of(remarks, descr)
+                .filter(n -> !n.getDescription().isEmpty())
                 .collect(Collectors.toList());
+
+        return notices.isEmpty() ? null : notices;
     }
 
     /**
@@ -42,6 +48,19 @@ public class RpslObject {
                 .filter(o -> o.fst().equals(key))
                 .map(Tuple::snd)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Retrieve the first value of an attribute
+     *
+     * @param key the attribute key to look for
+     * @return The first value set for the attribute, if any
+     */
+    public Optional<String> getAttributeFirstValue(String key) {
+        return attributes.stream()
+                .filter(o -> o.fst().equals(key))
+                .map(Tuple::snd)
+                .findFirst();
     }
 
     /**

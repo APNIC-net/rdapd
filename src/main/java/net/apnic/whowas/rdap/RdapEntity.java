@@ -1,5 +1,6 @@
 package net.apnic.whowas.rdap;
 
+import be.dnsbelgium.rdap.core.Entity;
 import be.dnsbelgium.rdap.core.Notice;
 import be.dnsbelgium.vcard.Contact;
 import be.dnsbelgium.vcard.datatype.StructuredValue;
@@ -22,18 +23,22 @@ import java.util.stream.Stream;
 /**
  * An Entity object.
  */
-public class Entity implements RdapObject, Serializable {
+public class RdapEntity implements RdapObject, Serializable {
     private static final long serialVersionUID = -5721385011828987523L;
 
     @JsonUnwrapped
-    private final transient be.dnsbelgium.rdap.core.Entity entity;
+    private final transient Entity entity;
 
-    public Entity(ObjectKey objectKey, byte[] rpsl) {
+    private final ObjectKey objectKey;
+
+    public RdapEntity(ObjectKey objectKey, byte[] rpsl) {
         this(objectKey, rpsl, null);
     }
 
-    public Entity(ObjectKey objectKey, byte[] rpsl, List<be.dnsbelgium.rdap.core.Entity.Role> roles) {
+    private RdapEntity(ObjectKey objectKey, byte[] rpsl, List<Entity.Role> roles) {
         assert objectKey.getObjectClass() == ObjectClass.ENTITY;
+
+        this.objectKey = objectKey;
 
         RpslObject rpslObject = new RpslObject(rpsl);
 
@@ -46,7 +51,7 @@ public class Entity implements RdapObject, Serializable {
                 .flatMap(a -> a.getProperty(rpslObject))
                 .collect(Collectors.toList()));
 
-        entity = new be.dnsbelgium.rdap.core.Entity(
+        entity = new Entity(
                 /* links */     null,
                 /* notices */   null,
                 /* remarks */   rpslObject.getRemarks(),
@@ -63,8 +68,33 @@ public class Entity implements RdapObject, Serializable {
         );
     }
 
-    private Entity(be.dnsbelgium.rdap.core.Entity entity) {
+    private RdapEntity(ObjectKey objectKey, be.dnsbelgium.rdap.core.Entity entity) {
+        this.objectKey = objectKey;
         this.entity = entity;
+    }
+
+    @Override
+    public ObjectKey getObjectKey() {
+        return objectKey;
+    }
+
+    // package-private access to wrapped entity
+    Entity withRoles(List<Entity.Role> roles) {
+        return new Entity(
+                entity.getLinks(),
+                entity.getNotices(),
+                entity.getRemarks(),
+                entity.getLang(),
+                entity.getObjectClassName(),
+                entity.getEvents(),
+                entity.getStatus(),
+                entity.getPort43(),
+                entity.getHandle(),
+                entity.getvcardArray(),
+                roles,
+                entity.getAsEventActor(),
+                entity.getPublicIds()
+        );
     }
 
     private static final List<Notice> DELETED_REMARKS = Collections.singletonList(new Notice(
@@ -75,10 +105,11 @@ public class Entity implements RdapObject, Serializable {
     ));
 
 
-    public static Entity deletedObject(ObjectKey objectKey) {
-        return new Entity(new be.dnsbelgium.rdap.core.Entity(
-                null, null, DELETED_REMARKS, null, be.dnsbelgium.rdap.core.Entity.OBJECT_CLASS_NAME,
-                null, null, null, objectKey.getObjectName(), null, null, null, null));
+    public static RdapEntity deletedObject(ObjectKey objectKey) {
+        return new RdapEntity(objectKey, new be.dnsbelgium.rdap.core.Entity(
+                null, null, DELETED_REMARKS, null, Entity.OBJECT_CLASS_NAME,
+                null, null, null, objectKey.getObjectName(), null,
+                null, null, null));
     }
 
     private static Text getKind(RpslObject rpslObject) {
@@ -100,7 +131,7 @@ public class Entity implements RdapObject, Serializable {
     private static final transient Value EMPTY_ADDRESS = StructuredValue.ADRType.of("", "","", "", "", "", "");
 
     @SuppressWarnings(/* They're used, just not by name. */ "unused")
-    private static enum VCardAttribute {
+    private enum VCardAttribute {
         FORMATTED_NAME(o -> Stream.of(Contact.Property.of("fn", new Text(o.getPrimaryAttribute().snd())))),
         VCARD_KIND(o -> Stream.of(Contact.Property.of("kind", getKind(o)))),
         ADDRESS("address", "adr", v -> param("label", v), v -> EMPTY_ADDRESS),
@@ -139,19 +170,21 @@ public class Entity implements RdapObject, Serializable {
 
     /* Serialization via a replacement wrapper to preserve immutability */
     private Object writeReplace() throws ObjectStreamException {
-        return new Wrapper(RdapSerializing.serialize(entity));
+        return new Wrapper(objectKey, RdapSerializing.serialize(entity));
     }
 
     private static final class Wrapper implements Serializable {
         private static final long serialVersionUID = -4675825451003583486L;
+        private final ObjectKey objectKey;
         private final byte[] data;
 
-        private Wrapper(byte[] data) {
+        private Wrapper(ObjectKey objectKey, byte[] data) {
+            this.objectKey = objectKey;
             this.data = data;
         }
 
         private Object readResolve() {
-            return new Entity(RdapSerializing.deserialize(data, be.dnsbelgium.rdap.core.Entity.class));
+            return new RdapEntity(objectKey, RdapSerializing.deserialize(data, Entity.class));
         }
     }
 

@@ -2,7 +2,7 @@ package net.apnic.whowas;
 
 import net.apnic.whowas.history.History;
 import net.apnic.whowas.history.ObjectHistory;
-import net.apnic.whowas.history.RelatedObjects;
+import net.apnic.whowas.history.ObjectIndex;
 import net.apnic.whowas.intervaltree.IntervalTree;
 import net.apnic.whowas.loaders.Loader;
 import net.apnic.whowas.loaders.RipeDbLoader;
@@ -75,7 +75,7 @@ public class App {
     }
 
     @Bean
-    public RelatedObjects relatedObjects() {
+    public ObjectIndex objectIndex() {
         return history::getObjectHistory;
     }
 
@@ -118,7 +118,7 @@ public class App {
         executor.execute(this::buildTree);
     }
 
-    public void buildTree() {
+    private void buildTree() {
         if (snapshotFile != null) {
             LOGGER.info("Attempting to deserialise from {}", snapshotFile);
             try (InputStream resourceStream = context.getResource("file:///" + snapshotFile).getInputStream();

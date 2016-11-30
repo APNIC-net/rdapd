@@ -21,7 +21,9 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.HandlerMapping;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.Comparator;
 import java.util.stream.Collectors;
 
@@ -29,16 +31,19 @@ import java.util.stream.Collectors;
 @CrossOrigin(origins = "*")
 public class WebController {
     private final IntervalTree<IP, ObjectHistory, IpInterval> intervalTree;
-    private final RelatedObjects relatedObjects;
+    private final ObjectIndex objectIndex;
 
     @Autowired
-    WebController(IntervalTree<IP, ObjectHistory, IpInterval> intervalTree, RelatedObjects relatedObjects) {
+    WebController(IntervalTree<IP, ObjectHistory, IpInterval> intervalTree, ObjectIndex objectIndex) {
         this.intervalTree = intervalTree;
-        this.relatedObjects = relatedObjects;
+        this.objectIndex = objectIndex;
     }
 
-    @RequestMapping("/history/ip/{range}")
-    public TopLevelObject ipHistory(@PathVariable("range") IpInterval range) {
+    @RequestMapping("/history/ip/**")
+    public TopLevelObject ipHistory(HttpServletRequest request) {
+        String param = (String)request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
+        IpInterval range = Parsing.parseInterval(param.substring(12));
+
         int pfxCap = range.prefixSize() + (range.low().getAddressFamily() == IP.AddressFamily.IPv4 ? 8 : 16);
         return TopLevelObject.of(
                 new RdapHistory(intervalTree
@@ -46,23 +51,32 @@ public class WebController {
                         .filter(t -> t.fst().prefixSize() <= pfxCap)
                         .sorted(Comparator.comparing(Tuple::fst))
                         .map(Tuple::snd)
-                        .map(oh -> oh.withRelatedObjects(relatedObjects))
                         .collect(Collectors.toList())));
     }
 
     @RequestMapping("/history/entity/{handle}")
     public ResponseEntity<TopLevelObject> entityHistory(@PathVariable("handle") String handle) {
-        return relatedObjects.historyForObject(new ObjectKey(ObjectClass.ENTITY, handle))
+        return objectIndex.historyForObject(new ObjectKey(ObjectClass.ENTITY, handle))
                 .map(RdapHistory::new)
                 .map(TopLevelObject::of)
                 .map(r -> new ResponseEntity<>(r, HttpStatus.OK))
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
+    @RequestMapping("/ip/**")
+    public ResponseEntity<TopLevelObject> ip(HttpServletRequest request) {
+        String param = (String)request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
+        IpInterval range = Parsing.parseInterval(param.substring(4));
+
+        // TODO: closest match
+        //intervalTree.closest(range)
+        return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
+    }
+
+
     @RequestMapping("/entity/{handle}")
     public ResponseEntity<TopLevelObject> entity(@PathVariable("handle") String handle) {
-        return relatedObjects.historyForObject(new ObjectKey(ObjectClass.ENTITY, handle))
-                .map(h -> h.withRelatedObjects(relatedObjects))
+        return objectIndex.historyForObject(new ObjectKey(ObjectClass.ENTITY, handle))
                 .flatMap(ObjectHistory::mostRecent)
                 .map(Revision::getContents)
                 .map(TopLevelObject::of)

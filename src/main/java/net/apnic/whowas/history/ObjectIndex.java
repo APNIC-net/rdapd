@@ -3,8 +3,8 @@ package net.apnic.whowas.history;
 import java.util.Optional;
 
 /**
- * Look up related objects by ObjectKey.
+ * Look up object histories by ObjectKey.
  */
-public interface RelatedObjects {
+public interface ObjectIndex {
     Optional<ObjectHistory> historyForObject(ObjectKey objectKey);
 }

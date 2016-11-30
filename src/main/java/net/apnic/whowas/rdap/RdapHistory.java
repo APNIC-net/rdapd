@@ -11,7 +11,7 @@ import java.util.stream.StreamSupport;
 /**
  * An RDAP history response
  */
-public class RdapHistory implements RdapObject {
+public class RdapHistory {
     private final List<RdapRecord> records;
 
     public RdapHistory(Collection<ObjectHistory> objectHistories) {

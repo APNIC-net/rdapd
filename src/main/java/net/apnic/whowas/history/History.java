@@ -13,7 +13,10 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * The History of a registry.
@@ -23,13 +26,17 @@ import java.util.Optional;
  * for fast interval lookups.
  */
 public final class History implements Externalizable {
-    private static final long serialVersionUID = -1090748880048059931L;
+    private static final long serialVersionUID = 5063296486972345480L;
     private static final Logger LOGGER = LoggerFactory.getLogger(History.class);
 
-    /* The histories of all objects, and the tree of IP intervals */
-    private volatile long serial;
+    /* The history of every object */
     private volatile Map<ObjectKey, ObjectHistory> histories;
+
+    /* IP interval index */
     private volatile AvlTree<IP, ObjectKey, IpInterval> tree;
+
+    /* Related object index */
+    private volatile Map<ObjectKey, Set<ObjectKey>> relatedIndex;
 
     /**
      * Construct a new History in which nothing has ever happened.
@@ -37,6 +44,7 @@ public final class History implements Externalizable {
     public History() {
         histories = HashMap.empty();
         tree = new AvlTree<>();
+        relatedIndex = HashMap.empty();
     }
 
     /**
@@ -47,13 +55,17 @@ public final class History implements Externalizable {
      * @param history the shameful history of past of software design choices
      */
     public synchronized void deserialize(History history) {
-        this.serial = history.serial;
         this.histories = history.histories;
         this.tree = history.tree;
+        this.relatedIndex = history.relatedIndex;
     }
 
     /**
      * Update an object in the History with a new revision.
+     *
+     * Revisions MUST be added in chronological order.  This code assumes that
+     * each revision is always later than or simultaneous to the last revision
+     * added.
      *
      * @param objectKey The object to append the new revision onto
      * @param revision The new revision of the object
@@ -68,7 +80,6 @@ public final class History implements Externalizable {
         ObjectHistory objectHistory = histories.get(objectKey);
         if (objectHistory == null) {
             objectHistory = new ObjectHistory(objectKey);
-            // TODO: Create a new tree if this is a new INET(6)NUM object
             if (objectKey.getObjectClass() == ObjectClass.IP_NETWORK) {
                 try {
                     IpInterval interval = Parsing.parseInterval(objectKey.getObjectName());
@@ -77,16 +88,33 @@ public final class History implements Externalizable {
                         return a;
                     }, o -> o);
                 } catch (Exception ex) {
-                    // Use the short exception message, don't need a stack trace in the logs!
                     LOGGER.warn("Object {} not added to IP tree: parse exception {}", objectKey, ex.getMessage());
+                    LOGGER.debug("Full exception", ex);
                     // absorb and move on
                 }
             }
         }
 
-        // TODO: filter revisions at this point
-        //  - Subsume short-lived previous revisions
-        //  - Filter object contents
+        // Filter object contents (no-op right now)
+
+        // Link in the most recent revision of any related objects
+        LOGGER.debug("Linking {} with entities {}", objectKey, revision.getContents().getEntityKeys());
+        revision = new Revision(revision.getValidFrom(), revision.getValidUntil(),
+                revision.getContents().withEntities(
+                        revision.getContents().getEntityKeys().stream()
+                                .peek(k -> LOGGER.debug("  Linking key {}", k))
+                                .map(histories::get)
+                                .filter(Objects::nonNull)
+                                .map(ObjectHistory::mostRecent)
+                                .flatMap(o -> o.map(Stream::of).orElse(Stream.empty()))
+                                .peek(r -> LOGGER.debug("  Revision found"))
+                                .map(Revision::getContents)
+                                .collect(Collectors.toList())));
+
+        // Subsume short-lived previous revisions
+//        Optional<Revision> mostRecent = objectHistory.mostRecent();
+
+        // Link it on in
         objectHistory = objectHistory.appendRevision(revision);
 
         // Because we have only ever added information, it is safe to update
@@ -114,7 +142,6 @@ public final class History implements Externalizable {
 
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
-        out.writeLong(serial);
         Object[] thePast = histories.toArray();
         out.writeInt(thePast.length);
         for (Object obj : thePast) {
@@ -129,7 +156,6 @@ public final class History implements Externalizable {
     @Override
     @SuppressWarnings("unchecked")
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-        serial = in.readLong();
         Builder<Pair<ObjectKey,ObjectHistory>,Map<ObjectKey,ObjectHistory>> builder = Maps.builder();
         int l = in.readInt();
         for (int i = 0; i < l; i++) {
