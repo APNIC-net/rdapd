@@ -134,10 +134,15 @@ public class RdapEntity implements RdapObject, Serializable {
     private enum VCardAttribute {
         FORMATTED_NAME(o -> Stream.of(Contact.Property.of("fn", new Text(o.getPrimaryAttribute().snd())))),
         VCARD_KIND(o -> Stream.of(Contact.Property.of("kind", getKind(o)))),
-        ADDRESS("address", "adr", v -> param("label", v), v -> EMPTY_ADDRESS),
+        ADDRESS(o -> Stream.of(o.getAttribute("address"))
+                .filter(l -> !l.isEmpty())
+                .map(l -> String.join("\n", l))
+                .map(s -> param("label", s))
+                .map(p -> Contact.Property.of("adr", p, EMPTY_ADDRESS))),
+//        ADDRESS("address", "adr", v -> param("label", v), v -> EMPTY_ADDRESS),
         PHONE_TEL("phone", "tel", param("type", "voice")),
         PHONE_FAX("fax-no", "tel", param("type", "fax")),
-        EMAIL("e-mail", "email", v -> null, Text::new),
+        EMAIL("e-mail", "email"),
         ABUSE_BOX("abuse-mailbox", "email", param("pref", "1")),
         ORG("org", "org");
 
