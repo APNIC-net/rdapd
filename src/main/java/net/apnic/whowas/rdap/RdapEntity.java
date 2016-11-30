@@ -56,7 +56,7 @@ public class RdapEntity implements RdapObject, Serializable {
                 /* notices */   null,
                 /* remarks */   rpslObject.getRemarks(),
                 /* lang */      null,
-                be.dnsbelgium.rdap.core.Entity.OBJECT_CLASS_NAME,
+                Entity.OBJECT_CLASS_NAME,
                 /* events */    null,
                 /* status */    null,
                 /* port43 */    null,
@@ -68,7 +68,7 @@ public class RdapEntity implements RdapObject, Serializable {
         );
     }
 
-    private RdapEntity(ObjectKey objectKey, be.dnsbelgium.rdap.core.Entity entity) {
+    private RdapEntity(ObjectKey objectKey, Entity entity) {
         this.objectKey = objectKey;
         this.entity = entity;
     }
@@ -106,7 +106,7 @@ public class RdapEntity implements RdapObject, Serializable {
 
 
     public static RdapEntity deletedObject(ObjectKey objectKey) {
-        return new RdapEntity(objectKey, new be.dnsbelgium.rdap.core.Entity(
+        return new RdapEntity(objectKey, new Entity(
                 null, null, DELETED_REMARKS, null, Entity.OBJECT_CLASS_NAME,
                 null, null, null, objectKey.getObjectName(), null,
                 null, null, null));
@@ -141,7 +141,7 @@ public class RdapEntity implements RdapObject, Serializable {
         ABUSE_BOX("abuse-mailbox", "email", param("pref", "1")),
         ORG("org", "org");
 
-        private final Function<RpslObject, Stream<Contact.Property>> maker;
+        private final transient Function<RpslObject, Stream<Contact.Property>> maker;
 
         VCardAttribute(String attr, String property) {
             this(attr, property, null);

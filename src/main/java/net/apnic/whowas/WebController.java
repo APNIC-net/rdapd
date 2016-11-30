@@ -65,14 +65,13 @@ public class WebController {
 
     @RequestMapping("/ip/**")
     public ResponseEntity<TopLevelObject> ip(HttpServletRequest request) {
-        String param = (String)request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
-        IpInterval range = Parsing.parseInterval(param.substring(4));
+//        String param = (String)request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
+//        IpInterval range = Parsing.parseInterval(param.substring(4));
 
         // TODO: closest match
         //intervalTree.closest(range)
         return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
     }
-
 
     @RequestMapping("/entity/{handle}")
     public ResponseEntity<TopLevelObject> entity(@PathVariable("handle") String handle) {

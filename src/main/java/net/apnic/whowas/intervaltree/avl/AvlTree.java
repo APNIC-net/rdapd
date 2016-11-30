@@ -131,14 +131,6 @@ public class AvlTree<K extends Comparable<K>, V, I extends Interval<K>>
         return root;
     }
 
-    private int height(AvlNode<K, V, I> n) {
-        return n == null ? 0 : 1 + Math.max(height(n.left), height(n.right));
-    }
-
-    private int height() {
-        return height(root);
-    }
-
     private class AvlSpliterator implements Spliterator<Tuple<I, V>> {
         private final Deque<AvlNode<K,V,I>> pipe = new LinkedList<>();
 

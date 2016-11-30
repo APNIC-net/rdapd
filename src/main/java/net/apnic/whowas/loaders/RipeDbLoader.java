@@ -1,11 +1,11 @@
 package net.apnic.whowas.loaders;
 
-import net.apnic.whowas.rdap.RdapEntity;
-import net.apnic.whowas.rdap.IpNetwork;
-import net.apnic.whowas.rdap.RdapObject;
 import net.apnic.whowas.history.ObjectClass;
 import net.apnic.whowas.history.ObjectKey;
 import net.apnic.whowas.history.Revision;
+import net.apnic.whowas.rdap.IpNetwork;
+import net.apnic.whowas.rdap.RdapEntity;
+import net.apnic.whowas.rdap.RdapObject;
 import net.apnic.whowas.types.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +19,6 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -75,17 +74,16 @@ public class RipeDbLoader implements Loader {
 
     @Transactional(isolation = Isolation.REPEATABLE_READ, readOnly = true)
     public void loadWith(RevisionConsumer consumer) {
-        Function<String, String> query =
-                tbl -> "SELECT object_id, object_type, pkey, sequence_id, timestamp, object FROM " + tbl + " " +
-                        "WHERE object_type in (0, 2, 3, 5, 6, 9, 10, 11, 17, 18) " +
-                        "AND pkey IN ('203.119.42.0 - 203.119.43.255', 'AIC1-AP', 'IRT-APNIC-IS-AP', 'NO4-AP') " +
+        String QUERY =  "(SELECT object_id, object_type, pkey, sequence_id, timestamp, object FROM last\n" +
+                        "WHERE object_type in (0, 2, 3, 5, 6, 9, 10, 11, 17, 18)\n" +
+                        "      AND pkey IN ('203.119.42.0 - 203.119.43.255', 'AIC1-AP', 'IRT-APNIC-IS-AP', 'NO4-AP'))\n" +
+                        "    UNION\n" +
+                        "(SELECT object_id, object_type, pkey, sequence_id, timestamp, object FROM history\n" +
+                        "WHERE object_type in (0, 2, 3, 5, 6, 9, 10, 11, 17, 18)\n" +
+                        "      AND pkey IN ('203.119.42.0 - 203.119.43.255', 'AIC1-AP', 'IRT-APNIC-IS-AP', 'NO4-AP'))\n" +
                         "ORDER BY timestamp, object_id, sequence_id";
 
-        operations.query(query.apply("last, history"), (ResultSet rs) -> resultSetToRdap(rs, consumer));
-//        Stream.of("history", "last").forEach(t -> {
-//            LOGGER.info("Executing database queries for {} table", t);
-//            operations.query(query.apply(t), (ResultSet rs) -> resultSetToRdap(rs, consumer));
-//        });
+        operations.query(QUERY, (ResultSet rs) -> resultSetToRdap(rs, consumer));
         LOGGER.info("All database records loaded");
     }
 

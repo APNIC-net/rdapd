@@ -22,7 +22,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 public class AvlTreeTest {
-    int height(AvlNode<?, ?, ?> node) {
+    private int height(AvlNode<?, ?, ?> node) {
         return node == null ? 0 : 1 + Math.max(height(node.left), height(node.right));
     }
 

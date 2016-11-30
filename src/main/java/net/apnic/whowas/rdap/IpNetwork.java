@@ -25,15 +25,15 @@ public class IpNetwork implements RdapObject, Serializable {
     @JsonUnwrapped
     private final transient VersionedIpNetwork ipNetwork;
 
-    private final transient ObjectKey objectKey;
+    private final ObjectKey objectKey;
 
-    private final transient Map<ObjectKey, EnumSet<Entity.Role.Default>> relatedObjects
-            = new HashMap<>();
+    private final Map<ObjectKey, EnumSet<Entity.Role.Default>> relatedObjects;
 
     public IpNetwork(ObjectKey objectKey, byte[] rpsl) {
         assert objectKey.getObjectClass() == ObjectClass.IP_NETWORK;
 
         this.objectKey = objectKey;
+        this.relatedObjects = new HashMap<>();
 
         RpslObject rpslObject = new RpslObject(rpsl);
 
@@ -88,6 +88,7 @@ public class IpNetwork implements RdapObject, Serializable {
     public RdapObject withEntities(Collection<RdapObject> entities) {
         // TODO: type casting indicates a design flaw, find it and fix it
         return new IpNetwork(
+                relatedObjects,
                 objectKey,
                 new VersionedIpNetwork(
                         ipNetwork.getIpNetwork().getLinks(),
@@ -115,7 +116,8 @@ public class IpNetwork implements RdapObject, Serializable {
         );
     }
 
-    private IpNetwork(ObjectKey objectKey, VersionedIpNetwork ipNetwork) {
+    private IpNetwork(Map<ObjectKey, EnumSet<Entity.Role.Default>> relatedObjects, ObjectKey objectKey, VersionedIpNetwork ipNetwork) {
+        this.relatedObjects = relatedObjects;
         this.objectKey = objectKey;
         this.ipNetwork = ipNetwork;
     }
@@ -130,7 +132,7 @@ public class IpNetwork implements RdapObject, Serializable {
 
     public static IpNetwork deletedObject(ObjectKey objectKey) {
         IpInterval ipInterval = Parsing.parseInterval(objectKey.getObjectName());
-        return new IpNetwork(objectKey, new VersionedIpNetwork(
+        return new IpNetwork(new HashMap<>(), objectKey, new VersionedIpNetwork(
                 null, null, DELETED_REMARKS, null,
                 null, null, null, objectKey.getObjectName(), ipInterval.low().getAddress(),
                 ipInterval.high().getAddress(),
@@ -150,21 +152,23 @@ public class IpNetwork implements RdapObject, Serializable {
 
     /* Serialization via a replacement wrapper to preserve immutability */
     private Object writeReplace() throws ObjectStreamException {
-        return new Wrapper(objectKey, RdapSerializing.serialize(ipNetwork));
+        return new Wrapper(relatedObjects, objectKey, RdapSerializing.serialize(ipNetwork));
     }
 
     private static final class Wrapper implements Serializable {
         private static final long serialVersionUID = -8825651861679233094L;
+        private final Map<ObjectKey, EnumSet<Entity.Role.Default>> relatedObjects;
         private final ObjectKey objectKey;
         private final byte[] data;
 
-        private Wrapper(ObjectKey objectKey, byte[] data) {
+        private Wrapper(Map<ObjectKey, EnumSet<Entity.Role.Default>> relatedObjects, ObjectKey objectKey, byte[] data) {
+            this.relatedObjects = relatedObjects;
             this.objectKey = objectKey;
             this.data = data;
         }
 
         private Object readResolve() {
-            return new IpNetwork(objectKey, RdapSerializing.deserialize(data, VersionedIpNetwork.class));
+            return new IpNetwork(relatedObjects, objectKey, RdapSerializing.deserialize(data, VersionedIpNetwork.class));
         }
     }
 

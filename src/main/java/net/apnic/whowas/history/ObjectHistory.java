@@ -17,9 +17,9 @@ import java.util.Spliterator;
  * is given a sequence number.
  */
 public final class ObjectHistory implements Serializable, Iterable<Revision> {
-    private static final long serialVersionUID = 2019509428869073107L;
+    private static final long serialVersionUID = 8840997336665340581L;
 
-    private final transient ObjectKey objectKey;
+    private final ObjectKey objectKey;
     private final transient List<Revision> revisions;
 
     private ObjectHistory(ObjectKey objectKey, List<Revision> revisions) {
