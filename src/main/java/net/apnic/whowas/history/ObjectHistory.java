@@ -32,7 +32,13 @@ public final class ObjectHistory implements Serializable, Iterable<Revision> {
     }
 
     ObjectHistory appendRevision(Revision revision) {
-        return new ObjectHistory(objectKey, revisions.append(revision));
+        // If the most recent revision doesn't have an "until" date, update it
+        List<Revision> newRevisions = Optional.ofNullable(revisions.last())
+                .filter(r -> r.getValidUntil() == null || r.getValidUntil().isAfter(revision.getValidFrom()))
+                .map(r -> revisions.take(revisions.size() - 1).append(r.supersede(revision.getValidFrom())))
+                .orElse(revisions);
+        // TODO: squash short-lived revisions
+        return new ObjectHistory(objectKey, newRevisions.append(revision));
     }
     
     /**

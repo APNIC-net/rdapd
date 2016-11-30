@@ -4,6 +4,7 @@ import net.apnic.whowas.history.Revision;
 
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.util.Optional;
 
 /**
  * One RDAP object's history record
@@ -20,7 +21,10 @@ public class RdapRecord {
     }
 
     public RdapRecord(Revision revision) {
-        this(revision.getValidFrom().withZoneSameInstant(ZoneOffset.UTC), null, revision.getContents());
+        this(revision.getValidFrom().withZoneSameInstant(ZoneOffset.UTC),
+                Optional.ofNullable(revision.getValidUntil()).map(
+                        d -> d.withZoneSameInstant(ZoneOffset.UTC)
+                ).orElse(null), revision.getContents());
     }
 
     public ZonedDateTime getApplicableFrom() {

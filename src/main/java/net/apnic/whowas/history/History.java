@@ -3,6 +3,7 @@ package net.apnic.whowas.history;
 import com.github.andrewoma.dexx.collection.*;
 import net.apnic.whowas.intervaltree.IntervalTree;
 import net.apnic.whowas.intervaltree.avl.AvlTree;
+import net.apnic.whowas.rdap.RdapObject;
 import net.apnic.whowas.types.IP;
 import net.apnic.whowas.types.IpInterval;
 import net.apnic.whowas.types.Parsing;
@@ -13,6 +14,8 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -67,6 +70,14 @@ public final class History implements Externalizable {
      * each revision is always later than or simultaneous to the last revision
      * added.
      *
+     * This method mutates the History. Be careful not to serialize the History
+     * while this operation is in progress, as consistency is only guaranteed
+     * at the end of the method.
+     *
+     * Read consistency of the tree and object histories will remain valid
+     * during operation.  Any tree or history obtained previously will not see
+     * the updates, as both structures are replaced in this method.
+     *
      * @param objectKey The object to append the new revision onto
      * @param revision The new revision of the object
      */
@@ -81,38 +92,29 @@ public final class History implements Externalizable {
         if (objectHistory == null) {
             objectHistory = new ObjectHistory(objectKey);
             if (objectKey.getObjectClass() == ObjectClass.IP_NETWORK) {
-                try {
-                    IpInterval interval = Parsing.parseInterval(objectKey.getObjectName());
-                    nextTree = tree.update(interval, objectKey, (a,b) -> {
-                        assert a.equals(b);
-                        return a;
-                    }, o -> o);
-                } catch (Exception ex) {
-                    LOGGER.warn("Object {} not added to IP tree: parse exception {}", objectKey, ex.getMessage());
-                    LOGGER.debug("Full exception", ex);
-                    // absorb and move on
-                }
+                nextTree = updateIntervalTree(objectKey, nextTree);
             }
         }
 
-        // Filter object contents (no-op right now)
+        // Handy information about this object's history and latest revision
+        Optional<Revision> mostRecent = objectHistory.mostRecent();
+        Collection<ObjectKey> entityKeys = revision.getContents().getEntityKeys();
 
-        // Link in the most recent revision of any related objects
-        LOGGER.debug("Linking {} with entities {}", objectKey, revision.getContents().getEntityKeys());
-        revision = new Revision(revision.getValidFrom(), revision.getValidUntil(),
-                revision.getContents().withEntities(
-                        revision.getContents().getEntityKeys().stream()
-                                .peek(k -> LOGGER.debug("  Linking key {}", k))
-                                .map(histories::get)
-                                .filter(Objects::nonNull)
-                                .map(ObjectHistory::mostRecent)
-                                .flatMap(o -> o.map(Stream::of).orElse(Stream.empty()))
-                                .peek(r -> LOGGER.debug("  Revision found"))
-                                .map(Revision::getContents)
-                                .collect(Collectors.toList())));
+        // Add any related entities to the revision's content
+        revision = addRelatedObjects(revision);
 
-        // Subsume short-lived previous revisions
-//        Optional<Revision> mostRecent = objectHistory.mostRecent();
+        // Ensure that the revision has actually changed: some WHOIS attributes
+        // have no bearing on the RDAP object structure, and spurious changes
+        // should be suppressed.
+        // TODO do
+
+        // The related index is owned exclusively by this method (and its
+        // private method components).  Because this method is synchronized,
+        // the index can be updated safely without regard to ordering of updates
+        // to the tree or object history set.
+
+        // Update the related index to track objects referencing entities
+        updateRelatedIndex(objectKey, entityKeys, mostRecent.orElse(null));
 
         // Link it on in
         objectHistory = objectHistory.appendRevision(revision);
@@ -123,9 +125,99 @@ public final class History implements Externalizable {
         // the indices and so not visible to in-progress queries.
         histories = histories.put(objectKey, objectHistory);
 
+        // Check the related index to see if this object is related to anything
+        updateRelatingObjects(objectKey, revision);
+
         // Now that the new history is in place, the tree index may be safely
         // updated if a new object was created.
         tree = nextTree;
+    }
+
+    /* Find any objects which relate to this object, and add a new revision */
+    private void updateRelatingObjects(ObjectKey objectKey, Revision revision) {
+        Set<ObjectKey> relations = Optional.ofNullable(relatedIndex.get(objectKey))
+                .orElse(HashSet.empty());
+        for (ObjectKey key : relations) {
+            ObjectHistory relatedHistory = histories.get(key);
+            final Revision lambdasAreNotClosures = revision;
+            Optional.ofNullable(relatedHistory)
+                    .flatMap(ObjectHistory::mostRecent)
+                    .map(r -> new Revision(
+                            lambdasAreNotClosures.getValidFrom(),
+                            null,
+                            r.getContents()))
+                    .map(this::addRelatedObjects)
+                    .ifPresent(r -> {
+                        assert relatedHistory != null;
+                        histories = histories.put(key, relatedHistory.appendRevision(r));
+                    });
+        }
+    }
+
+    /* Update the interval tree to reflect a new IP network object revision */
+    private AvlTree<IP, ObjectKey, IpInterval> updateIntervalTree(ObjectKey objectKey, AvlTree<IP, ObjectKey, IpInterval> nextTree) {
+        try {
+            IpInterval interval = Parsing.parseInterval(objectKey.getObjectName());
+            nextTree = tree.update(interval, objectKey, (a,b) -> {
+                assert a.equals(b);
+                return a;
+            }, o -> o);
+        } catch (Exception ex) {
+            LOGGER.warn("Object {} not added to IP tree: parse exception {}", objectKey, ex.getMessage());
+            LOGGER.debug("Full exception", ex);
+            // absorb and move on
+        }
+        return nextTree;
+    }
+
+    /* Maintain the index of related objects */
+    private void updateRelatedIndex(ObjectKey objectKey, Collection<ObjectKey> entityKeys, Revision mostRecent) {
+        Set<ObjectKey> relatedKeys = Sets.copyOf(Optional.ofNullable(mostRecent)
+                .map(Revision::getContents)
+                .map(RdapObject::getEntityKeys)
+                .map(Collection::iterator)
+                .orElse(Collections.emptyIterator()));
+
+        // Remove any links no longer required
+        Set<ObjectKey> removeKeys = relatedKeys;
+        for (ObjectKey key : entityKeys) {
+            removeKeys = removeKeys.remove(key);
+        }
+        for (ObjectKey key : removeKeys) {
+            Set<ObjectKey> keys = Optional.ofNullable(relatedIndex.get(key))
+                    .orElse(HashSet.empty())
+                    .remove(objectKey);
+            if (keys.isEmpty()) {
+                relatedIndex = relatedIndex.remove(key);
+            } else {
+                relatedIndex = relatedIndex.put(key, keys);
+            }
+        }
+
+        // Add any new links
+        Set<ObjectKey> newKeys = Sets.copyOf(entityKeys);
+        for (ObjectKey key : relatedKeys) {
+            newKeys = newKeys.remove(key);
+        }
+        for (ObjectKey key : newKeys) {
+            Set<ObjectKey> keys = Optional.ofNullable(relatedIndex.get(key))
+                    .orElse(HashSet.empty())
+                    .add(objectKey);
+            relatedIndex = relatedIndex.put(key, keys);
+        }
+    }
+
+    /* Add related objects from the history to the given revision */
+    private Revision addRelatedObjects(Revision revision) {
+        return new Revision(revision.getValidFrom(), revision.getValidUntil(),
+                revision.getContents().withEntities(
+                        revision.getContents().getEntityKeys().stream()
+                                .map(histories::get)
+                                .filter(Objects::nonNull)
+                                .map(ObjectHistory::mostRecent)
+                                .flatMap(o -> o.map(Stream::of).orElse(Stream.empty()))
+                                .map(Revision::getContents)
+                                .collect(Collectors.toList())));
     }
 
     public IntervalTree<IP, ObjectKey, IpInterval> getTree() {

@@ -76,11 +76,11 @@ public class RipeDbLoader implements Loader {
     public void loadWith(RevisionConsumer consumer) {
         String QUERY =  "(SELECT object_id, object_type, pkey, sequence_id, timestamp, object FROM last\n" +
                         "WHERE object_type in (0, 2, 3, 5, 6, 9, 10, 11, 17, 18)\n" +
-                        "      AND pkey IN ('203.119.42.0 - 203.119.43.255', 'AIC1-AP', 'IRT-APNIC-IS-AP', 'NO4-AP'))\n" +
+                        "      AND pkey IN ('203.119.42.0 - 203.119.43.255', 'AIC1-AP', 'IRT-APNIC-IS-AP', 'IRT-APNIC-AP', 'NO4-AP'))\n" +
                         "    UNION\n" +
                         "(SELECT object_id, object_type, pkey, sequence_id, timestamp, object FROM history\n" +
                         "WHERE object_type in (0, 2, 3, 5, 6, 9, 10, 11, 17, 18)\n" +
-                        "      AND pkey IN ('203.119.42.0 - 203.119.43.255', 'AIC1-AP', 'IRT-APNIC-IS-AP', 'NO4-AP'))\n" +
+                        "      AND pkey IN ('203.119.42.0 - 203.119.43.255', 'AIC1-AP', 'IRT-APNIC-IS-AP', 'IRT-APNIC-AP', 'NO4-AP'))\n" +
                         "ORDER BY timestamp, object_id, sequence_id";
 
         operations.query(QUERY, (ResultSet rs) -> resultSetToRdap(rs, consumer));
