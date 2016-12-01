@@ -6,7 +6,7 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import net.apnic.whowas.rdap.Patches.FixedStructuredValueSerializer;
+import net.apnic.whowas.rdap.patches.FixedStructuredValueSerializer;
 
 /**
  * The be.dnsbelgium.rdap.jackson.CustomObjectMapper class does not allow

@@ -4,7 +4,6 @@ import net.apnic.whowas.history.History;
 import net.apnic.whowas.history.ObjectHistory;
 import net.apnic.whowas.history.ObjectIndex;
 import net.apnic.whowas.intervaltree.IntervalTree;
-import net.apnic.whowas.loaders.Loader;
 import net.apnic.whowas.loaders.RipeDbLoader;
 import net.apnic.whowas.types.IP;
 import net.apnic.whowas.types.IpInterval;
@@ -21,14 +20,12 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
-import org.springframework.core.annotation.Order;
 import org.springframework.jdbc.core.JdbcOperations;
 
 import javax.annotation.PostConstruct;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -79,42 +76,20 @@ public class App {
         return history::getObjectHistory;
     }
 
-    @Bean
-    @Order(value=2)
-    @ConditionalOnProperty(value="spring.datasource.url")
-    public Loader ripeLoader(JdbcOperations operations) {
-        return new RipeDbLoader(operations);
-    }
-
-//    @Bean
-//    @Order(value=1)
-//    @ConditionalOnProperty(value="snapshot.file")
-//    @SuppressWarnings("unchecked")
-//    public Loader fileLoader(@Value("${snapshot.file}") String snapshotFile, ApplicationContext context) {
-//        return (c) -> {
-//            LOGGER.info("Restoring snapshot from file {}", snapshotFile);
-//            try (InputStream resourceStream = context.getResource("file:///" + snapshotFile).getInputStream();
-//                 InflaterInputStream zipStream = new InflaterInputStream(resourceStream);
-//                 FSTObjectInput objStream = new FSTObjectInput(zipStream)) {
-//                 return objStream.readObject();
-//                throw new RuntimeException("No longer a valid approach");
-//            } catch (IOException ex) {
-//                LOGGER.error("IO exception during load", ex);
-//                throw new RuntimeException(ex);
-//            }
-//        };
-//    }
     @Value("${snapshot.file}")
     private String snapshotFile;
-
-    @Autowired(required=false)
-    private List<Loader> loaders;
 
     @Autowired
     ApplicationContext context;
 
+    @Autowired
+    private JdbcOperations jdbcOperations;
+
+    private RipeDbLoader dbLoader;
+
     @PostConstruct
     public void initialise() {
+        dbLoader = new RipeDbLoader(jdbcOperations, -1L);
         executor.execute(this::buildTree);
     }
 
@@ -124,26 +99,21 @@ public class App {
             try (InputStream resourceStream = context.getResource("file:///" + snapshotFile).getInputStream();
                 InflaterInputStream zipStream = new InflaterInputStream(resourceStream);
                 FSTObjectInput objStream = new FSTObjectInput(zipStream)) {
+                long serial = objStream.readLong();
                 history.deserialize((History)objStream.readObject());
-                return;
+                dbLoader.setLastSerial(serial);
             } catch (IOException | ClassNotFoundException ex) {
                 LOGGER.error("Exception during load", ex);
             }
         }
 
-        LOGGER.info("Loading history from configured sources");
-
-        // Try loaders in order until one succeeds
-        for (Loader loader : loaders) {
-            LOGGER.info("Invoking loader: {}", loader);
-            try {
-                loader.loadWith(history::addRevision);
-                break;
-            } catch (Exception ex) {
-                LOGGER.error("Failed to load data with {}: {}", loader, ex.getLocalizedMessage(), ex);
-            }
+        LOGGER.info("Loading history from database, starting at #{}", dbLoader.getLastSerial());
+        try {
+            dbLoader.loadWith(history::addRevision);
+        } catch (Exception ex) {
+            LOGGER.error("Failed to load data: {}", ex.getLocalizedMessage(), ex);
         }
-        LOGGER.info("Tree construction completed, {} entries", history.getTree().size());
+        LOGGER.info("IP interval tree construction completed, {} entries", history.getTree().size());
     }
 
     @Bean
@@ -182,6 +152,7 @@ public class App {
         try (FileOutputStream fileOutput = new FileOutputStream(target);
              DeflaterOutputStream zipOutput = new DeflaterOutputStream(fileOutput);
              FSTObjectOutput objOutput = new FSTObjectOutput(zipOutput)) {
+            objOutput.writeLong(dbLoader.getLastSerial());
             objOutput.writeObject(history);
         }
     }

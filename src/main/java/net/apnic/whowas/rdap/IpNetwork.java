@@ -2,10 +2,15 @@ package net.apnic.whowas.rdap;
 
 import be.dnsbelgium.rdap.core.Entity;
 import be.dnsbelgium.rdap.core.Notice;
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import net.apnic.whowas.history.ObjectClass;
 import net.apnic.whowas.history.ObjectKey;
-import net.apnic.whowas.rdap.Patches.VersionedIpNetwork;
+import net.apnic.whowas.rdap.patches.VersionedIpNetwork;
 import net.apnic.whowas.rpsl.RpslObject;
 import net.apnic.whowas.types.IP;
 import net.apnic.whowas.types.IpInterval;
@@ -22,8 +27,8 @@ import java.util.stream.Collectors;
 public class IpNetwork implements RdapObject, Serializable {
     private static final long serialVersionUID = -5015613771361131756L;
 
-    @JsonUnwrapped
-    private final transient VersionedIpNetwork ipNetwork;
+//    @JsonUnwrapped
+    private final transient ObjectNode ipNetwork;
 
     private final ObjectKey objectKey;
 
@@ -54,7 +59,7 @@ public class IpNetwork implements RdapObject, Serializable {
         }
 
         IpInterval ipInterval = Parsing.parseInterval(objectKey.getObjectName());
-        ipNetwork = new VersionedIpNetwork(
+        VersionedIpNetwork ipNetwork = new VersionedIpNetwork(
                 /* links */     null,
                 /* notices */   null,
                 /* remarks */   rpslObject.getRemarks(),
@@ -72,6 +77,8 @@ public class IpNetwork implements RdapObject, Serializable {
                 /* parent */    null,
                 /* entities */  null
         );
+
+        this.ipNetwork = RdapSerializing.valueToTree(ipNetwork);
     }
 
     @Override
@@ -84,39 +91,53 @@ public class IpNetwork implements RdapObject, Serializable {
         return relatedObjects.keySet();
     }
 
+    @JsonAnyGetter
+    @SuppressWarnings("unused")
+    public Map<String, JsonNode> anyGetter() {
+        HashMap<String, JsonNode> result = new HashMap<>();
+        Iterator<Map.Entry<String, JsonNode>> entries = ipNetwork.fields();
+        while (entries.hasNext()) {
+            Map.Entry<String, JsonNode> entry = entries.next();
+            result.put(entry.getKey(), entry.getValue());
+        }
+        return result;
+    }
+
     @Override
     public RdapObject withEntities(Collection<RdapObject> entities) {
-        // TODO: type casting indicates a design flaw, find it and fix it
-        return new IpNetwork(
-                relatedObjects,
-                objectKey,
-                new VersionedIpNetwork(
-                        ipNetwork.getIpNetwork().getLinks(),
-                        ipNetwork.getIpNetwork().getNotices(),
-                        ipNetwork.getIpNetwork().getRemarks(),
-                        ipNetwork.getIpNetwork().getLang(),
-                        ipNetwork.getIpNetwork().getEvents(),
-                        ipNetwork.getIpNetwork().getStatus(),
-                        ipNetwork.getIpNetwork().getPort43(),
-                        ipNetwork.getIpNetwork().getHandle(),
-                        ipNetwork.getIpNetwork().getStartAddress(),
-                        ipNetwork.getIpNetwork().getEndAddress(),
-                        ipNetwork.getIpVersion(),
-                        ipNetwork.getIpNetwork().getName(),
-                        ipNetwork.getIpNetwork().getType(),
-                        ipNetwork.getIpNetwork().getCountry(),
-                        ipNetwork.getIpNetwork().getParentHandle(),
-                        entities.stream()
-                                .filter(o -> o instanceof RdapEntity)
-                                .filter(o -> relatedObjects.containsKey(o.getObjectKey()))
-                                .map(o -> (RdapEntity)o)
-                                .map(e -> e.withRoles(new LinkedList<>(relatedObjects.get(e.getObjectKey()))))
-                                .collect(Collectors.toList())
-                )
-        );
+        ObjectNode newNode = ipNetwork.deepCopy();
+        if (entities.isEmpty()) {
+            newNode.remove("entities");
+        } else {
+            newNode.replace("entities",
+                    new ArrayNode(JsonNodeFactory.instance, entities.stream()
+                            .filter(o -> relatedObjects.containsKey(o.getObjectKey()))
+                            .map(e -> addRoles(RdapSerializing.valueToTree(e), relatedObjects.get(e.getObjectKey())))
+                            .collect(Collectors.toList())));
+        }
+
+        return new IpNetwork(relatedObjects, objectKey, newNode);
+    }
+
+    private JsonNode addRoles(ObjectNode object, Collection<? extends Entity.Role> roles) {
+        ObjectNode newNode = object.deepCopy();
+        if (roles.isEmpty()) {
+            newNode.remove("roles");
+        } else {
+            newNode.replace("roles",
+                    new ArrayNode(JsonNodeFactory.instance, roles.stream()
+                            .map(Entity.Role::getValue)
+                            .map(TextNode::new)
+                            .collect(Collectors.toList())));
+        }
+        return newNode;
     }
 
     private IpNetwork(Map<ObjectKey, EnumSet<Entity.Role.Default>> relatedObjects, ObjectKey objectKey, VersionedIpNetwork ipNetwork) {
+        this(relatedObjects, objectKey, RdapSerializing.valueToTree(ipNetwork));
+    }
+
+    private IpNetwork(Map<ObjectKey, EnumSet<Entity.Role.Default>> relatedObjects, ObjectKey objectKey, ObjectNode ipNetwork) {
         this.relatedObjects = relatedObjects;
         this.objectKey = objectKey;
         this.ipNetwork = ipNetwork;
@@ -168,7 +189,7 @@ public class IpNetwork implements RdapObject, Serializable {
         }
 
         private Object readResolve() {
-            return new IpNetwork(relatedObjects, objectKey, RdapSerializing.deserialize(data, VersionedIpNetwork.class));
+            return new IpNetwork(relatedObjects, objectKey, RdapSerializing.deserialize(data, ObjectNode.class));
         }
     }
 

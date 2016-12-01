@@ -1,4 +1,4 @@
-package net.apnic.whowas.rdap.Patches;
+package net.apnic.whowas.rdap.patches;
 
 import be.dnsbelgium.core.DomainName;
 import be.dnsbelgium.rdap.core.*;

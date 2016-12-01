@@ -15,7 +15,6 @@ public interface RdapObject {
      *
      * @return the key of this RDAP object
      */
-
     @JsonIgnore
     ObjectKey getObjectKey();
 

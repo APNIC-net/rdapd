@@ -1,6 +1,7 @@
 package net.apnic.whowas.rdap;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.smile.SmileFactory;
 
@@ -29,6 +30,10 @@ final class RdapSerializing {
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
+    }
+
+    static <T extends JsonNode> T valueToTree(Object fromValue) {
+        return MAPPER.valueToTree(fromValue);
     }
 
     final static class JacksonException extends ObjectStreamException {

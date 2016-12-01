@@ -6,16 +6,16 @@ import be.dnsbelgium.vcard.Contact;
 import be.dnsbelgium.vcard.datatype.StructuredValue;
 import be.dnsbelgium.vcard.datatype.Text;
 import be.dnsbelgium.vcard.datatype.Value;
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import net.apnic.whowas.history.ObjectClass;
 import net.apnic.whowas.history.ObjectKey;
 import net.apnic.whowas.rpsl.RpslObject;
 
 import java.io.ObjectStreamException;
 import java.io.Serializable;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.List;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -26,16 +26,11 @@ import java.util.stream.Stream;
 public class RdapEntity implements RdapObject, Serializable {
     private static final long serialVersionUID = -5721385011828987523L;
 
-    @JsonUnwrapped
-    private final transient Entity entity;
+    private final transient ObjectNode entity;
 
     private final ObjectKey objectKey;
 
     public RdapEntity(ObjectKey objectKey, byte[] rpsl) {
-        this(objectKey, rpsl, null);
-    }
-
-    private RdapEntity(ObjectKey objectKey, byte[] rpsl, List<Entity.Role> roles) {
         assert objectKey.getObjectClass() == ObjectClass.ENTITY;
 
         this.objectKey = objectKey;
@@ -51,7 +46,7 @@ public class RdapEntity implements RdapObject, Serializable {
                 .flatMap(a -> a.getProperty(rpslObject))
                 .collect(Collectors.toList()));
 
-        entity = new Entity(
+        Entity entity = new Entity(
                 /* links */     null,
                 /* notices */   null,
                 /* remarks */   rpslObject.getRemarks(),
@@ -62,13 +57,19 @@ public class RdapEntity implements RdapObject, Serializable {
                 /* port43 */    null,
                 /* handle */    objectKey.getObjectName(),
                 /* contact */   contact,
-                /* roles */     roles,
+                /* roles */     null,
                 /* events */    null,
                 /* publicIds */ null
         );
+
+        this.entity = RdapSerializing.valueToTree(entity);
     }
 
     private RdapEntity(ObjectKey objectKey, Entity entity) {
+        this(objectKey, RdapSerializing.valueToTree(entity));
+    }
+
+    private RdapEntity(ObjectKey objectKey, ObjectNode entity) {
         this.objectKey = objectKey;
         this.entity = entity;
     }
@@ -78,23 +79,16 @@ public class RdapEntity implements RdapObject, Serializable {
         return objectKey;
     }
 
-    // package-private access to wrapped entity
-    Entity withRoles(List<Entity.Role> roles) {
-        return new Entity(
-                entity.getLinks(),
-                entity.getNotices(),
-                entity.getRemarks(),
-                entity.getLang(),
-                entity.getObjectClassName(),
-                entity.getEvents(),
-                entity.getStatus(),
-                entity.getPort43(),
-                entity.getHandle(),
-                entity.getvcardArray(),
-                roles,
-                entity.getAsEventActor(),
-                entity.getPublicIds()
-        );
+    @JsonAnyGetter
+    @SuppressWarnings("unused")
+    public Map<String, JsonNode> anyGetter() {
+        HashMap<String, JsonNode> result = new HashMap<>();
+        Iterator<Map.Entry<String, JsonNode>> entries = entity.fields();
+        while (entries.hasNext()) {
+            Map.Entry<String, JsonNode> entry = entries.next();
+            result.put(entry.getKey(), entry.getValue());
+        }
+        return result;
     }
 
     private static final List<Notice> DELETED_REMARKS = Collections.singletonList(new Notice(
@@ -189,7 +183,7 @@ public class RdapEntity implements RdapObject, Serializable {
         }
 
         private Object readResolve() {
-            return new RdapEntity(objectKey, RdapSerializing.deserialize(data, Entity.class));
+            return new RdapEntity(objectKey, RdapSerializing.deserialize(data, ObjectNode.class));
         }
     }
 
