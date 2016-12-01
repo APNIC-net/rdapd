@@ -59,6 +59,7 @@ Snapshots only make sense if data has already been loaded from a RIPE database.
   - The RDAP output is not complete: entities aren't listed.
   - Only IPv4 is supported right now.
   - Searching for 0/0 is slower than it could be.
+  - UTF-8 is not supported by the RIPE RPSL module, so that module must be replaced
 
 ### How the history is constructed
 
