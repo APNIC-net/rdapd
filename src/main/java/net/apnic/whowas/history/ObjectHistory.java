@@ -6,6 +6,8 @@ import com.github.andrewoma.dexx.collection.Vector;
 
 import java.io.ObjectStreamException;
 import java.io.Serializable;
+import java.time.Duration;
+import java.time.temporal.TemporalAmount;
 import java.util.Iterator;
 import java.util.Optional;
 import java.util.Spliterator;
@@ -18,6 +20,9 @@ import java.util.Spliterator;
  */
 public final class ObjectHistory implements Serializable, Iterable<Revision> {
     private static final long serialVersionUID = 8840997336665340581L;
+
+    // The minimum lifetime of a revision.
+    private static final TemporalAmount SQUELCH_TIME = Duration.ofMinutes(300);
 
     private final ObjectKey objectKey;
     private final transient List<Revision> revisions;
@@ -32,12 +37,17 @@ public final class ObjectHistory implements Serializable, Iterable<Revision> {
     }
 
     ObjectHistory appendRevision(Revision revision) {
-        // If the most recent revision doesn't have an "until" date, update it
         List<Revision> newRevisions = Optional.ofNullable(revisions.last())
                 .filter(r -> r.getValidUntil() == null || r.getValidUntil().isAfter(revision.getValidFrom()))
-                .map(r -> revisions.take(revisions.size() - 1).append(r.supersede(revision.getValidFrom())))
+                .map(r -> {
+                    List<Revision> revs = revisions.take(revisions.size() - 1);
+                    // Squelch short-lived revisions
+                    if (r.getValidFrom().plus(SQUELCH_TIME).isBefore(revision.getValidFrom())) {
+                        return revs.append(r.supersede(revision.getValidFrom()));
+                    }
+                    return revs;
+                })
                 .orElse(revisions);
-        // TODO: squash short-lived revisions
         return new ObjectHistory(objectKey, newRevisions.append(revision));
     }
     
