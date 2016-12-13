@@ -7,32 +7,13 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import net.apnic.whowas.history.ObjectKey;
 import net.apnic.whowas.rpsl.RpslObject;
 
-import java.io.ObjectStreamException;
-import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
-public class RdapDomain extends AbstractRdapObject implements Serializable {
-    public RdapDomain(ObjectKey objectKey, byte[] rpsl) {
-        super(objectKey, rpsl);
-    }
-
-    @Override
-    protected ObjectNode makeObjectNode(RpslObject rpslObject) {
-        ObjectNode domain = new ObjectNode(JsonNodeFactory.instance);
-        domain.put("objectClassName", "domain");
-        domain.put("handle", objectKey.getObjectName());
-        domain.put("ldhName", objectKey.getObjectName());
-        domain.set("nameservers", new ArrayNode(JsonNodeFactory.instance,
-                rpslObject.getAttribute("nserver").stream()
-                        .map(RdapDomain::nameserver)
-                        .collect(Collectors.toList())));
-        setRemarks(domain, rpslObject);
-        return domain;
-    }
-
+class Domain extends AbstractRdapObject {
     private static JsonNode nameserver(String fqdn) {
         ObjectNode node = new ObjectNode(JsonNodeFactory.instance);
         node.put("ldhName", fqdn);
@@ -40,43 +21,28 @@ public class RdapDomain extends AbstractRdapObject implements Serializable {
         return node;
     }
 
-    RdapDomain(Map<ObjectKey, Set<String>> relatedObjects, ObjectKey objectKey, ObjectNode domain) {
-        super(relatedObjects, objectKey, domain);
-    }
-
-    public static RdapDomain deletedObject(ObjectKey objectKey) {
-        ObjectNode node = new ObjectNode(JsonNodeFactory.instance);
+    static Map<String, Object> fromBytes(ObjectKey objectKey, byte[] rpsl, Collection<RdapObject> relatedObjects) {
+        Map<String, Object> node = new HashMap<>();
 
         node.put("objectClassName", "domain");
         node.put("handle", objectKey.getObjectName());
         node.put("ldhName", objectKey.getObjectName());
-        node.set("remarks", DELETED_REMARKS);
 
-        return new RdapDomain(new HashMap<>(), objectKey, node);
-    }
-
-    /**** Serialization code below ****/
-
-    /* Serialization via a replacement wrapper to preserve immutability */
-    private Object writeReplace() throws ObjectStreamException {
-        return new Wrapper(relatedObjects, objectKey, RdapSerializing.serialize(objectNode));
-    }
-
-    private static final class Wrapper implements Serializable {
-        private static final long serialVersionUID = -8825651861679233094L;
-        private final Map<ObjectKey, Set<String>> relatedObjects;
-        private final ObjectKey objectKey;
-        private final byte[] data;
-
-        private Wrapper(Map<ObjectKey, Set<String>> relatedObjects, ObjectKey objectKey, byte[] data) {
-            this.relatedObjects = relatedObjects;
-            this.objectKey = objectKey;
-            this.data = data;
+        if (rpsl.length == 0) {
+            node.put("remarks", DELETED_REMARKS);
+        } else {
+            RpslObject rpslObject = new RpslObject(rpsl);
+            node.put("nameservers", new ArrayNode(JsonNodeFactory.instance,
+                    rpslObject.getAttribute("nserver").stream()
+                            .map(Domain::nameserver)
+                            .collect(Collectors.toList())));
+            rpslObject.getAttribute("ds-rdata")
+                    ;
+            // TODO: parse ds-rdata attributes
+            node.put("entities", new ArrayList<>(relatedObjects));
+            setRemarks(node, rpslObject);
         }
 
-        private Object readResolve() {
-            return new RdapDomain(relatedObjects, objectKey, RdapSerializing.deserialize(data, ObjectNode.class));
-        }
+        return node;
     }
-
 }

@@ -54,9 +54,23 @@ public class WebController {
                         .collect(Collectors.toList())));
     }
 
+    @RequestMapping("/history/autnum/{handle}")
+    public ResponseEntity<TopLevelObject> autnumHistory(@PathVariable("handle") String handle) {
+        return historyOf(new ObjectKey(ObjectClass.AUT_NUM, handle));
+    }
+
     @RequestMapping("/history/entity/{handle}")
     public ResponseEntity<TopLevelObject> entityHistory(@PathVariable("handle") String handle) {
-        return objectIndex.historyForObject(new ObjectKey(ObjectClass.ENTITY, handle))
+        return historyOf(new ObjectKey(ObjectClass.ENTITY, handle));
+    }
+
+    @RequestMapping("/history/domain/{handle:.+}")
+    public ResponseEntity<TopLevelObject> domainHistory(@PathVariable("handle") String handle) {
+        return historyOf(new ObjectKey(ObjectClass.DOMAIN, handle));
+    }
+
+    private ResponseEntity<TopLevelObject> historyOf(ObjectKey objectKey) {
+        return objectIndex.historyForObject(objectKey)
                 .map(RdapHistory::new)
                 .map(TopLevelObject::of)
                 .map(r -> new ResponseEntity<>(r, HttpStatus.OK))
@@ -73,9 +87,23 @@ public class WebController {
         return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
     }
 
+    @RequestMapping("/autnum/{handle}")
+    public ResponseEntity<TopLevelObject> autnum(@PathVariable("handle") String handle) {
+        return mostRecent(new ObjectKey(ObjectClass.AUT_NUM, handle));
+    }
+
+    @RequestMapping("/domain/{handle:.+}")
+    public ResponseEntity<TopLevelObject> domain(@PathVariable("handle") String handle) {
+        return mostRecent(new ObjectKey(ObjectClass.DOMAIN, handle));
+    }
+
     @RequestMapping("/entity/{handle}")
     public ResponseEntity<TopLevelObject> entity(@PathVariable("handle") String handle) {
-        return objectIndex.historyForObject(new ObjectKey(ObjectClass.ENTITY, handle))
+        return mostRecent(new ObjectKey(ObjectClass.ENTITY, handle));
+    }
+
+    private ResponseEntity<TopLevelObject> mostRecent(ObjectKey objectKey) {
+        return objectIndex.historyForObject(objectKey)
                 .flatMap(ObjectHistory::mostRecent)
                 .map(Revision::getContents)
                 .map(TopLevelObject::of)

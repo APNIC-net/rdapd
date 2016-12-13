@@ -1,12 +1,10 @@
 package net.apnic.whowas.rpsl;
 
-import be.dnsbelgium.rdap.core.Notice;
 import net.apnic.whowas.types.Tuple;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * An RPSL object
@@ -16,25 +14,6 @@ public class RpslObject {
 
     public RpslObject(byte[] rpsl) {
         attributes = RpslParser.parseObject(rpsl);
-    }
-
-    /**
-     * Retrieve a list of text attributes as RDAP Notice objects.
-     *
-     * If there are neither remarks nor descr attributes present,
-     * null will be returned rather than an empty list.
-     *
-     * @return a list of text attributes as RDAP Notice objects.
-     */
-    public List<Notice> getRemarks() {
-        Notice remarks = new Notice("remarks", null, getAttribute("remarks"), null);
-        Notice descr   = new Notice("description", null, getAttribute("descr"), null);
-
-        List<Notice> notices = Stream.of(remarks, descr)
-                .filter(n -> !n.getDescription().isEmpty())
-                .collect(Collectors.toList());
-
-        return notices.isEmpty() ? null : notices;
     }
 
     /**

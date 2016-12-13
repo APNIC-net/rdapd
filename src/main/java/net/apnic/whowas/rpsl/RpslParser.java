@@ -1,6 +1,5 @@
 package net.apnic.whowas.rpsl;
 
-import com.google.common.base.Charsets;
 import net.apnic.whowas.types.Tuple;
 import org.codehaus.jparsec.Parser;
 import org.codehaus.jparsec.Parsers;
@@ -8,14 +7,15 @@ import org.codehaus.jparsec.Scanners;
 import org.codehaus.jparsec.pattern.CharPredicates;
 import org.codehaus.jparsec.pattern.Patterns;
 
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
  * An RPSL parser for the modern software system.  Probably not blisteringly
- * fast.
+ * fast.  Does not recognise comments.
  */
-public class RpslParser {
+class RpslParser {
     private static final Parser<Void> WHITESPACE = Scanners.many(CharPredicates.among(" \t"));
 
     private static final Parser<String> ATTRIBUTE_NAME
@@ -46,11 +46,11 @@ public class RpslParser {
     private RpslParser() {
     }
 
-    public static List<Tuple<String, String>> parseObject(String input) {
+    static List<Tuple<String, String>> parseObject(String input) {
         return RPSL_OBJECT.parse(input);
     }
 
-    public static List<Tuple<String, String>> parseObject(byte[] input) {
-        return RPSL_OBJECT.parse(new String(input, Charsets.UTF_8));
+    static List<Tuple<String, String>> parseObject(byte[] input) {
+        return RPSL_OBJECT.parse(new String(input, Charset.forName("UTF-8")));
     }
 }

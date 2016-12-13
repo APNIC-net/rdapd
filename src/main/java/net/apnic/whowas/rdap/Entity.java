@@ -8,12 +8,7 @@ import com.fasterxml.jackson.databind.node.TextNode;
 import net.apnic.whowas.history.ObjectKey;
 import net.apnic.whowas.rpsl.RpslObject;
 
-import java.io.ObjectStreamException;
-import java.io.Serializable;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -22,42 +17,28 @@ import java.util.stream.Stream;
 /**
  * An Entity object.
  */
-public class RdapEntity extends AbstractRdapObject implements Serializable {
-    private static final long serialVersionUID = -5721385011828987523L;
+class Entity extends AbstractRdapObject {
+    static Map<String, Object> fromBytes(ObjectKey objectKey, byte[] rpsl, Collection<RdapObject> relatedObjects) {
+        Map<String, Object> node = new HashMap<>();
 
-    public RdapEntity(ObjectKey objectKey, byte[] rpsl) {
-        super(objectKey, rpsl);
-        relatedObjects.clear();
-    }
-
-    @Override
-    protected ObjectNode makeObjectNode(RpslObject rpslObject) {
-        ObjectNode node = new ObjectNode(JsonNodeFactory.instance);
         node.put("objectClassName", "entity");
         node.put("handle", objectKey.getObjectName());
-        node.set("vcardArray", new ArrayNode(JsonNodeFactory.instance,
-                Arrays.asList(new TextNode("vcard"),
-                        new ArrayNode(JsonNodeFactory.instance,
-                                EnumSet.allOf(VCardAttribute.class)
-                                        .stream()
-                                        .flatMap(a -> a.getProperty(rpslObject))
-                                        .collect(Collectors.toList())))));
-        setRemarks(node, rpslObject);
+
+        if (rpsl.length == 0) {
+            node.put("remarks", DELETED_REMARKS);
+        } else {
+            RpslObject rpslObject = new RpslObject(rpsl);
+            node.put("vcardArray", new ArrayNode(JsonNodeFactory.instance,
+                    Arrays.asList(new TextNode("vcard"),
+                            new ArrayNode(JsonNodeFactory.instance,
+                                    EnumSet.allOf(VCardAttribute.class)
+                                            .stream()
+                                            .flatMap(a -> a.getProperty(rpslObject))
+                                            .collect(Collectors.toList())))));
+            setRemarks(node, rpslObject);
+        }
+
         return node;
-    }
-
-    private RdapEntity(ObjectKey objectKey, ObjectNode entity) {
-        super(Collections.emptyMap(), objectKey, entity);
-    }
-
-    public static RdapEntity deletedObject(ObjectKey objectKey) {
-        ObjectNode node = new ObjectNode(JsonNodeFactory.instance);
-
-        node.put("objectClassName", "entity");
-        node.put("handle", objectKey.getObjectName());
-        node.set("remarks", DELETED_REMARKS);
-
-        return new RdapEntity(objectKey, node);
     }
 
     /* VCard attributes */
@@ -66,6 +47,7 @@ public class RdapEntity extends AbstractRdapObject implements Serializable {
 
     @SuppressWarnings(/* They're used, just not by name. */ "unused")
     private enum VCardAttribute {
+        VERSION(o -> Stream.of(makeNode("version", Collections.emptyMap(), new TextNode("4.0")))),
         FORMATTED_NAME(o -> Stream.of(makeNode("fn", Collections.emptyMap(), new TextNode(o.getPrimaryAttribute().snd())))),
         VCARD_KIND(o -> Stream.of(makeNode("kind", Collections.emptyMap(), getKind(o)))),
         ADDRESS(o -> Stream.of(o.getAttribute("address"))
@@ -73,7 +55,6 @@ public class RdapEntity extends AbstractRdapObject implements Serializable {
                 .map(l -> String.join("\n", l))
                 .map(s -> Collections.singletonMap("label", s))
                 .map(p -> makeNode("adr", p, EMPTY_ADDRESS))),
-//        ADDRESS("address", "adr", v -> param("label", v), v -> EMPTY_ADDRESS),
         PHONE_TEL("phone", "tel", Collections.singletonMap("type", "voice")),
         PHONE_FAX("fax-no", "tel", Collections.singletonMap("type", "fax")),
         EMAIL("e-mail", "email"),
@@ -123,30 +104,4 @@ public class RdapEntity extends AbstractRdapObject implements Serializable {
             }
         }
     }
-
-    /****
-     * Serialization code below
-     ****/
-
-    /* Serialization via a replacement wrapper to preserve immutability */
-    private Object writeReplace() throws ObjectStreamException {
-        return new Wrapper(objectKey, RdapSerializing.serialize(objectNode));
-    }
-
-    private static final class Wrapper implements Serializable {
-        private static final long serialVersionUID = -4675825451003583486L;
-        private final ObjectKey objectKey;
-        private final byte[] data;
-
-        private Wrapper(ObjectKey objectKey, byte[] data) {
-            this.objectKey = objectKey;
-            this.data = data;
-        }
-
-        private Object readResolve() {
-            return new RdapEntity(objectKey, RdapSerializing.deserialize(data, ObjectNode.class));
-        }
-    }
-
-
 }

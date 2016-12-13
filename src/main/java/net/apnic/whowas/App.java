@@ -5,6 +5,7 @@ import net.apnic.whowas.history.ObjectHistory;
 import net.apnic.whowas.history.ObjectIndex;
 import net.apnic.whowas.intervaltree.IntervalTree;
 import net.apnic.whowas.loaders.RipeDbLoader;
+import net.apnic.whowas.progress.Bar;
 import net.apnic.whowas.types.IP;
 import net.apnic.whowas.types.IpInterval;
 import net.apnic.whowas.types.Tuple;
@@ -26,6 +27,9 @@ import javax.annotation.PostConstruct;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -109,7 +113,17 @@ public class App {
 
         LOGGER.info("Loading history from database, starting at #{}", dbLoader.getLastSerial());
         try {
-            dbLoader.loadWith(history::addRevision);
+            Bar bar = new Bar(107, LOGGER::info);
+            final ZonedDateTime lastDate[] = { ZonedDateTime.of(2008, 1, 1, 1, 1, 1,1, ZoneId.systemDefault()) };
+            lastDate[0] = lastDate[0].truncatedTo(ChronoUnit.DAYS).withDayOfMonth(1);
+            dbLoader.loadWith((k, r) -> {
+                ZonedDateTime x = r.getValidFrom().truncatedTo(ChronoUnit.DAYS).withDayOfMonth(1);
+                if (x.isAfter(lastDate[0])) {
+                    lastDate[0] = x;
+                    bar.inc();
+                }
+                history.addRevision(k, r);
+            });
         } catch (Exception ex) {
             LOGGER.error("Failed to load data: {}", ex.getLocalizedMessage(), ex);
         }
