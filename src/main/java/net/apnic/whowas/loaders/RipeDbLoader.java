@@ -1,10 +1,9 @@
 package net.apnic.whowas.loaders;
 
-import net.apnic.whowas.rdap.GenericObject;
 import net.apnic.whowas.history.ObjectClass;
 import net.apnic.whowas.history.ObjectKey;
 import net.apnic.whowas.history.Revision;
-import net.apnic.whowas.rdap.RdapObject;
+import net.apnic.whowas.rdap.GenericObject;
 import net.apnic.whowas.types.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +35,6 @@ public class RipeDbLoader implements Loader {
     private static void resultSetToRdap(ResultSet rs, RevisionConsumer consumer) throws SQLException {
         ObjectClass objectClass = OBJECT_CLASSES.getOrDefault(rs.getInt("object_type"), null);
         if (objectClass != null) {
-            RdapObject rdapObject;
             byte[] contents = rs.getBytes("object");
             ObjectKey objectKey = new ObjectKey(objectClass, rs.getString("pkey"));
             consumer.accept(objectKey, new Revision(
