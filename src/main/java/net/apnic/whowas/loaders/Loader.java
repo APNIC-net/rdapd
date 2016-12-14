@@ -1,10 +1,17 @@
 package net.apnic.whowas.loaders;
 
-import net.apnic.whowas.history.History;
-import net.apnic.whowas.intervaltree.IntervalTree;
-import net.apnic.whowas.types.IP;
-import net.apnic.whowas.types.IpInterval;
+import net.apnic.whowas.history.ObjectKey;
+import net.apnic.whowas.history.Revision;
 
+/**
+ * Load history data from some source.
+ *
+ * Data will be fed one revision at a time into a BiConsumer.
+ */
 public interface Loader {
-    IntervalTree<IP, History, IpInterval> loadTree() throws Exception;
+    void loadWith(RevisionConsumer revisionConsumer);
+
+    interface RevisionConsumer {
+        void accept(ObjectKey objectKey, Revision revision);
+    }
 }

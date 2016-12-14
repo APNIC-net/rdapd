@@ -9,6 +9,10 @@ public class Tuple<S,T> {
         this.t = t;
     }
 
+    public static <S, T> Tuple<S, T> of(S s, T t) {
+        return new Tuple<S, T>(s, t);
+    }
+
     public S fst() { return s; }
     public T snd() { return t; }
 

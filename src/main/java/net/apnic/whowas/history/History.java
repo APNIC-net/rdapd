@@ -1,206 +1,259 @@
 package net.apnic.whowas.history;
 
-import com.fasterxml.jackson.annotation.JsonRawValue;
-import com.fasterxml.jackson.annotation.JsonValue;
-import com.google.gson.*;
-import net.ripe.db.whois.common.domain.CIString;
-import net.ripe.db.whois.common.rpsl.AttributeType;
-import net.ripe.db.whois.common.rpsl.RpslAttribute;
-import net.ripe.db.whois.common.rpsl.RpslObject;
+import com.github.andrewoma.dexx.collection.*;
+import net.apnic.whowas.intervaltree.IntervalTree;
+import net.apnic.whowas.intervaltree.avl.AvlTree;
+import net.apnic.whowas.rdap.RdapObject;
+import net.apnic.whowas.types.IP;
+import net.apnic.whowas.types.IpInterval;
+import net.apnic.whowas.types.Parsing;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
-import java.io.ObjectStreamException;
-import java.io.Serializable;
-import java.util.*;
-import java.util.function.Function;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * A history for a particular INR interval.
+ * The History of a registry.
  *
- * @author bje
+ * The history of a registry is the history of each object within the registry,
+ * a serial number reflecting the version of the registry, and a set of indices
+ * for fast interval lookups.
  */
-public final class History implements Serializable {
-    private static final Gson GSON = new Gson();
-    private static final long serialVersionUID = 1;
+public final class History implements Externalizable {
+    private static final long serialVersionUID = 5063296486972345480L;
+    private static final Logger LOGGER = LoggerFactory.getLogger(History.class);
 
-    private final transient @Nullable String rawJSON;
-    private final List<RpslRecord> records;
+    /* The history of every object */
+    private volatile Map<ObjectKey, ObjectHistory> histories;
 
-    private History(List<RpslRecord> records, Optional<String> rawJSON) {
-        if (records.isEmpty()) {
-            throw new IllegalArgumentException("The list of records must not be empty");
-        }
-        this.rawJSON = rawJSON.orElse(null);
-        this.records = records;
+    /* IP interval index */
+    private volatile AvlTree<IP, ObjectKey, IpInterval> tree;
+
+    /* Related object index */
+    private volatile Map<ObjectKey, Set<ObjectKey>> relatedIndex;
+
+    /**
+     * Construct a new History in which nothing has ever happened.
+     */
+    public History() {
+        histories = HashMap.empty();
+        tree = new AvlTree<>();
+        relatedIndex = HashMap.empty();
     }
 
     /**
-     * Construct a History from a stream of records.
+     * Horrible way to deserialize a History.
      *
-     * @param records the records to combine into the new History
-     * @return a stream of one History if at least one record exists, else an empty stream
+     * App uses a final instance variable for its history.
+     *
+     * @param history the shameful history of past of software design choices
      */
-    public static Stream<History> fromStream(Stream<RpslRecord> records) {
-        List<RpslRecord> rs = records.sorted().collect(Collectors.toList());
-        return rs.isEmpty() ? Stream.empty() : Stream.of(new History(rs, Optional.empty()));
+    public synchronized void deserialize(History history) {
+        this.histories = history.histories;
+        this.tree = history.tree;
+        this.relatedIndex = history.relatedIndex;
     }
 
     /**
-     * Return a new History with a new update appended.
+     * Update an object in the History with a new revision.
      *
-     * The most recent RpslRecord will be truncated at the whence of the given update.  Any cached JSON state
-     * will be lost.
+     * Revisions MUST be added in chronological order.  This code assumes that
+     * each revision is always later than or simultaneous to the last revision
+     * added.
      *
-     * @param update The new RpslRecord to append
-     * @return A new History
+     * This method mutates the History. Be careful not to serialize the History
+     * while this operation is in progress, as consistency is only guaranteed
+     * at the end of the method.
+     *
+     * Read consistency of the tree and object histories will remain valid
+     * during operation.  Any tree or history obtained previously will not see
+     * the updates, as both structures are replaced in this method.
+     *
+     * @param objectKey The object to append the new revision onto
+     * @param revision The new revision of the object
      */
-    public History appendUpdate(RpslRecord update) {
-        // TODO: probably need to sort this, now
-        List<RpslRecord> newRecords = new ArrayList<>(records.size() + 1);
-        Optional<RpslRecord> last = records.isEmpty()
-                ? Optional.empty()
-                : Optional.of(records.get(records.size() - 1));
+    public synchronized void addRevision(ObjectKey objectKey, Revision revision) {
+        // The trick is to do this operation without messing with in-progress
+        // queries, without incurring the cost of @synchronised locking
+        // everywhere, and without quadratic performance during initial loads.
+        AvlTree<IP, ObjectKey, IpInterval> nextTree = tree;
 
-        newRecords.addAll(records);
-        last.filter(r -> r.getUntil().isAfter(update.getWhence()))
-                .ifPresent(r -> newRecords.set(records.size() - 1, r.splitAt(update.getWhence())[0]));
-        newRecords.add(update);
-
-        return new History(newRecords, Optional.empty());
-    }
-
-    /**
-     * Update a History by mapping each record in turn to a stream of new records.
-     *
-     * @param fn the function to map a record to a stream of records
-     * @return a new History if there is at least one resulting record, or empty otherwise
-     */
-    public Optional<History> flatMap(Function<RpslRecord, Stream<RpslRecord>> fn) {
-        List<RpslRecord> rs = records.stream().sequential().flatMap(fn).sorted().collect(Collectors.toList());
-
-        if (rs.isEmpty()) {
-            return Optional.empty();
-        } else {
-            return Optional.of(new History(rs, Optional.empty()));
-        }
-    }
-
-    /**
-     * Construct a new History where the JSON representation is precomputed.
-     *
-     * @return A new History where the JSON representation is precomputed
-     */
-    public History cached() {
-        return new History(records, Optional.of(makeJson()));
-    }
-
-    public String getPrimaryKey() {
-        return records.get(0).getPrimaryKey();
-    }
-
-    public List<RpslRecord> getRecords() {
-        return records;
-    }
-
-    @JsonValue
-    @JsonRawValue
-    /**
-     * Return the JSON for this History.  May have been precomputed if you used .cached().
-     *
-     * This will not cache the JSON for future calls, as History cannot be changed.
-     *
-     * @return the JSON for this History
-     */
-    public String toJson() {
-        return rawJSON != null ? rawJSON : makeJson();
-    }
-
-    private JsonArray streamToJson(Stream<JsonElement> contents) {
-        final JsonArray json = new JsonArray();
-        contents.sequential().forEach(json::add);
-        return json;
-    }
-
-    private String makeJson() {
-        JsonObject rdap = new JsonObject();
-
-        // TODO: specialize this class for v4/v6/ASN
-        rdap.addProperty("objectClassName", "ip network history");
-        rdap.addProperty("handle", records.get(0).getPrimaryKey());
-        rdap.addProperty("ipVersion", records.get(0).getObjectType() == 6 ? "v4" : "v6");
-        rdap.add("versions", streamToJson(records.stream().map(this::rpslToRdap)));
-
-        return GSON.toJson(rdap);
-    }
-
-    private JsonObject rpslToRdap(RpslRecord rpsl) {
-        JsonObject rdap = new JsonObject();
-
-        Optional<RpslObject> base = rpsl.getRpslObject();
-
-        rdap.add("applicability", streamToJson(Stream.of(rpsl.getWhence(), rpsl.getUntil())
-                .map(Object::toString).map(JsonPrimitive::new)));
-        attrToProperty(base, rdap, AttributeType.NETNAME, "name");
-        attrToProperty(base, rdap, AttributeType.STATUS, "type");
-        attrToProperty(base, rdap, AttributeType.COUNTRY, "country");   // note: more than one country means NO entry!
-        addRemarks(base, rdap);
-        addRaw(rpsl, rdap);
-
-        return rdap;
-    }
-
-    private void attrToProperty(Optional<RpslObject> object, JsonObject json, AttributeType attribute, String property) {
-        object.map(o -> o.getValueOrNullForAttribute(attribute))
-                .ifPresent(v -> json.addProperty(property, v.toString()));
-    }
-
-    private void addRemarks(Optional<RpslObject> object, JsonObject json) {
-        JsonArray remarks = new JsonArray();
-
-        object.ifPresent(o -> {
-            List<RpslAttribute> descrs = o.findAttributes(AttributeType.DESCR);
-            if (!descrs.isEmpty()) {
-                JsonObject remark = new JsonObject();
-                remark.addProperty("title", "description");
-                JsonArray labels = new JsonArray();
-                descrs.forEach(a -> labels.add(a.getCleanValue().toString()));
-                remark.add("description", labels);
-                remarks.add(remark);
+        // Obtain a new object history with this revision included
+        ObjectHistory objectHistory = histories.get(objectKey);
+        if (objectHistory == null) {
+            objectHistory = new ObjectHistory(objectKey);
+            if (objectKey.getObjectClass() == ObjectClass.IP_NETWORK) {
+                nextTree = updateIntervalTree(objectKey, nextTree);
             }
+        }
 
-            List<RpslAttribute> rems = o.findAttributes(AttributeType.REMARKS);
-            if (!rems.isEmpty()) {
-                JsonObject remark = new JsonObject();
-                remark.addProperty("title", "remarks");
-                JsonArray labels = new JsonArray();
-                rems.forEach(a -> labels.add(a.getCleanValue().toString()));
-                remark.add("description", labels);
-                remarks.add(remark);
+        // Handy information about this object's history and latest revision
+        Optional<Revision> mostRecent = objectHistory.mostRecent();
+        Collection<ObjectKey> entityKeys = revision.getContents().getEntityKeys();
+
+        // Add any related entities to the revision's content
+        revision = addRelatedObjects(revision);
+
+        // Ensure that the revision has actually changed: some WHOIS attributes
+        // have no bearing on the RDAP object structure, and spurious changes
+        // should be suppressed.
+        // TODO do
+
+        // The related index is owned exclusively by this method (and its
+        // private method components).  Because this method is synchronized,
+        // the index can be updated safely without regard to ordering of updates
+        // to the tree or object history set.
+
+        // Update the related index to track objects referencing entities
+        updateRelatedIndex(objectKey, entityKeys, mostRecent.orElse(null));
+
+        // Link it on in
+        objectHistory = objectHistory.appendRevision(revision);
+
+        // Because we have only ever added information, it is safe to update
+        // the histories map first; either this will merely provide the new
+        // revision to an in-progress query, or the object will not yet be in
+        // the indices and so not visible to in-progress queries.
+        histories = histories.put(objectKey, objectHistory);
+
+        // Check the related index to see if this object is related to anything
+        updateRelatingObjects(objectKey, revision);
+
+        // Now that the new history is in place, the tree index may be safely
+        // updated if a new object was created.
+        tree = nextTree;
+    }
+
+    /* Find any objects which relate to this object, and add a new revision */
+    private void updateRelatingObjects(ObjectKey objectKey, Revision revision) {
+        Set<ObjectKey> relations = Optional.ofNullable(relatedIndex.get(objectKey))
+                .orElse(HashSet.empty());
+        for (ObjectKey key : relations) {
+            ObjectHistory relatedHistory = histories.get(key);
+            final Revision lambdasAreNotClosures = revision;
+            Optional.ofNullable(relatedHistory)
+                    .flatMap(ObjectHistory::mostRecent)
+                    .map(r -> new Revision(
+                            lambdasAreNotClosures.getValidFrom(),
+                            null,
+                            r.getContents()))
+                    .map(this::addRelatedObjects)
+                    .ifPresent(r -> {
+                        assert relatedHistory != null;
+                        histories = histories.put(key, relatedHistory.appendRevision(r));
+                    });
+        }
+    }
+
+    /* Update the interval tree to reflect a new IP network object revision */
+    private AvlTree<IP, ObjectKey, IpInterval> updateIntervalTree(ObjectKey objectKey, AvlTree<IP, ObjectKey, IpInterval> nextTree) {
+        try {
+            IpInterval interval = Parsing.parseInterval(objectKey.getObjectName());
+            nextTree = tree.update(interval, objectKey, (a,b) -> {
+                assert a.equals(b);
+                return a;
+            }, o -> o);
+        } catch (Exception ex) {
+            LOGGER.warn("Object {} not added to IP tree: parse exception {}", objectKey, ex.getMessage());
+            LOGGER.debug("Full exception", ex);
+            // absorb and move on
+        }
+        return nextTree;
+    }
+
+    /* Maintain the index of related objects */
+    private void updateRelatedIndex(ObjectKey objectKey, Collection<ObjectKey> entityKeys, Revision mostRecent) {
+        Set<ObjectKey> relatedKeys = Sets.copyOf(Optional.ofNullable(mostRecent)
+                .map(Revision::getContents)
+                .map(RdapObject::getEntityKeys)
+                .map(Collection::iterator)
+                .orElse(Collections.emptyIterator()));
+
+        // Remove any links no longer required
+        Set<ObjectKey> removeKeys = relatedKeys;
+        for (ObjectKey key : entityKeys) {
+            removeKeys = removeKeys.remove(key);
+        }
+        for (ObjectKey key : removeKeys) {
+            Set<ObjectKey> keys = Optional.ofNullable(relatedIndex.get(key))
+                    .orElse(HashSet.empty())
+                    .remove(objectKey);
+            if (keys.isEmpty()) {
+                relatedIndex = relatedIndex.remove(key);
+            } else {
+                relatedIndex = relatedIndex.put(key, keys);
             }
+        }
 
-            json.add("remarks", remarks);
-        });
+        // Add any new links
+        Set<ObjectKey> newKeys = Sets.copyOf(entityKeys);
+        for (ObjectKey key : relatedKeys) {
+            newKeys = newKeys.remove(key);
+        }
+        for (ObjectKey key : newKeys) {
+            Set<ObjectKey> keys = Optional.ofNullable(relatedIndex.get(key))
+                    .orElse(HashSet.empty())
+                    .add(objectKey);
+            relatedIndex = relatedIndex.put(key, keys);
+        }
     }
 
-    private String whitespaceNormalised(RpslObject object) {
-        return object.toString();
+    /* Add related objects from the history to the given revision */
+    private Revision addRelatedObjects(Revision revision) {
+        return new Revision(revision.getValidFrom(), revision.getValidUntil(),
+                revision.getContents().withEntities(
+                        revision.getContents().getEntityKeys().stream()
+                                .map(histories::get)
+                                .filter(Objects::nonNull)
+                                .map(ObjectHistory::mostRecent)
+                                .flatMap(o -> o.map(Stream::of).orElse(Stream.empty()))
+                                .map(Revision::getContents)
+                                .collect(Collectors.toList())));
     }
 
-    private void addRaw(RpslRecord record, JsonObject json) {
-        JsonArray raw = new JsonArray();
-
-        raw.add(record.getRpslObject().map(this::whitespaceNormalised).get());
-        record.getChildren().stream()
-                .map(RpslRecord::getRpslObject)
-                .sorted(Comparator.comparing(k -> k.map(RpslObject::getKey).orElse(CIString.ciString(""))))
-                .forEach(k -> k.ifPresent(o -> raw.add(whitespaceNormalised(o))));
-
-        json.add("rpsl", raw);
+    public IntervalTree<IP, ObjectKey, IpInterval> getTree() {
+        return tree;
     }
 
-    private Object readResolve() throws ObjectStreamException {
-        return new History(records, Optional.empty());
+    public Optional<ObjectHistory> getObjectHistory(ObjectKey objectKey) {
+        return Optional.ofNullable(histories.get(objectKey));
+    }
+
+    /* ---------------------------------------------------------------------- */
+    /* Boring bits below.  Serialization via Externalizable */
+    /* ---------------------------------------------------------------------- */
+
+    @Override
+    public void writeExternal(ObjectOutput out) throws IOException {
+        Object[] thePast = histories.toArray();
+        out.writeInt(thePast.length);
+        for (Object obj : thePast) {
+            @SuppressWarnings("unchecked")
+            Pair<ObjectKey, ObjectHistory> p = (Pair<ObjectKey, ObjectHistory>)obj;
+            out.writeObject(p.component1());
+            out.writeObject(p.component2());
+        }
+        out.writeObject(tree);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+        Builder<Pair<ObjectKey,ObjectHistory>,Map<ObjectKey,ObjectHistory>> builder = Maps.builder();
+        int l = in.readInt();
+        for (int i = 0; i < l; i++) {
+            builder.add(new Pair<>((ObjectKey)in.readObject(), (ObjectHistory)in.readObject()));
+        }
+        histories = builder.build();
+        tree = (AvlTree<IP, ObjectKey, IpInterval>)in.readObject();
     }
 }

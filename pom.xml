@@ -6,14 +6,16 @@
       <modelVersion>4.0.0</modelVersion>
 
     <groupId>net.apnic.whowas</groupId>
-    <artifactId>history-server</artifactId>
+    <artifactId>rdap-history</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
+    <name>RDAP History server</name>
+    <description>An RDAP server implementing the RDAP history extension</description>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>1.4.0.RELEASE</version>
+        <version>1.4.2.RELEASE</version>
     </parent>
 
     <scm>
@@ -32,9 +34,9 @@
         <java.version>1.8</java.version>
 
         <!-- Plugin versions -->
-        <findbugs-maven-plugin.version>3.0.2</findbugs-maven-plugin.version>
-        <maven-checkstyle-plugin.version>2.15</maven-checkstyle-plugin.version>
-        <maven-pmd-plugin.version>3.5</maven-pmd-plugin.version>
+        <findbugs-maven-plugin.version>3.0.4</findbugs-maven-plugin.version>
+        <maven-checkstyle-plugin.version>2.17</maven-checkstyle-plugin.version>
+        <maven-pmd-plugin.version>3.7</maven-pmd-plugin.version>
     </properties>
 
     <dependencies>
@@ -51,21 +53,6 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.codepoetics</groupId>
-            <artifactId>protonpack</artifactId>
-            <version>1.9</version>
-        </dependency>
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>2.7</version>
-        </dependency>
-        <dependency>
-            <groupId>org.rpsl4j</groupId>
-            <artifactId>rpsl4j-parser</artifactId>
-            <version>1.81</version>
-        </dependency>
-        <dependency>
             <groupId>org.jparsec</groupId>
             <artifactId>jparsec</artifactId>
             <version>2.2.1</version>
@@ -79,17 +66,33 @@
             <artifactId>fst</artifactId>
             <version>2.47</version>
         </dependency>
+        <!-- Persistent data structures, ported from Scala, specifically HAMT map -->
         <dependency>
-            <groupId>one.util</groupId>
-            <artifactId>streamex</artifactId>
-            <version>0.6.2</version>
+            <groupId>com.github.andrewoma.dexx</groupId>
+            <artifactId>collection</artifactId>
+            <version>0.6</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.5</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-smile</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+        </dependency>
+
+        <!-- Testing dependencies -->
         <dependency>
             <groupId>com.google.code.findbugs</groupId>
             <artifactId>findbugs-annotations</artifactId>
             <version>3.0.1</version>
+            <scope>provided</scope>
         </dependency>
-
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -149,6 +152,16 @@
     </profiles>
 
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>*.properties</include>
+                </includes>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
@@ -214,7 +227,7 @@
                         <expose>8080</expose>
                     </exposes>
                     <user>history</user>
-                    <entryPoint>["java", "-Xmx10G", "-jar", "${project.build.finalName}.jar"]</entryPoint>
+                    <entryPoint>["java", "-Xmx12G", "-jar", "${project.build.finalName}.jar"]</entryPoint>
                     <resources>
                         <resource>
                             <targetPath>/app</targetPath>

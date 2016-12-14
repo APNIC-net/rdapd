@@ -56,9 +56,9 @@ Snapshots only make sense if data has already been loaded from a RIPE database.
 ### Caveats
 
   - The server never refreshes itself, so once it's started up, it's serving a static view.
-  - The RDAP output is not complete: entities aren't listed.
-  - Only IPv4 is supported right now.
-  - Searching for 0/0 is slower than it could be.
+      - Snapshotting and restarting will update to the latest data in the database
+  - IPv4, IPv6, and entity URLs work, domains and aut-nums do not.
+  - Searching for 0/0 is slower than it could be
 
 ### How the history is constructed
 
