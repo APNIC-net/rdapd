@@ -33,10 +33,20 @@
         <!-- Default target Java version -->
         <java.version>1.8</java.version>
 
+        <!-- Dependency versions -->
+        <jparsec.version>2.2.1</jparsec.version>
+        <fst.version>2.47</fst.version>
+        <scala-collections.version>0.6</scala-collections.version>
+        <commons-lang3.version>3.5</commons-lang3.version>
+        <cloud-vault.version>1.0.0.M1</cloud-vault.version>
+        <cucumber.version>1.2.3</cucumber.version>
+        <findbugs.version>3.0.1</findbugs.version>
+
         <!-- Plugin versions -->
         <findbugs-maven-plugin.version>3.0.4</findbugs-maven-plugin.version>
         <maven-checkstyle-plugin.version>2.17</maven-checkstyle-plugin.version>
         <maven-pmd-plugin.version>3.7</maven-pmd-plugin.version>
+        <docker-maven-plugin.version>0.4.12</docker-maven-plugin.version>
     </properties>
 
     <repositories>
@@ -63,7 +73,7 @@
         <dependency>
             <groupId>org.jparsec</groupId>
             <artifactId>jparsec</artifactId>
-            <version>2.2.1</version>
+            <version>${jparsec.version}</version>
         </dependency>
         <dependency>
             <groupId>mysql</groupId>
@@ -72,18 +82,18 @@
         <dependency>
             <groupId>de.ruedigermoeller</groupId>
             <artifactId>fst</artifactId>
-            <version>2.47</version>
+            <version>${fst.version}</version>
         </dependency>
         <!-- Persistent data structures, ported from Scala, specifically HAMT map -->
         <dependency>
             <groupId>com.github.andrewoma.dexx</groupId>
             <artifactId>collection</artifactId>
-            <version>0.6</version>
+            <version>${scala-collections.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>3.5</version>
+            <version>${commons-lang3.version}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
@@ -97,14 +107,14 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-vault-starter-config</artifactId>
-            <version>1.0.0.M1</version>
+            <version>${cloud-vault.version}</version>
         </dependency>
 
         <!-- Testing dependencies -->
         <dependency>
             <groupId>com.google.code.findbugs</groupId>
             <artifactId>findbugs-annotations</artifactId>
-            <version>3.0.1</version>
+            <version>${findbugs.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -115,13 +125,13 @@
         <dependency>
             <groupId>info.cukes</groupId>
             <artifactId>cucumber-java8</artifactId>
-            <version>1.2.3</version>
+            <version>${cucumber.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>info.cukes</groupId>
             <artifactId>cucumber-junit</artifactId>
-            <version>1.2.3</version>
+            <version>${cucumber.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -149,7 +159,7 @@
               <plugin>
                 <groupId>com.spotify</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
-                <version>0.4.12</version>
+                <version>${docker-maven-plugin.version}</version>
                 <executions>
                   <execution>
                     <id>build-image</id>
@@ -228,7 +238,7 @@
             <plugin>
                 <groupId>com.spotify</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
-                <version>0.4.12</version>
+                <version>${docker-maven-plugin.version}</version>
                 <configuration>
                     <imageName>apnic/history-server</imageName>
                     <baseImage>openjdk:8-jre-alpine</baseImage>
