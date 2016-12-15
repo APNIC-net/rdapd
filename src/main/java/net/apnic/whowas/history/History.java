@@ -242,6 +242,15 @@ public final class History implements Externalizable {
             out.writeObject(p.component1());
             out.writeObject(p.component2());
         }
+        Object[] links = relatedIndex.toArray();
+        ObjectKey[] keys = {};
+        out.writeInt(links.length);
+        for (Object obj : links) {
+            @SuppressWarnings("unchecked")
+            Pair<ObjectKey, Set<ObjectKey>> p = (Pair<ObjectKey, Set<ObjectKey>>)obj;
+            out.writeObject(p.component1());
+            out.writeObject(p.component2().toArray(keys));
+        }
         out.writeObject(tree);
     }
 
@@ -254,6 +263,14 @@ public final class History implements Externalizable {
             builder.add(new Pair<>((ObjectKey)in.readObject(), (ObjectHistory)in.readObject()));
         }
         histories = builder.build();
+        Builder<Pair<ObjectKey, Set<ObjectKey>>,Map<ObjectKey, Set<ObjectKey>>> rBuilder = Maps.builder();
+        l = in.readInt();
+        for (int i = 0; i < l; i++) {
+            rBuilder.add(new Pair<>(
+                    (ObjectKey)in.readObject(),
+                    Sets.copyOf((ObjectKey[])in.readObject())));
+        }
+        relatedIndex = rBuilder.build();
         tree = (AvlTree<IP, ObjectKey, IpInterval>)in.readObject();
     }
 }

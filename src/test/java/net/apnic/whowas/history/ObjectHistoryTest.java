@@ -15,7 +15,7 @@ import static org.junit.Assert.assertThat;
 public class ObjectHistoryTest {
     private static final ObjectKey objectKey = new ObjectKey(ObjectClass.ENTITY, "DUMMY");
 
-    RdapObject dummy = new RdapObject() {
+    private RdapObject dummy = new RdapObject() {
         @Override
         public ObjectKey getObjectKey() {
             return objectKey;
