@@ -46,7 +46,10 @@
         <findbugs-maven-plugin.version>3.0.4</findbugs-maven-plugin.version>
         <maven-checkstyle-plugin.version>2.17</maven-checkstyle-plugin.version>
         <maven-pmd-plugin.version>3.7</maven-pmd-plugin.version>
-        <docker-maven-plugin.version>0.4.12</docker-maven-plugin.version>
+        <docker-maven-plugin.version>0.18.1</docker-maven-plugin.version>
+
+        <!-- Docker settings -->
+        <docker.libraryName>applications</docker.libraryName>
     </properties>
 
     <repositories>
@@ -152,27 +155,6 @@
                 </dependency>
             </dependencies>
         </profile>
-        <profile>
-          <id>docker</id>
-          <build>
-            <plugins>
-              <plugin>
-                <groupId>com.spotify</groupId>
-                <artifactId>docker-maven-plugin</artifactId>
-                <version>${docker-maven-plugin.version}</version>
-                <executions>
-                  <execution>
-                    <id>build-image</id>
-                    <phase>package</phase>
-                    <goals>
-                      <goal>build</goal>
-                    </goals>
-                  </execution>
-                </executions>
-              </plugin>
-            </plugins>
-          </build>
-        </profile>
     </profiles>
 
     <build>
@@ -234,35 +216,84 @@
                 </executions>
             </plugin>
 
-            <!-- docker-maven-plugin - https://github.com/spotify/docker-maven-plugin -->
             <plugin>
-                <groupId>com.spotify</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <configuration>
+                    <escapeString>\</escapeString>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>docker-extras</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <!-- NOTE: We CANNOT use target/docker as that's being used by the docker-maven-plugin -->
+                            <!-- Recursive copy is not a good thing! -->
+                            <outputDirectory>${project.build.directory}/docker-extras/</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>src/main/docker/</directory>
+                                    <filtering>true</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- docker-maven-plugin - https://github.com/fabric8io/docker-maven-plugin -->
+            <plugin>
+                <groupId>io.fabric8</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
                 <version>${docker-maven-plugin.version}</version>
                 <configuration>
-                    <imageName>apnic/history-server</imageName>
-                    <baseImage>openjdk:8-jre-alpine</baseImage>
-                    <pullOnBuild>true</pullOnBuild>
-                    <workdir>/app</workdir>
-                    <runs>
-                        <run>adduser -S -H -D history</run>
-                    </runs>
-                    <exposes>
-                        <expose>8080</expose>
-                    </exposes>
-                    <user>history</user>
-                    <entryPoint>["java", "-Xmx12G", "-jar", "${project.build.finalName}.jar"]</entryPoint>
-                    <resources>
-                        <resource>
-                            <targetPath>/app</targetPath>
-                            <directory>${project.build.directory}</directory>
-                            <include>${project.build.finalName}.jar</include>
-                        </resource>
-                    </resources>
-                    <imageTags>
-                        <imageTag>${project.version}</imageTag>
-                        <imageTag>latest</imageTag>
-                    </imageTags>
+                    <dockerHost>unix:///var/run/docker.sock</dockerHost>
+                    <images>
+                        <image>
+                            <name>${docker.libraryName}/${project.artifactId}</name>
+                            <build>
+                                <from>openjdk:8-jre-alpine</from>
+                                <maintainer>noreply@apnic.net</maintainer>
+                                <tags>
+                                    <tag>${project.version}</tag>
+                                    <tag>latest</tag>
+                                </tags>
+                                <ports>
+                                    <port>8080</port>
+                                </ports>
+                                <entryPoint>
+                                    <exec>
+                                        <arg>/app/entrypoint.sh</arg>
+                                    </exec>
+                                </entryPoint>
+                                <runCmds>
+                                    <run>adduser -S -H -D history</run>
+                                </runCmds>
+                                <user>history</user>
+                                <workdir>/app</workdir>
+                                <assembly>
+                                    <targetDir>/app</targetDir>
+                                    <inline>
+                                        <fileSet>
+                                            <directory>${project.build.directory}/docker-extras/</directory>
+                                            <outputDirectory>.</outputDirectory>
+                                            <fileMode>0755</fileMode>
+                                            <includes>
+                                                <include>**/*.sh</include>
+                                            </includes>
+                                        </fileSet>
+                                        <files>
+                                            <file>
+                                                <source>${project.build.directory}/${project.build.finalName}.jar</source>
+                                            </file>
+                                        </files>
+                                    </inline>
+                                </assembly>
+                            </build>
+                        </image>
+                    </images>
                 </configuration>
             </plugin>
         </plugins>
