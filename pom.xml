@@ -85,6 +85,12 @@
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-vault-starter-config -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-vault-starter-config</artifactId>
+            <version>1.0.0.M1</version>
+        </dependency>
 
         <!-- Testing dependencies -->
         <dependency>
