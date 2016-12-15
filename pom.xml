@@ -249,7 +249,6 @@
                 <artifactId>docker-maven-plugin</artifactId>
                 <version>${docker-maven-plugin.version}</version>
                 <configuration>
-                    <dockerHost>unix:///var/run/docker.sock</dockerHost>
                     <images>
                         <image>
                             <name>${docker.libraryName}/${project.artifactId}</name>
