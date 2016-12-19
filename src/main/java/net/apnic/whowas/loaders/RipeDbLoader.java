@@ -86,10 +86,13 @@ public class RipeDbLoader implements Loader {
                 },
                 (ResultSet rs) -> resultSetToRdap(rs, consumer));
         operations.query("SELECT MAX(serial_id) AS `serial` FROM serials", (ResultSet rs) -> {
-           LOGGER.info("Data refreshed up to serial {}", rs.getLong("serial"));
-           lastSerial = rs.getLong("serial");
+            long nextSerial = rs.getLong("serial");
+            if (nextSerial > lastSerial) {
+                LOGGER.info("Data refreshed up to serial {}", nextSerial);
+                lastSerial = nextSerial;
+            }
         });
-        LOGGER.info("All database records loaded");
+        LOGGER.debug("All database records loaded");
     }
 
     public long getLastSerial() {

@@ -17,11 +17,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.actuate.endpoint.Endpoint;
+import org.springframework.boot.actuate.health.Health;
+import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.jdbc.core.JdbcOperations;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 
 import javax.annotation.PostConstruct;
 import java.io.FileOutputStream;
@@ -31,17 +37,20 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
-import java.util.concurrent.Executor;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.stream.Stream;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterInputStream;
 
 @SpringBootApplication
+@EnableScheduling
 public class App {
     private final static Logger LOGGER = LoggerFactory.getLogger(App.class);
 
-    private final Executor executor = Executors.newSingleThreadExecutor();
+    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     private final History history = new History();
 
@@ -80,6 +89,11 @@ public class App {
         return history::getObjectHistory;
     }
 
+    @Bean
+    public TaskExecutor taskScheduler() {
+        return new SimpleAsyncTaskExecutor();
+    }
+
     @Value("${snapshot.file}")
     private String snapshotFile;
 
@@ -90,11 +104,12 @@ public class App {
     private JdbcOperations jdbcOperations;
 
     private RipeDbLoader dbLoader;
+    private Exception lastDbException = null;
 
     @PostConstruct
     public void initialise() {
         dbLoader = new RipeDbLoader(jdbcOperations, -1L);
-        executor.execute(this::buildTree);
+        executorService.execute(this::buildTree);
     }
 
     private void buildTree() {
@@ -126,6 +141,7 @@ public class App {
             });
         } catch (Exception ex) {
             LOGGER.error("Failed to load data: {}", ex.getLocalizedMessage(), ex);
+            lastDbException = ex;
         }
         LOGGER.info("IP interval tree construction completed, {} entries", history.getTree().size());
     }
@@ -158,6 +174,39 @@ public class App {
                     return false;
                 }
                 return true;
+            }
+        };
+    }
+
+    private Future<Long> asyncLoader = CompletableFuture.completedFuture(-1L);
+
+    /* Every 15 seconds, refresh the database */
+    @Scheduled(fixedRate = 15000L)
+    public void refreshData() {
+        if (asyncLoader.isDone()) {
+            LOGGER.debug("CRON triggered refresh begun");
+            asyncLoader = executorService.submit(() -> {
+                try {
+                    dbLoader.loadWith(history::addRevision);
+                    lastDbException = null;
+                } catch (Exception ex) {
+                    LOGGER.error("Error refreshing data: {}", ex.getLocalizedMessage(), ex);
+                    lastDbException = ex;
+                }
+                return dbLoader.getLastSerial();
+            });
+        }
+    }
+
+    @Bean
+    HealthIndicator loaderHealthIndicator() {
+        return () -> {
+            if (lastDbException == null) {
+                return Health.up()
+                        .withDetail("lastSerial", dbLoader.getLastSerial())
+                        .build();
+            } else {
+                return Health.down(lastDbException).build();
             }
         };
     }
