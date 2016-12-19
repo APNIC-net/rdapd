@@ -76,7 +76,7 @@ public class RipeDbLoader implements Loader {
                     try {
                         stmt.setFetchSize(Integer.MIN_VALUE);
                         for (int i = 0; i < args.length; i++) {
-                            stmt.setObject(i, args[i]);
+                            stmt.setObject(i+1, args[i]);
                         }
                     } catch (SQLException ex) {
                         stmt.close();
