@@ -2,7 +2,7 @@ package net.apnic.whowas.rdap;
 
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -16,7 +16,6 @@ public class TopLevelObject {
             "rdap_level_0",
             "history_version_0"
     ).collect(Collectors.toSet());
-    private static final List<Notice> SERVER_NOTICES = Collections.emptyList();
 
     private final Set<String> rdapConformance;
     private final List<Notice> notices;
@@ -47,10 +46,16 @@ public class TopLevelObject {
      * @param object The object to wrap
      * @return A top level object using server defaults
      */
-    public static TopLevelObject of(Object object) {
+    public static TopLevelObject of(Object object, Notice notice) {
+        List<Notice> notices = new ArrayList<>();
+
+        if (notice != null) {
+            notices.add(notice);
+        }
+
         return new TopLevelObject(
                 SERVER_CONFORMANCE,
-                SERVER_NOTICES,
+                notices,
                 object);
     }
 }
