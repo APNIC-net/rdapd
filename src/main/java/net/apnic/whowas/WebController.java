@@ -147,9 +147,12 @@ public class WebController {
     @Bean
     public static BiFunction<Object, HttpServletRequest, TopLevelObject> responseMaker(ServerNotices serverNotices) {
         return (o, r) -> {
+            String url = serverNotices.baseUrl == null
+                    ? r.getRequestURL().toString()
+                    : serverNotices.baseUrl + r.getRequestURI();
             List<Link> link = serverNotices.getCopyrightUrl() == null
                     ? null
-                    : Collections.singletonList(new Link(r.getRequestURI(), "terms-of-service", serverNotices.getCopyrightUrl(), "text/html"));
+                    : Collections.singletonList(new Link(url, "terms-of-service", serverNotices.getCopyrightUrl(), "text/html"));
             Notice notice = serverNotices.getTerms() == null
                     ? null
                     : new Notice("Terms and Conditions", Collections.singletonList(serverNotices.getTerms()), link);
@@ -161,6 +164,7 @@ public class WebController {
     static class ServerNotices {
         private String terms;
         private String copyrightUrl;
+        private String baseUrl;
 
         public String getTerms() {
             return terms;
@@ -176,6 +180,14 @@ public class WebController {
 
         public void setCopyrightUrl(String copyrightUrl) {
             this.copyrightUrl = copyrightUrl;
+        }
+
+        public String getBaseUrl() {
+            return baseUrl;
+        }
+
+        public void setBaseUrl(String baseUrl) {
+            this.baseUrl = baseUrl;
         }
     }
 }
