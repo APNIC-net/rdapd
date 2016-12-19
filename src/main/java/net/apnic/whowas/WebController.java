@@ -2,16 +2,18 @@ package net.apnic.whowas;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import net.apnic.whowas.rdap.RdapHistory;
-import net.apnic.whowas.rdap.RdapObjectMapper;
-import net.apnic.whowas.rdap.TopLevelObject;
 import net.apnic.whowas.history.*;
 import net.apnic.whowas.intervaltree.IntervalTree;
+import net.apnic.whowas.rdap.*;
 import net.apnic.whowas.types.IP;
 import net.apnic.whowas.types.IpInterval;
 import net.apnic.whowas.types.Parsing;
 import net.apnic.whowas.types.Tuple;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.convert.converter.Converter;
@@ -24,55 +26,68 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.HandlerMapping;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 @RestController
 @CrossOrigin(origins = "*")
+@EnableConfigurationProperties({ WebController.ServerNotices.class })
 public class WebController {
+    private final static Logger LOGGER = LoggerFactory.getLogger(WebController.class);
+
     private final IntervalTree<IP, ObjectHistory, IpInterval> intervalTree;
     private final ObjectIndex objectIndex;
+    private final BiFunction<Object, HttpServletRequest, TopLevelObject> makeResponse;
 
     @Autowired
-    WebController(IntervalTree<IP, ObjectHistory, IpInterval> intervalTree, ObjectIndex objectIndex) {
+    WebController(IntervalTree<IP, ObjectHistory, IpInterval> intervalTree, ObjectIndex objectIndex, BiFunction<Object, HttpServletRequest, TopLevelObject> responseMaker) {
         this.intervalTree = intervalTree;
         this.objectIndex = objectIndex;
+        this.makeResponse = responseMaker;
     }
 
     @RequestMapping("/history/ip/**")
     public TopLevelObject ipHistory(HttpServletRequest request) {
         String param = (String)request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
+        LOGGER.info("IP history query for {}", param);
         IpInterval range = Parsing.parseInterval(param.substring(12));
 
         int pfxCap = range.prefixSize() + (range.low().getAddressFamily() == IP.AddressFamily.IPv4 ? 8 : 16);
-        return TopLevelObject.of(
+        return makeResponse.apply(
                 new RdapHistory(intervalTree
                         .intersecting(range)
                         .filter(t -> t.fst().prefixSize() <= pfxCap)
                         .sorted(Comparator.comparing(Tuple::fst))
                         .map(Tuple::snd)
-                        .collect(Collectors.toList())));
+                        .collect(Collectors.toList())),
+                request);
     }
 
     @RequestMapping("/history/autnum/{handle}")
-    public ResponseEntity<TopLevelObject> autnumHistory(@PathVariable("handle") String handle) {
-        return historyOf(new ObjectKey(ObjectClass.AUT_NUM, handle));
+    public ResponseEntity<TopLevelObject> autnumHistory(HttpServletRequest request, @PathVariable("handle") String handle) {
+        LOGGER.info("AutNum history query for {}", handle);
+        return historyOf(request, new ObjectKey(ObjectClass.AUT_NUM, handle));
     }
 
     @RequestMapping("/history/entity/{handle}")
-    public ResponseEntity<TopLevelObject> entityHistory(@PathVariable("handle") String handle) {
-        return historyOf(new ObjectKey(ObjectClass.ENTITY, handle));
+    public ResponseEntity<TopLevelObject> entityHistory(HttpServletRequest request, @PathVariable("handle") String handle) {
+        LOGGER.info("Entity history query for {}", handle);
+        return historyOf(request, new ObjectKey(ObjectClass.ENTITY, handle));
     }
 
     @RequestMapping("/history/domain/{handle:.+}")
-    public ResponseEntity<TopLevelObject> domainHistory(@PathVariable("handle") String handle) {
-        return historyOf(new ObjectKey(ObjectClass.DOMAIN, handle));
+    public ResponseEntity<TopLevelObject> domainHistory(HttpServletRequest request, @PathVariable("handle") String handle) {
+        LOGGER.info("Domain history query for {}", handle);
+        return historyOf(request, new ObjectKey(ObjectClass.DOMAIN, handle));
     }
 
-    private ResponseEntity<TopLevelObject> historyOf(ObjectKey objectKey) {
+    private ResponseEntity<TopLevelObject> historyOf(HttpServletRequest request, ObjectKey objectKey) {
         return objectIndex.historyForObject(objectKey)
                 .map(RdapHistory::new)
-                .map(TopLevelObject::of)
+                .map(h -> makeResponse.apply(h, request))
                 .map(r -> new ResponseEntity<>(r, HttpStatus.OK))
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
@@ -88,25 +103,25 @@ public class WebController {
     }
 
     @RequestMapping("/autnum/{handle}")
-    public ResponseEntity<TopLevelObject> autnum(@PathVariable("handle") String handle) {
-        return mostRecent(new ObjectKey(ObjectClass.AUT_NUM, handle));
+    public ResponseEntity<TopLevelObject> autnum(HttpServletRequest request, @PathVariable("handle") String handle) {
+        return mostRecent(request, new ObjectKey(ObjectClass.AUT_NUM, handle));
     }
 
     @RequestMapping("/domain/{handle:.+}")
-    public ResponseEntity<TopLevelObject> domain(@PathVariable("handle") String handle) {
-        return mostRecent(new ObjectKey(ObjectClass.DOMAIN, handle));
+    public ResponseEntity<TopLevelObject> domain(HttpServletRequest request, @PathVariable("handle") String handle) {
+        return mostRecent(request, new ObjectKey(ObjectClass.DOMAIN, handle));
     }
 
     @RequestMapping("/entity/{handle}")
-    public ResponseEntity<TopLevelObject> entity(@PathVariable("handle") String handle) {
-        return mostRecent(new ObjectKey(ObjectClass.ENTITY, handle));
+    public ResponseEntity<TopLevelObject> entity(HttpServletRequest request, @PathVariable("handle") String handle) {
+        return mostRecent(request, new ObjectKey(ObjectClass.ENTITY, handle));
     }
 
-    private ResponseEntity<TopLevelObject> mostRecent(ObjectKey objectKey) {
+    private ResponseEntity<TopLevelObject> mostRecent(HttpServletRequest request, ObjectKey objectKey) {
         return objectIndex.historyForObject(objectKey)
                 .flatMap(ObjectHistory::mostRecent)
                 .map(Revision::getContents)
-                .map(TopLevelObject::of)
+                .map(o -> makeResponse.apply(o, request))
                 .map(r -> new ResponseEntity<>(r, HttpStatus.OK))
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
@@ -127,5 +142,52 @@ public class WebController {
         ObjectMapper objectMapper = new RdapObjectMapper();
         objectMapper.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
         return objectMapper;
+    }
+
+    @Bean
+    public static BiFunction<Object, HttpServletRequest, TopLevelObject> responseMaker(ServerNotices serverNotices) {
+        return (o, r) -> {
+            String url = serverNotices.baseUrl == null
+                    ? r.getRequestURL().toString()
+                    : serverNotices.baseUrl + r.getRequestURI();
+            List<Link> link = serverNotices.getCopyrightUrl() == null
+                    ? null
+                    : Collections.singletonList(new Link(url, "terms-of-service", serverNotices.getCopyrightUrl(), "text/html"));
+            Notice notice = serverNotices.getTerms() == null
+                    ? null
+                    : new Notice("Terms and Conditions", Collections.singletonList(serverNotices.getTerms()), link);
+            return TopLevelObject.of(o, notice);
+        };
+    }
+
+    @ConfigurationProperties("rdap.server")
+    static class ServerNotices {
+        private String terms;
+        private String copyrightUrl;
+        private String baseUrl;
+
+        public String getTerms() {
+            return terms;
+        }
+
+        public void setTerms(String terms) {
+            this.terms = terms;
+        }
+
+        public String getCopyrightUrl() {
+            return copyrightUrl;
+        }
+
+        public void setCopyrightUrl(String copyrightUrl) {
+            this.copyrightUrl = copyrightUrl;
+        }
+
+        public String getBaseUrl() {
+            return baseUrl;
+        }
+
+        public void setBaseUrl(String baseUrl) {
+            this.baseUrl = baseUrl;
+        }
     }
 }

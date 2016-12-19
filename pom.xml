@@ -7,7 +7,7 @@
 
     <groupId>net.apnic.whowas</groupId>
     <artifactId>rdap-history</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>RDAP History server</name>
     <description>An RDAP server implementing the RDAP history extension</description>
@@ -112,6 +112,13 @@
             <artifactId>spring-cloud-vault-starter-config</artifactId>
             <version>${cloud-vault.version}</version>
         </dependency>
+        <!-- Include this on the classpath to allow logstash-compatible JSON logging -->
+        <dependency>
+            <groupId>net.logstash.logback</groupId>
+            <artifactId>logstash-logback-encoder</artifactId>
+            <version>4.8</version>
+        </dependency>
+
 
         <!-- Testing dependencies -->
         <dependency>
@@ -251,7 +258,7 @@
                 <configuration>
                     <images>
                         <image>
-                            <name>${docker.libraryName}/${project.artifactId}</name>
+                            <name>apnic/${project.artifactId}</name>
                             <build>
                                 <from>openjdk:8-jre-alpine</from>
                                 <maintainer>noreply@apnic.net</maintainer>
