@@ -260,7 +260,7 @@
                         <image>
                             <name>apnic/${project.artifactId}</name>
                             <build>
-                                <from>openjdk:8-jre-alpine</from>
+                                <from>openjdk:8-jre</from>
                                 <maintainer>noreply@apnic.net</maintainer>
                                 <tags>
                                     <tag>${project.version}</tag>
@@ -274,10 +274,6 @@
                                         <arg>/app/entrypoint.sh</arg>
                                     </exec>
                                 </entryPoint>
-                                <runCmds>
-                                    <run>adduser -S -H -D history</run>
-                                </runCmds>
-                                <user>history</user>
                                 <workdir>/app</workdir>
                                 <assembly>
                                     <targetDir>/app</targetDir>
