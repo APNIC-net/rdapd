@@ -31,7 +31,7 @@ between 5G and 8G.
 ##### From a RIPE database
 
 Provide an `application.properties` file or suitable arguments to configure a Spring
-data source.  See the [test properties](src/main/resoures/application-test.properties)
+data source.  See the [test properties](src/main/resources/application-test.properties)
 for an example.
 
 ##### From a snapshot file
