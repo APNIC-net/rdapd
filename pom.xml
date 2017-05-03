@@ -38,7 +38,6 @@
         <fst.version>2.48</fst.version>
         <scala-collections.version>0.6</scala-collections.version>
         <commons-lang3.version>3.5</commons-lang3.version>
-        <cloud-vault.version>1.0.0.M1</cloud-vault.version>
         <cucumber.version>1.2.5</cucumber.version>
         <findbugs.version>3.0.1</findbugs.version>
 
@@ -105,12 +104,6 @@
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-vault-starter-config -->
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-vault-starter-config</artifactId>
-            <version>${cloud-vault.version}</version>
         </dependency>
         <!-- Include this on the classpath to allow logstash-compatible JSON logging -->
         <dependency>
@@ -257,6 +250,29 @@
                 <version>${docker-maven-plugin.version}</version>
                 <configuration>
                     <images>
+                        <image>
+                            <name>apnic/whowas-test-db</name>
+                            <build>
+                                <dockerFileDir>
+                                    ${project.basedir}/test/ripe-database
+                                </dockerFileDir>
+                                <tags>
+                                    <tag>${project.version}</tag>
+                                    <tag>latest</tag>
+                                </tags>
+                            </build>
+                            <run>
+                                <env>
+                                    <MYSQL_ALLOW_EMPTY_PASSWORD>
+                                        yes
+                                    </MYSQL_ALLOW_EMPTY_PASSWORD>
+                                </env>
+                                <ports>
+                                    <port>3306:3306</port>
+                                </ports>
+                            </run>
+                        </image>
+
                         <image>
                             <name>apnic/${project.artifactId}</name>
                             <build>
