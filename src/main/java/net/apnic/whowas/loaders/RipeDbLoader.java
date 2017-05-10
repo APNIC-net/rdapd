@@ -109,14 +109,14 @@ public class RipeDbLoader implements Loader {
 
     // Presence in the map serves as a proxy for relevance to this application
     private static final Map<Integer, ObjectClass> OBJECT_CLASSES = Stream.of(
+            new Tuple<>(2, ObjectClass.AUT_NUM),
             new Tuple<>(3, ObjectClass.DOMAIN),
+            new Tuple<>(5, ObjectClass.IP_NETWORK),
             new Tuple<>(6, ObjectClass.IP_NETWORK),
             new Tuple<>(9, ObjectClass.ENTITY),
             new Tuple<>(10, ObjectClass.ENTITY),
             new Tuple<>(11, ObjectClass.ENTITY),
-            new Tuple<>(18, ObjectClass.ENTITY),
-            new Tuple<>(5, ObjectClass.IP_NETWORK),
-            new Tuple<>(2, ObjectClass.AUT_NUM),
-            new Tuple<>(17, ObjectClass.ENTITY)
-    ).collect(Collectors.toMap(Tuple::fst, Tuple::snd));
+            new Tuple<>(17, ObjectClass.ENTITY),
+            new Tuple<>(18, ObjectClass.ENTITY))
+        .collect(Collectors.toMap(Tuple::fst, Tuple::snd));
 }
