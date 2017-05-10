@@ -269,7 +269,7 @@
                                     </MYSQL_ALLOW_EMPTY_PASSWORD>
                                 </env>
                                 <ports>
-                                    <port>3306:3306</port>
+                                    <port>3306</port>
                                 </ports>
                                 <wait>
                                     <time>40000</time>
