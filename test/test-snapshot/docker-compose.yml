@@ -24,3 +24,5 @@ services:
             - SPRING_DATASOURCE_USERNAME=root
             - SNAPSHOT_FILE=/whowas-snapshot/snapshot
 
+volumes:
+    whowas:
