@@ -10,8 +10,11 @@
         "domain": {
             "supported": true,
             "exists": ["0.75.202.in-addr.arpa",
-                       "187.2.103.in-addr.arpa"],
-            "notExists": ["google.com"],
+                       "2.2.1.0.0.2.1.0.0.2.ip6.arpa",
+                       "196.127.203.in-addr.arpa",
+                       "2.0.1.0.0.2.1.0.0.2.ip6.arpa"],
+            "notExists": ["google.com",
+                          "0.16.183.in-addr.arpa"],
             "search": {
                 "name": {
                     "supported": true,
@@ -19,6 +22,12 @@
                     "notExists": ["1.2.3.202.in-addr*"]
                 }
             }
+        },
+        "entity": {
+            "supported": true,
+            "exists": ["BWE1-AP",
+                       "TSE2-AP"],
+            "notExists": ["@@@@@@@@"]
         },
         "ip": {
             "supported": true,
@@ -34,10 +43,8 @@
                           "2001:aa:bb::/48",
                           "fe80::/10"]
         },
-        "autnum": {
-            "supported": true,
-            "exists": ["4617", "4623"],
-            "notExists": ["3333", "1234"]
+        "nameserver": {
+            "supported": false
         }
     }
 }
