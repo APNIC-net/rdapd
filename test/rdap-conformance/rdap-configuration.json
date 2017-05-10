@@ -2,6 +2,33 @@
 {
     "baseUrl": "http://rdap:8080",
     "objectClasses": {
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+=======
+>>>>>>> Stashed changes
+        "autnum": {
+            "supported": true,
+            "exists": ["4617", "4623"],
+            "notExists": ["3333", "1234"]
+        },
+        "domain": {
+            "supported": true,
+            "exists": ["0.75.202.in-addr.arpa",
+                       "187.2.103.in-addr.arpa"],
+            "notExists": ["google.com"],
+            "search": {
+                "name": {
+                    "supported": true,
+                    "exists": ["202.in-addr*", "202.in-addr.arpa"],
+                    "notExists": ["1.2.3.202.in-addr*"]
+                }
+            }
+        },
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
         "ip": {
             "supported": true,
             "exists": ["2001:200:102::/48",
@@ -15,11 +42,17 @@
                           "10.0.0.0/8",
                           "2001:aa:bb::/48",
                           "fe80::/10"]
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
         },
         "autnum": {
             "supported": true,
             "exists": ["4617", "4623"],
             "notExists": ["3333", "1234"]
+=======
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
         }
     }
 }
