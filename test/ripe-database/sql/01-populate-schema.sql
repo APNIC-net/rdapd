@@ -72,7 +72,53 @@ source:         APNIC
 changed:        hm-changed@apnic.net 20170316',
 '203.127.196.0 - 203.127.196.255'),
 
-(7, 1, 1329434477, 9, 'mntner:        MAINT-EXAMPLE-1-AP
+(7, 1, 1329434477, 3, 'domain:        0.75.202.in-addr.arpa
+descr:          in-addr.arpa zone for 202.75.0/22
+admin-c:        BWE1-AP
+tech-c:         EX1-AP
+zone-c:         BWE1-AP
+nserver:        ns1.example1.noexist
+nserver:        ns2.example1.noexist
+mnt-by:         MAINT-EXAMPLE-1-AP
+changed:        hm-changed@apnic.net 20170202
+source:         APNIC',
+'0.75.202.in-addr.arpa'),
+
+(8, 1, 1329434477, 3, 'domain:        2.2.1.0.0.2.1.0.0.2.ip6.arpa
+admin-c:        BWE1-AP
+tech-c:         EX1-AP
+zone-c:         BWE1-AP
+nserver:        ns1.example1.noexist
+nserver:        ns2.example1.noexist
+mnt-by:         MAINT-EXAMPLE-1-AP
+changed:        hm-changed@apnic.net 20170202
+source:         APNIC',
+'2.2.1.0.0.2.1.0.0.2.ip6.arpa'),
+
+(9, 1, 1329434477, 3, 'domain:        196.127.203.in-addr.arpa
+descr:          in-addr.arpa zone for 203.127.196/24
+admin-c:        TSE2-AP
+tech-c:         EX2-AP
+zone-c:         TSE2-AP
+nserver:        ns1.example2.noexist
+nserver:        ns2.example2.noexist
+mnt-by:         MAINT-EXAMPLE-2-AP
+changed:        hm-changed@apnic.net 20170202
+source:         APNIC',
+'203.127.196.in-addr.arpa'),
+
+(10, 1, 1329434477, 3, 'domain:        2.0.1.0.0.2.1.0.0.2.ip6.arpa
+admin-c:        TSE2-AP
+tech-c:         EX2-AP
+zone-c:         TSE2-AP
+nserver:        ns1.example2.noexist
+nserver:        ns2.example2.noexist
+mnt-by:         MAINT-EXAMPLE-2-AP
+changed:        hm-changed@apnic.net 20170202
+source:         APNIC',
+'2.0.1.0.0.2.1.0.0.2.ip6.arpa'),
+
+(11, 1, 1329434477, 9, 'mntner:        MAINT-EXAMPLE-1-AP
 upd-to:         hostmaster@example1.noexist
 descr:          Example 1
 admin-c:        BWE1-AP
@@ -84,7 +130,7 @@ mnt-by:         MAINT-EXAMPLE-1-AP
 source:         APNIC',
 'MAINT-EXAMPLE-1-AP'),
 
-(8, 1, 1329434477, 9, 'mntner:         MAINT-EXAMPLE-2-AP
+(12, 1, 1329434477, 9, 'mntner:         MAINT-EXAMPLE-2-AP
 upd-to:         hostmaster@example2.noexist
 descr:          Example 2
 admin-c:        TSE2-AP
@@ -97,7 +143,7 @@ changed:        hm-changed@apnic.net 20170321
 source:         APNIC',
 'MAINT-EXAMPLE-2-AP'),
 
-(9, 1, 1329434477, 10, 'person:         Bruce Wayne
+(13, 1, 1329434477, 10, 'person:         Bruce Wayne
 address:      Example 1
 address:      Brisbane, Australia
 country:      AU
@@ -108,7 +154,7 @@ mnt-by:       MAINT-EXAMPLE-1-AP
 changed:      bruce.wayne@example1.noexist 201770306
 source:       APNIC', 'BWE1-AP'),
 
-(10, 1, 1329434477, 10, 'person:         Tony Stark
+(14, 1, 1329434477, 10, 'person:         Tony Stark
 nic-hdl:      TSE2-AP
 e-mail:       tony.stark@example2.noexist
 address:      Example 2
@@ -119,7 +165,7 @@ changed:      tony.stark@example2.noexist 20170223
 mnt-by:       MAINT-EXAMPLE-2-AP
 source:       APNIC', 'TSE2-AP'),
 
-(11, 1, 1329434477, 11, 'role:         Example1 Administrator
+(15, 1, 1329434477, 11, 'role:         Example1 Administrator
 address:        1 Queen St
 address:        Brisbane Queensland 4000
 country:        AU
@@ -132,7 +178,7 @@ mnt-by:         MAINT-EXAMPLE-1-AP
 changed:        hm-changed@apnic.net 20170327
 source:         APNIC', 'EX1-AP'),
 
-(12, 1, 1329434477, 11, 'role:         Example2 Administrator
+(16, 1, 1329434477, 11, 'role:         Example2 Administrator
 address:        2 Queen St
 address:        Brisbane Queensland 4000
 country:        AU
@@ -145,7 +191,7 @@ nic-hdl:        EX2-AP
 mnt-by:         MAINT-EXAMPLE-2-AP
 source:         APNIC', 'EX2-AP'),
 
-(13, 1, 1329434477, 17, 'irt:         IRT-EXAMPLE-1-AU
+(17, 1, 1329434477, 17, 'irt:         IRT-EXAMPLE-1-AU
 address:        1 Queen St
 address:        Brisbane Queensland 4000
 e-mail:         irt@example1.noexist
@@ -157,7 +203,7 @@ mnt-by:         MAINT-EXAMPLE-1-AP
 changed:        bruce.wayne@example1.noexist 20170318
 source:         APNIC', 'IRT-EXAMPLE-1-AU'),
 
-(14, 1, 1329434477, 17, 'irt:         IRT-EXAMPLE-2-AU
+(18, 1, 1329434477, 17, 'irt:         IRT-EXAMPLE-2-AU
 address:        2 Queen St
 address:        Brisbane Queensland 4000
 e-mail:         irt@example2.noexist
@@ -185,4 +231,9 @@ VALUES
 (0, 11, 11, 1, 0, 0),
 (0, 12, 12, 1, 0, 0),
 (0, 13, 13, 1, 0, 0),
-(0, 14, 14, 1, 0, 0);
+(0, 14, 14, 1, 0, 0),
+(0, 15, 14, 1, 0, 0),
+(0, 16, 14, 1, 0, 0),
+(0, 17, 14, 1, 0, 0),
+(0, 18, 14, 1, 0, 0);
+
