@@ -11,11 +11,11 @@ RUN cd /tmp && \
 
 COPY pom.xml /build/
 # Download a large number of dependencies early, such that source file changes don't require this step to re-run
-RUN cd build && $M2_HOME/bin/mvn verify clean --fail-never
+RUN cd build && $M2_HOME/bin/mvn package clean --fail-never
 
 COPY src/ build/src/
 RUN cd build && \
-    $M2_HOME/bin/mvn verify -DskipDocker && \
+    $M2_HOME/bin/mvn package -DskipDocker && \
     mkdir /app && \
     cp target/*.jar /app/ && \
     cp target/docker-extras/entrypoint.sh /app/ && \
