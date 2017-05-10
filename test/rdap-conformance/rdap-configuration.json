@@ -2,11 +2,6 @@
 {
     "baseUrl": "http://rdap:8080",
     "objectClasses": {
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-=======
-=======
->>>>>>> Stashed changes
         "autnum": {
             "supported": true,
             "exists": ["4617", "4623"],
@@ -25,10 +20,6 @@
                 }
             }
         },
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
         "ip": {
             "supported": true,
             "exists": ["2001:200:102::/48",
@@ -42,17 +33,11 @@
                           "10.0.0.0/8",
                           "2001:aa:bb::/48",
                           "fe80::/10"]
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
         },
         "autnum": {
             "supported": true,
             "exists": ["4617", "4623"],
             "notExists": ["3333", "1234"]
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
         }
     }
 }
