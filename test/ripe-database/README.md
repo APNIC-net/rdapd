@@ -28,7 +28,7 @@ the command a new Docker image called whowas-ripe-db.
 docker build . -t whowas-ripe-db
 ```
 
-Alternativley the image can be built with maven:
+Alternatively the image can be built with maven:
 
 ```
 mvn -Ddocker.filter="apnic/whowas-test-db" docker:build
@@ -43,7 +43,7 @@ to run a copy of the database.
 docker run -d -e "MYSQL_ALLOW_EMPTY_PASSWORD=yes" -p 3306:3306 --name whowas-ripe-db whowas-ripe-db
 ```
 
-Alternativley the Docker image can be run with maven:
+Alternatively the Docker image can be run with maven:
 
 ```
 mvn -Ddocker.filter="apnic/whowas-test-db" docker:start
