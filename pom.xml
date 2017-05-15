@@ -7,7 +7,7 @@
 
     <groupId>net.apnic.whowas</groupId>
     <artifactId>rdap-history</artifactId>
-    <version>1.0.5-SNAPSHOT</version>
+    <version>1.1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>RDAP History server</name>
     <description>An RDAP server implementing the RDAP history extension</description>
@@ -38,7 +38,6 @@
         <fst.version>2.48</fst.version>
         <scala-collections.version>0.6</scala-collections.version>
         <commons-lang3.version>3.5</commons-lang3.version>
-        <cloud-vault.version>1.0.0.M1</cloud-vault.version>
         <cucumber.version>1.2.5</cucumber.version>
         <findbugs.version>3.0.1</findbugs.version>
 
@@ -46,7 +45,7 @@
         <findbugs-maven-plugin.version>3.0.4</findbugs-maven-plugin.version>
         <maven-checkstyle-plugin.version>2.17</maven-checkstyle-plugin.version>
         <maven-pmd-plugin.version>3.7</maven-pmd-plugin.version>
-        <docker-maven-plugin.version>0.18.1</docker-maven-plugin.version>
+        <docker-maven-plugin.version>0.20.1</docker-maven-plugin.version>
 
         <!-- Docker settings -->
         <docker.libraryName>applications</docker.libraryName>
@@ -105,12 +104,6 @@
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-vault-starter-config -->
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-vault-starter-config</artifactId>
-            <version>${cloud-vault.version}</version>
         </dependency>
         <!-- Include this on the classpath to allow logstash-compatible JSON logging -->
         <dependency>
@@ -256,7 +249,36 @@
                 <artifactId>docker-maven-plugin</artifactId>
                 <version>${docker-maven-plugin.version}</version>
                 <configuration>
+                    <!-- WHOWAS Test Data Image -->
                     <images>
+                        <image>
+                            <name>apnic/whowas-test-db</name>
+                            <build>
+                                <dockerFileDir>
+                                    ${project.basedir}/test/ripe-database
+                                </dockerFileDir>
+                                <tags>
+                                    <tag>${project.version}</tag>
+                                    <tag>latest</tag>
+                                </tags>
+                            </build>
+                            <run>
+                                <env>
+                                    <MYSQL_ALLOW_EMPTY_PASSWORD>
+                                        yes
+                                    </MYSQL_ALLOW_EMPTY_PASSWORD>
+                                </env>
+                                <ports>
+                                    <port>3306</port>
+                                </ports>
+                                <wait>
+                                    <time>40000</time>
+                                    <healthy>true</healthy>
+                                </wait>
+                            </run>
+                        </image>
+
+                        <!-- WHOWAS Image -->
                         <image>
                             <name>apnic/${project.artifactId}</name>
                             <build>
@@ -275,6 +297,12 @@
                                     </exec>
                                 </entryPoint>
                                 <workdir>/app</workdir>
+                                <healthCheck>
+                                    <interval>10s</interval>
+                                    <timeout>15s</timeout>
+                                    <retries>3</retries>
+                                    <cmd>curl -f http://localhost:8081/health || exit 1</cmd>
+                                </healthCheck>
                                 <assembly>
                                     <targetDir>/app</targetDir>
                                     <inline>
@@ -294,9 +322,75 @@
                                     </inline>
                                 </assembly>
                             </build>
+
+                            <run>
+                                <dependsOn>
+                                    <container>apnic/whowas-test-db</container>
+                                </dependsOn>
+                                <links>
+                                    <link>apnic/whowas-test-db</link>
+                                </links>
+                                <env>
+                                    <DATABASE_HOST>
+                                        whowas-test-db
+                                    </DATABASE_HOST>
+                                    <DATABASE_DATABASE>
+                                        whowas_test
+                                    </DATABASE_DATABASE>
+                                </env>
+                                <wait>
+                                    <time>40000</time>
+                                    <healthy>true</healthy>
+                                </wait>
+                            </run>
+                        </image>
+
+                        <!-- RDAP Conformance -->
+                        <image>
+                            <name>apnic/rdap-conformance:latest</name>
+                            <run>
+                                <dependsOn>
+                                    <container>apnic/${project.artifactId}</container>
+                                </dependsOn>
+                                <links>
+                                    <link>apnic/${project.artifactId}:rdap</link>
+                                </links>
+                                <log>
+                                    <enabled>true</enabled>
+                                </log>
+                                <volumes>
+                                    <bind>
+                                        <volume>${project.basedir}/test/rdap-conformance/:/rdap-config/</volume>
+                                    </bind>
+                                </volumes>
+                            </run>
                         </image>
                     </images>
                 </configuration>
+
+                <executions>
+                    <execution>
+                        <id>build</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>build</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>start</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>start</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>stop</id>
+                        <phase>post-integration-test</phase>
+                        <goals>
+                            <goal>stop</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

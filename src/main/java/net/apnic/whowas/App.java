@@ -30,6 +30,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import javax.annotation.PostConstruct;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -94,7 +95,7 @@ public class App {
         return new SimpleAsyncTaskExecutor();
     }
 
-    @Value("${snapshot.file}")
+    @Value("${snapshot.file:#{null}}")
     private String snapshotFile;
 
     @Autowired
@@ -121,6 +122,8 @@ public class App {
                 long serial = objStream.readLong();
                 history.deserialize((History)objStream.readObject());
                 dbLoader.setLastSerial(serial);
+            } catch (FileNotFoundException ex) {
+                LOGGER.warn("snapshot file \"{}\" does not exist", snapshotFile);
             } catch (IOException | ClassNotFoundException ex) {
                 LOGGER.error("Exception during load", ex);
             }
