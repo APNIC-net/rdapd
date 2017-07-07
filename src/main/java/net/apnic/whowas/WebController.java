@@ -49,7 +49,7 @@ public class WebController {
         this.makeResponse = responseMaker;
     }
 
-    @RequestMapping("/history/ip/**")
+    @RequestMapping("/history/ip")
     public TopLevelObject ipHistory(HttpServletRequest request) {
         String param = (String)request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
         LOGGER.info("IP history query for {}", param);
@@ -90,21 +90,6 @@ public class WebController {
                 .map(h -> makeResponse.apply(h, request))
                 .map(r -> new ResponseEntity<>(r, HttpStatus.OK))
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
-    }
-
-    @RequestMapping("/ip/**")
-    public ResponseEntity<TopLevelObject> ip(HttpServletRequest request) {
-//        String param = (String)request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
-//        IpInterval range = Parsing.parseInterval(param.substring(4));
-
-        // TODO: closest match
-        //intervalTree.closest(range)
-        return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
-    }
-
-    @RequestMapping("/autnum/{handle}")
-    public ResponseEntity<TopLevelObject> autnum(HttpServletRequest request, @PathVariable("handle") String handle) {
-        return mostRecent(request, new ObjectKey(ObjectClass.AUT_NUM, handle));
     }
 
     @RequestMapping("/domain/{handle:.+}")
