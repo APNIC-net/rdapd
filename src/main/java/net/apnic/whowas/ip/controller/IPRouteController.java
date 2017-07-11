@@ -26,7 +26,8 @@ public class IPRouteController
     @RequestMapping(value="/**", method=RequestMethod.GET)
     public ResponseEntity<TopLevelObject> ipPath(HttpServletRequest request)
     {
-        String param = (String)request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE);
+        String param = (String)request.getAttribute(
+            HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
         LOGGER.info("{} query", param);
 
         try
