@@ -32,7 +32,7 @@ public class IPRouteController
 
         try
         {
-            IpInterval range = Parsing.parseInterval(param.substring(4));
+            IpInterval range = Parsing.parseCIDRInterval(param.substring(4));
             System.out.println(range);
         }
         catch(Exception ex)

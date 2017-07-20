@@ -53,7 +53,7 @@ public class WebController {
     public TopLevelObject ipHistory(HttpServletRequest request) {
         String param = (String)request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
         LOGGER.info("IP history query for {}", param);
-        IpInterval range = Parsing.parseInterval(param.substring(12));
+        IpInterval range = Parsing.parseCIDRInterval(param.substring(12));
 
         int pfxCap = range.prefixSize() + (range.low().getAddressFamily() == IP.AddressFamily.IPv4 ? 8 : 16);
         return makeResponse.apply(
