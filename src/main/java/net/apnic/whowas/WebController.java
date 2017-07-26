@@ -49,7 +49,7 @@ public class WebController {
         this.makeResponse = responseMaker;
     }
 
-    @RequestMapping("/history/ip")
+    @RequestMapping("/history/ip/**")
     public TopLevelObject ipHistory(HttpServletRequest request) {
         String param = (String)request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
         LOGGER.info("IP history query for {}", param);
