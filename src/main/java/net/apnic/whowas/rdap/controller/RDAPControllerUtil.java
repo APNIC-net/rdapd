@@ -25,11 +25,11 @@ public class RDAPControllerUtil
         return objectIndex;
     }
 
-    public ResponseEntity<TopLevelObject> mostRecentResponse(
+    public ResponseEntity<TopLevelObject> mostCurrentResponse(
         HttpServletRequest request, ObjectKey objectKey)
     {
         return getObjectIndex().historyForObject(objectKey)
-            .flatMap(ObjectHistory::mostRecent)
+            .flatMap(ObjectHistory::mostCurrent)
             .map(Revision::getContents)
             .map(rdapObject -> RDAPResponseMaker.makeResponse(rdapObject))
             .map(rdapTLO -> new ResponseEntity<TopLevelObject>(rdapTLO, HttpStatus.OK))

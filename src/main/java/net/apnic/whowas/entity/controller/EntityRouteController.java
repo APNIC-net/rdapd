@@ -17,6 +17,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * Rest controller for the RDAP /entity path segment.
+ *
+ * Controller is responsible for dealing with current state RDAP path segments.
+ */
 @RestController
 @RequestMapping("/entity")
 public class EntityRouteController
@@ -31,6 +36,9 @@ public class EntityRouteController
         this.rdapControllerUtil = rdapControllerUtil;
     }
 
+    /**
+     * GET request handler for entity path segment.
+     */
     @RequestMapping(value="/{handle}", method=RequestMethod.GET)
     public ResponseEntity<TopLevelObject> entityPath(
         HttpServletRequest request,
@@ -38,7 +46,7 @@ public class EntityRouteController
     {
         LOGGER.info("entity path query for {}", handle);
 
-        return rdapControllerUtil.mostRecentResponse(
+        return rdapControllerUtil.mostCurrentResponse(
             request, new ObjectKey(ObjectClass.ENTITY, handle));
     }
 }
