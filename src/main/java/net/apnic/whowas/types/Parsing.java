@@ -27,18 +27,19 @@ public final class Parsing {
         IPV6_SEC_COLON_PATTERN.times(0, 5).next(IPV6_SEC_PATTERN)
             .or(Patterns.times(0, 4, IPV6_SEC_PREDICATE));
 
-    private static final Pattern IPV6_ALL_PATTERN =
-        Patterns.isChar(':').next(Patterns.isChar(':'));
+//    private static final Pattern IPV6_ALL_PATTERN =
+//        Patterns.isChar(':').next(Patterns.isChar(':'));
 
     private static final Pattern IPV6_ALL_SEC_PATTERN =
         IPV6_SEC_COLON_PATTERN.times(7).next(IPV6_SEC_PATTERN);
 
     private static final Pattern IPV6_PART_SEC_PATTERN =
-        IPV6_SEC_COLON_PATTERN.times(1, 6).next(Patterns.isChar(':'))
+        IPV6_SEC_COLON_PATTERN.times(1, 6).or(Patterns.isChar(':'))
+            .next(Patterns.isChar(':'))
             .next(IPV6_DCOLON_END_PATTERN);
 
     private static final Pattern IPV6_FULL_PATTERN =
-        IPV6_ALL_PATTERN.or(IPV6_PART_SEC_PATTERN).or(IPV6_ALL_SEC_PATTERN);
+        IPV6_PART_SEC_PATTERN.or(IPV6_ALL_SEC_PATTERN);
 
     private Parsing() {}
 
@@ -102,9 +103,11 @@ public final class Parsing {
             Parsers.longer(IP_CIDR, IP4_START_END);
 
     public static IpInterval parseCIDRInterval(String thing) {
+        System.out.println(thing);
         try {
             return IP_CIDR.parse(thing);
         } catch(Exception e) {
+            System.out.println(e);
             throw new RuntimeException("Could not parse address " + thing, e);
         }
     }

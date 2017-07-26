@@ -16,12 +16,14 @@ public class ParsingTest {
         Parsing.parseInterval("2403:AD00:1000::/48");
         Parsing.parseInterval("::");
         Parsing.parseInterval("2403:ad00:1000::1");
+        Parsing.parseInterval("::2004");
+        Parsing.parseInterval("::3");
     }
 
     @Test
     public void testBadRangeFails() {
         Stream.of("1", "1.2", "1.2.3", "1.2.3.", "255.255.255.-126",
-                  "2004:", "2004:2004", "::2004", "2404:8400:ffff::/36",
+                  "2004:", "2004:2004", "::2004f", "2404:8400:ffff::/36",
                   "ff:ff:ff:ff:ff:ff:ff:ff:ff", "ff:ff:ff:ff:ff:ff:ff:ff::")
         .forEach(nonAddress ->
         {
