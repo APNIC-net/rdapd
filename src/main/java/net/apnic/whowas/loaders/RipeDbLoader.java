@@ -42,7 +42,6 @@ public class RipeDbLoader implements Loader {
             consumer.accept(objectKey, new Revision(
                     fromStamp(rs.getLong("timestamp")),
                     null,
-                    rs.getBoolean("current"),
                     new GenericObject(objectKey, contents)));
         }
         else
