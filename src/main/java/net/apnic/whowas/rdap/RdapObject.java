@@ -29,6 +29,11 @@ public interface RdapObject {
     }
 
     /**
+     *
+     */
+    boolean isDeleted();
+
+    /**
      * Create a new RdapObject with the given related entities incorporated.
      *
      * @param relatedEntities the entities to incorporate.
