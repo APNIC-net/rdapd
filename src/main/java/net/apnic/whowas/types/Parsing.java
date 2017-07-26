@@ -27,9 +27,6 @@ public final class Parsing {
         IPV6_SEC_COLON_PATTERN.times(0, 5).next(IPV6_SEC_PATTERN)
             .or(Patterns.times(0, 4, IPV6_SEC_PREDICATE));
 
-//    private static final Pattern IPV6_ALL_PATTERN =
-//        Patterns.isChar(':').next(Patterns.isChar(':'));
-
     private static final Pattern IPV6_ALL_SEC_PATTERN =
         IPV6_SEC_COLON_PATTERN.times(7).next(IPV6_SEC_PATTERN);
 
