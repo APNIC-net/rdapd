@@ -40,13 +40,26 @@ public class EntityRouteController
      * GET request handler for entity path segment.
      */
     @RequestMapping(value="/{handle}", method=RequestMethod.GET)
-    public ResponseEntity<TopLevelObject> entityPath(
+    public ResponseEntity<TopLevelObject> entityPathGet(
         HttpServletRequest request,
         @PathVariable("handle") String handle)
     {
-        LOGGER.info("entity path query for {}", handle);
+        LOGGER.info("entity GET path query for {}", handle);
 
-        return rdapControllerUtil.mostCurrentResponse(
+        return rdapControllerUtil.mostCurrentResponseGet(
             request, new ObjectKey(ObjectClass.ENTITY, handle));
+    }
+
+    /**
+     * HEAD request handler for entity path segment.
+     */
+    @RequestMapping(value="/{handle}", method=RequestMethod.HEAD)
+    public ResponseEntity<Void> entityPathHead(
+        HttpServletRequest request,
+        @PathVariable("handle") String handle)
+    {
+        LOGGER.info("entity HEAD path query for {}", handle);
+
+        return null;
     }
 }
