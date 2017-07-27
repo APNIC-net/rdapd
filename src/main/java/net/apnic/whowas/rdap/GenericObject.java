@@ -49,6 +49,7 @@ public class GenericObject implements RdapObject, Serializable {
         return keys;
     }
 
+    @Override
     public boolean isDeleted()
     {
         return rpsl.length == 0;

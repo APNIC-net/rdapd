@@ -91,6 +91,11 @@ class StaticObject implements Serializable, RdapObject {
     }
 
     @Override
+    public boolean isDeleted() {
+        return false;
+    }
+
+    @Override
     public RdapObject withEntities(Collection<RdapObject> relatedEntities) {
         updatedTimes++;
         return this;
