@@ -32,13 +32,28 @@ public class RipeDbLoader implements Loader {
         this.operations = jdbcOperations;
     }
 
+    private static ObjectKey objectKeyForResultKey(ObjectClass type, String pkey)
+    {
+        if(type == ObjectClass.AUT_NUM)
+        {
+            return new ObjectKey(type, pkey.startsWith("AS") ? pkey.substring(2) : pkey);
+        }
+        else
+        {
+            return new ObjectKey(type, pkey);
+        }
+    }
+
     private static void resultSetToRdap(ResultSet rs, RevisionConsumer consumer)
-        throws SQLException {
+        throws SQLException
+    {
         ObjectClass objectClass = OBJECT_CLASSES.getOrDefault(rs.getInt("object_type"), null);
 
         if (objectClass != null) {
             byte[] contents = rs.getBytes("object");
-            ObjectKey objectKey = new ObjectKey(objectClass, rs.getString("pkey"));
+            ObjectKey objectKey = objectKeyForResultKey(objectClass,
+                                                        rs.getString("pkey"));
+
             consumer.accept(objectKey, new Revision(
                     fromStamp(rs.getLong("timestamp")),
                     null,
