@@ -97,10 +97,10 @@ public class WebController {
         return mostRecent(request, new ObjectKey(ObjectClass.DOMAIN, handle));
     }
 
-    @RequestMapping("/entity/{handle}")
+    /*@RequestMapping("/entity/{handle}")
     public ResponseEntity<TopLevelObject> entity(HttpServletRequest request, @PathVariable("handle") String handle) {
         return mostRecent(request, new ObjectKey(ObjectClass.ENTITY, handle));
-    }
+    }*/
 
     private ResponseEntity<TopLevelObject> mostRecent(HttpServletRequest request, ObjectKey objectKey) {
         return objectIndex.historyForObject(objectKey)

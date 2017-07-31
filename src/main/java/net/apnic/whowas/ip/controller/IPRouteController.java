@@ -28,7 +28,7 @@ public class IPRouteController
     {
         String param = (String)request.getAttribute(
             HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
-        LOGGER.info("{} query", param);
+        LOGGER.info("ip path query for {}", param);
 
         try
         {

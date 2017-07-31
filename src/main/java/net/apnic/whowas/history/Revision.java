@@ -23,10 +23,11 @@ public class Revision implements Serializable {
      * @param validUntil When this revision was superseded
      * @param contents   The object's revision, as RDAP data
      */
-    public Revision(ZonedDateTime validFrom, ZonedDateTime validUntil, RdapObject contents) {
-        this.validFrom  = validFrom;
+    public Revision(ZonedDateTime validFrom, ZonedDateTime validUntil,
+                    RdapObject contents) {
+        this.validFrom = validFrom;
         this.validUntil = validUntil;
-        this.contents   = contents;
+        this.contents = contents;
     }
 
     /**

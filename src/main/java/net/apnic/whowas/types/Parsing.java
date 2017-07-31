@@ -44,7 +44,7 @@ public final class Parsing {
         Patterns.INTEGER
             .next(Patterns.isChar('.'))
             .times(3)
-            .next(Patterns.INTEGER).toScanner("IPv44 Address").source()
+            .next(Patterns.INTEGER).toScanner("IPv4 Address").source()
             .map(s ->
             {
                 try {
@@ -98,6 +98,31 @@ public final class Parsing {
 
     private static final Parser<IpInterval> IP_RANGE =
             Parsers.longer(IP_CIDR, IP4_START_END);
+
+    private static long AUTNUM_VALUE_MAX = 0xFFFFFFFFL;
+    private static long AUTNUM_VALUE_MIN = 0x0L;
+
+    private static final Parser<String> AUTNUM =
+        Patterns.DEC_INTEGER
+        .toScanner("Autnum").source()
+        .map(s ->
+        {
+            try {
+                long autnum = Long.parseLong(s);
+
+                if(autnum < AUTNUM_VALUE_MIN || autnum > AUTNUM_VALUE_MAX)
+                {
+                    throw new Exception("Invalid autnum value " + s);
+                }
+                return s;
+            } catch(Exception ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+
+    public static String parseAutnum(String thing) {
+        return AUTNUM.parse(thing);
+    }
 
     public static IpInterval parseCIDRInterval(String thing) {
         System.out.println(thing);

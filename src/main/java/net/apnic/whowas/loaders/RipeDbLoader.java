@@ -32,60 +32,63 @@ public class RipeDbLoader implements Loader {
         this.operations = jdbcOperations;
     }
 
-    private static void resultSetToRdap(ResultSet rs, RevisionConsumer consumer) throws SQLException {
+    private static ObjectKey objectKeyForResultKey(ObjectClass type, String pkey)
+    {
+        if(type == ObjectClass.AUT_NUM)
+        {
+            return new ObjectKey(type, pkey.startsWith("AS") ? pkey.substring(2) : pkey);
+        }
+        else
+        {
+            return new ObjectKey(type, pkey);
+        }
+    }
+
+    private static void resultSetToRdap(ResultSet rs, RevisionConsumer consumer)
+        throws SQLException
+    {
         ObjectClass objectClass = OBJECT_CLASSES.getOrDefault(rs.getInt("object_type"), null);
+
         if (objectClass != null) {
             byte[] contents = rs.getBytes("object");
-            ObjectKey objectKey = new ObjectKey(objectClass, rs.getString("pkey"));
+            ObjectKey objectKey = objectKeyForResultKey(objectClass,
+                                                        rs.getString("pkey"));
+
             consumer.accept(objectKey, new Revision(
                     fromStamp(rs.getLong("timestamp")),
                     null,
                     new GenericObject(objectKey, contents)));
         }
+        else
+        {
+            LOGGER.warn("Unknown object type detected " + rs.getInt("object_type"));
+        }
     }
 
     @Transactional(isolation = Isolation.REPEATABLE_READ, readOnly = true)
     public void loadWith(RevisionConsumer consumer) {
-        String QUERY =  "(SELECT object_id, object_type, pkey, sequence_id, timestamp, object FROM last\n" +
-                        "WHERE object_type in (2, 3, 5, 6, 9, 10, 11, 17, 18))\n" +
-                        "    UNION\n" +
-                        "(SELECT object_id, object_type, pkey, sequence_id, timestamp, object FROM history\n" +
-                        "WHERE object_type in (2, 3, 5, 6, 9, 10, 11, 17, 18))\n" +
-                        "ORDER BY timestamp, object_id, sequence_id";
-        Object[] arguments = {};
-
-        if (lastSerial > 0) {
-            QUERY = "(SELECT l.object_id, l.object_type, l.pkey, l.sequence_id, l.timestamp, l.object FROM last l, serials s\n" +
-                    "WHERE l.object_type in (2, 3, 5, 6, 9, 10, 11, 17, 18)\n" +
-                    "      AND l.object_id = s.object_id AND l.sequence_id = s.sequence_id AND s.serial_id > ?)\n" +
-                    "    UNION\n" +
-                    "(SELECT h.object_id, h.object_type, h.pkey, h.sequence_id, h.timestamp, h.object FROM history h, serials s\n" +
-                    "WHERE object_type in (2, 3, 5, 6, 9, 10, 11, 17, 18)\n" +
-                    "      AND h.object_id = s.object_id AND h.sequence_id = s.sequence_id AND s.serial_id > ?)\n" +
-                    "ORDER BY timestamp, object_id, sequence_id";
-            arguments = new Object[] { lastSerial, lastSerial };
-        }
-
-        // The Java Language Committee have some issues to work through.
-        final String q = QUERY;
-        final Object[] args = arguments;
+        final String query = lastSerial > 0 ? RipeDbLoaderUtil.LOAD_QUERY_WITH_SERIAL
+                                            : RipeDbLoaderUtil.LOAD_QUERY_WITHOUT_SERIAL;
+        final Object[] args = lastSerial > 0 ? new Object[] { lastSerial, lastSerial }
+                                             : new Object[0];
 
         operations.query(
-                c -> {
-                    PreparedStatement stmt = c.prepareStatement(q, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-                    try {
-                        stmt.setFetchSize(Integer.MIN_VALUE);
-                        for (int i = 0; i < args.length; i++) {
-                            stmt.setObject(i+1, args[i]);
-                        }
-                    } catch (SQLException ex) {
-                        stmt.close();
-                        throw ex;
+            c -> {
+                PreparedStatement stmt = c.prepareStatement(query, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+                try {
+                    stmt.setFetchSize(Integer.MIN_VALUE);
+                    for (int i = 0; i < args.length; i++) {
+                        stmt.setObject(i+1, args[i]);
                     }
-                    return stmt;
-                },
-                (ResultSet rs) -> resultSetToRdap(rs, consumer));
-        operations.query("SELECT MAX(serial_id) AS `serial` FROM serials", (ResultSet rs) -> {
+                } catch (SQLException ex) {
+                    stmt.close();
+                    throw ex;
+                }
+                return stmt;
+            },
+            (ResultSet rs) -> resultSetToRdap(rs, consumer));
+
+        operations.query(RipeDbLoaderUtil.SERIAL_MAX, (ResultSet rs) -> {
             long nextSerial = rs.getLong("serial");
             if (nextSerial > lastSerial) {
                 LOGGER.info("Data refreshed up to serial {}", nextSerial);
