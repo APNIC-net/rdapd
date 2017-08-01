@@ -50,6 +50,8 @@ public final class Parsing {
                 try {
                     return new IP(Inet4Address.getByName(s));
                 } catch (UnknownHostException e) {
+                    // This exception should only happen when the parser has not
+                    // caught a problem with the ip address
                     throw new RuntimeException(e);
                 }
             });
@@ -59,6 +61,8 @@ public final class Parsing {
             .toScanner("IPv6 address").source().map(s -> {
                 try {
                     return new IP(Inet6Address.getByName(s));
+                    // This exception should only happen when the parser has not
+                    // caught a problem with the ip address
                 } catch (UnknownHostException e) {
                     throw new RuntimeException(e);
                 }
