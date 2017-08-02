@@ -50,7 +50,16 @@ public final class ObjectHistory implements Serializable, Iterable<Revision> {
                 .orElse(revisions);
         return new ObjectHistory(objectKey, newRevisions.append(revision));
     }
-    
+
+    /**
+     * Retieve the most recent and current Revision of the ObjectHistory
+     *
+     * @return The most recent current Revision, if any.
+     */
+    public Optional<Revision> mostCurrent() {
+        return mostRecent().map(r -> r.getContents().isDeleted() ? null : r);
+    }
+
     /**
      * Retrieve the most recent Revision of the ObjectHistory
      *

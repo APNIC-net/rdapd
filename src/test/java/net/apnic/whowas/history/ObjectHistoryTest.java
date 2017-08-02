@@ -22,6 +22,11 @@ public class ObjectHistoryTest {
         }
 
         @Override
+        public boolean isDeleted() {
+            return false;
+        }
+
+        @Override
         public Collection<ObjectKey> getEntityKeys() {
             return Collections.emptyList();
         }

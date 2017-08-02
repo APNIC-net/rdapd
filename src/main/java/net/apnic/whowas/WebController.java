@@ -53,7 +53,7 @@ public class WebController {
     public TopLevelObject ipHistory(HttpServletRequest request) {
         String param = (String)request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
         LOGGER.info("IP history query for {}", param);
-        IpInterval range = Parsing.parseInterval(param.substring(12));
+        IpInterval range = Parsing.parseCIDRInterval(param.substring(12));
 
         int pfxCap = range.prefixSize() + (range.low().getAddressFamily() == IP.AddressFamily.IPv4 ? 8 : 16);
         return makeResponse.apply(
@@ -92,30 +92,15 @@ public class WebController {
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
-    @RequestMapping("/ip/**")
-    public ResponseEntity<TopLevelObject> ip(HttpServletRequest request) {
-//        String param = (String)request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
-//        IpInterval range = Parsing.parseInterval(param.substring(4));
-
-        // TODO: closest match
-        //intervalTree.closest(range)
-        return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
-    }
-
-    @RequestMapping("/autnum/{handle}")
-    public ResponseEntity<TopLevelObject> autnum(HttpServletRequest request, @PathVariable("handle") String handle) {
-        return mostRecent(request, new ObjectKey(ObjectClass.AUT_NUM, handle));
-    }
-
     @RequestMapping("/domain/{handle:.+}")
     public ResponseEntity<TopLevelObject> domain(HttpServletRequest request, @PathVariable("handle") String handle) {
         return mostRecent(request, new ObjectKey(ObjectClass.DOMAIN, handle));
     }
 
-    @RequestMapping("/entity/{handle}")
+    /*@RequestMapping("/entity/{handle}")
     public ResponseEntity<TopLevelObject> entity(HttpServletRequest request, @PathVariable("handle") String handle) {
         return mostRecent(request, new ObjectKey(ObjectClass.ENTITY, handle));
-    }
+    }*/
 
     private ResponseEntity<TopLevelObject> mostRecent(HttpServletRequest request, ObjectKey objectKey) {
         return objectIndex.historyForObject(objectKey)
