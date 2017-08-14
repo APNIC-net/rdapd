@@ -28,7 +28,7 @@ public class EntityRouteController
 {
     private final static Logger LOGGER = LoggerFactory.getLogger(EntityRouteController.class);
 
-    private RDAPControllerUtil rdapControllerUtil = null;
+    private final RDAPControllerUtil rdapControllerUtil;
 
     @Autowired
     public EntityRouteController(RDAPControllerUtil rdapControllerUtil)
@@ -44,7 +44,7 @@ public class EntityRouteController
         HttpServletRequest request,
         @PathVariable("handle") String handle)
     {
-        LOGGER.info("entity GET path query for {}", handle);
+        LOGGER.debug("entity GET path query for {}", handle);
 
         return rdapControllerUtil.mostCurrentResponseGet(
             request, new ObjectKey(ObjectClass.ENTITY, handle));
@@ -58,7 +58,7 @@ public class EntityRouteController
         HttpServletRequest request,
         @PathVariable("handle") String handle)
     {
-        LOGGER.info("entity HEAD path query for {}", handle);
+        LOGGER.debug("entity HEAD path query for {}", handle);
 
         return null;
     }
