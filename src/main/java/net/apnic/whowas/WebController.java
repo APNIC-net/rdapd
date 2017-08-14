@@ -92,25 +92,6 @@ public class WebController {
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
-    @RequestMapping("/domain/{handle:.+}")
-    public ResponseEntity<TopLevelObject> domain(HttpServletRequest request, @PathVariable("handle") String handle) {
-        return mostRecent(request, new ObjectKey(ObjectClass.DOMAIN, handle));
-    }
-
-    /*@RequestMapping("/entity/{handle}")
-    public ResponseEntity<TopLevelObject> entity(HttpServletRequest request, @PathVariable("handle") String handle) {
-        return mostRecent(request, new ObjectKey(ObjectClass.ENTITY, handle));
-    }*/
-
-    private ResponseEntity<TopLevelObject> mostRecent(HttpServletRequest request, ObjectKey objectKey) {
-        return objectIndex.historyForObject(objectKey)
-                .flatMap(ObjectHistory::mostRecent)
-                .map(Revision::getContents)
-                .map(o -> makeResponse.apply(o, request))
-                .map(r -> new ResponseEntity<>(r, HttpStatus.OK))
-                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
-    }
-
     @Bean
     public Converter<String, IpInterval> convertIpInterval() {
         return new Converter<String, IpInterval>() {

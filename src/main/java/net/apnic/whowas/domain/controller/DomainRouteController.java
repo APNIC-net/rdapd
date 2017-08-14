@@ -1,4 +1,4 @@
-package net.apnic.whowas.entity.controller;
+package net.apnic.whowas.domain.controller;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -18,49 +18,43 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Rest controller for the RDAP /entity path segment.
+ * Rest Controller for the RDAP /domain path segment.
  *
  * Controller is responsible for dealing with current state RDAP path segments.
  */
 @RestController
-@RequestMapping("/entity")
-public class EntityRouteController
+@RequestMapping("/domain")
+public class DomainRouteController
 {
-    private final static Logger LOGGER = LoggerFactory.getLogger(EntityRouteController.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(DomainRouteController.class);
 
     private final RDAPControllerUtil rdapControllerUtil;
 
     @Autowired
-    public EntityRouteController(RDAPControllerUtil rdapControllerUtil)
+    public DomainRouteController(RDAPControllerUtil rdapControllerUtil)
     {
         this.rdapControllerUtil = rdapControllerUtil;
     }
 
-    /**
-     * GET request handler for entity path segment.
-     */
-    @RequestMapping(value="/{handle}", method=RequestMethod.GET)
-    public ResponseEntity<TopLevelObject> entityPathGet(
+    @RequestMapping(value="/{handle:.+}", method=RequestMethod.GET)
+    public ResponseEntity<TopLevelObject> domainPathGet(
         HttpServletRequest request,
         @PathVariable("handle") String handle)
     {
-        LOGGER.debug("entity GET path query for {}", handle);
+        LOGGER.debug("domain GET path query for {}", handle);
 
         return rdapControllerUtil.mostCurrentResponseGet(
-            request, new ObjectKey(ObjectClass.ENTITY, handle));
+            request, new ObjectKey(ObjectClass.DOMAIN, handle));
     }
 
-    /**
-     * HEAD request handler for entity path segment.
-     */
-    @RequestMapping(value="/{handle}", method=RequestMethod.HEAD)
-    public ResponseEntity<Void> entityPathHead(
+    @RequestMapping(value="/{handle:.+}", method=RequestMethod.HEAD)
+    public ResponseEntity<Void> domainPathHead(
         HttpServletRequest request,
         @PathVariable("handle") String handle)
     {
-        LOGGER.debug("entity HEAD path query for {}", handle);
+        LOGGER.debug("domain HEAD path query for {}", handle);
 
         return rdapControllerUtil.mostCurrentResponseHead(
-            request, new ObjectKey(ObjectClass.ENTITY, handle));
+            request, new ObjectKey(ObjectClass.DOMAIN, handle));
     }
 }
