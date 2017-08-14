@@ -29,7 +29,7 @@ public class NameServerController
     @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
     public void nameserverPathGet(@PathVariable("handle") String handle)
     {
-        LOGGER.info("nameserver GET path query for {}", handle);
+        LOGGER.debug("nameserver GET path query for {}", handle);
     }
 
     /**
@@ -39,6 +39,6 @@ public class NameServerController
     @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
     public void nameserverPathHead(@PathVariable("handle") String handle)
     {
-        LOGGER.info("nameserver HEAD path query for {}", handle);
+        LOGGER.debug("nameserver HEAD path query for {}", handle);
     }
 }

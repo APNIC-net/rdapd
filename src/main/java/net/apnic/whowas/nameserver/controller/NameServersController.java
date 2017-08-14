@@ -28,6 +28,6 @@ public class NameServersController
     @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
     public void nameserverSearchPathGet()
     {
-        LOGGER.info("nameservers GET path query");
+        LOGGER.debug("nameservers GET path query");
     }
 }
