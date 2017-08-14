@@ -60,6 +60,7 @@ public class EntityRouteController
     {
         LOGGER.info("entity HEAD path query for {}", handle);
 
-        return null;
+        return rdapControllerUtil.mostCurrentResponseHead(
+            request, new ObjectKey(ObjectClass.ENTITY, handle));
     }
 }
