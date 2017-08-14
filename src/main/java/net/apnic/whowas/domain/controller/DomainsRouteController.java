@@ -25,6 +25,6 @@ public class DomainsRouteController
     @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
     public void domainsPathGet()
     {
-        LOGGER.info("domains GET path query");
+        LOGGER.debug("domains GET path query");
     }
 }

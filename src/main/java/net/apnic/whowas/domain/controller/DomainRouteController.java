@@ -28,7 +28,7 @@ public class DomainRouteController
 {
     private final static Logger LOGGER = LoggerFactory.getLogger(DomainRouteController.class);
 
-    private RDAPControllerUtil rdapControllerUtil = null;
+    private final RDAPControllerUtil rdapControllerUtil;
 
     @Autowired
     public DomainRouteController(RDAPControllerUtil rdapControllerUtil)
@@ -41,7 +41,7 @@ public class DomainRouteController
         HttpServletRequest request,
         @PathVariable("handle") String handle)
     {
-        LOGGER.info("domain GET path query for {}", handle);
+        LOGGER.debug("domain GET path query for {}", handle);
 
         return rdapControllerUtil.mostCurrentResponseGet(
             request, new ObjectKey(ObjectClass.DOMAIN, handle));
@@ -52,7 +52,7 @@ public class DomainRouteController
         HttpServletRequest request,
         @PathVariable("handle") String handle)
     {
-        LOGGER.info("domain HEAD path query for {}", handle);
+        LOGGER.debug("domain HEAD path query for {}", handle);
 
         return rdapControllerUtil.mostCurrentResponseHead(
             request, new ObjectKey(ObjectClass.DOMAIN, handle));
