@@ -14,8 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
  * Rest controller for the RDAP /nameserver path segment
  *
  * Controller is responsible for dealing with current state RDAP path segments.
- * Currently implemented as a placeholder and returns NOT_IMPLEMENTED http
- * status to querier.
+ * Currently implemented as a placeholder and returns HTTP Not Implemented.
  */
 @RestController
 @RequestMapping("/nameserver")
