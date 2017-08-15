@@ -30,7 +30,7 @@ public class AutnumRouteController
 {
     private final static Logger LOGGER = LoggerFactory.getLogger(AutnumRouteController.class);
 
-    private RDAPControllerUtil rdapControllerUtil = null;
+    private final RDAPControllerUtil rdapControllerUtil;
 
     @Autowired
     public AutnumRouteController(RDAPControllerUtil rdapControllerUtil)
@@ -46,7 +46,7 @@ public class AutnumRouteController
         HttpServletRequest request,
         @PathVariable("handle") String handle)
     {
-        LOGGER.info("autnum GET path query for {}", handle);
+        LOGGER.debug("autnum GET path query for {}", handle);
 
         try {
             handle = Parsing.parseAutnum(handle);
@@ -66,7 +66,7 @@ public class AutnumRouteController
         HttpServletRequest request,
         @PathVariable("handle") String handle)
     {
-        LOGGER.info("autnum HEAD path query for {}", handle);
+        LOGGER.debug("autnum HEAD path query for {}", handle);
 
         try {
             handle = Parsing.parseAutnum(handle);
