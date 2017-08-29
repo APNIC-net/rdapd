@@ -29,8 +29,9 @@ public interface RdapObject {
     }
 
     /**
-     *
+     * Whether this object has been considered deleted out of current state.
      */
+    @JsonIgnore
     boolean isDeleted();
 
     /**

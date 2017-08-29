@@ -58,4 +58,17 @@ public class TopLevelObject {
                 notices,
                 object);
     }
+
+    /**
+     * Construct a top level object using server defaults
+     *
+     * @param object The object to wrap
+     * @return A top level object using server defaults
+     */
+    public static TopLevelObject of(Object object, List<Notice> notices) {
+        return new TopLevelObject(
+                SERVER_CONFORMANCE,
+                notices,
+                object);
+    }
 }

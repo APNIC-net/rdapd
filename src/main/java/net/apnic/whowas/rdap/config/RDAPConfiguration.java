@@ -1,19 +1,169 @@
 package net.apnic.whowas.rdap.config;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
+
 import net.apnic.whowas.history.ObjectIndex;
 import net.apnic.whowas.rdap.controller.RDAPControllerUtil;
+import net.apnic.whowas.rdap.controller.RDAPResponseMaker;
+import net.apnic.whowas.rdap.Link;
+import net.apnic.whowas.rdap.Notice;
 
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Bean;
 
+/**
+ * General configuration bootstrap class that build and passes information
+ * recieved through config files.
+ */
 @Configuration
+@ConfigurationProperties(prefix="rdap")
 public class RDAPConfiguration
 {
+    private List<ConfigNotice> configNotices = null;
+    private List<Notice> defaultNotices = null;
+
+    /**
+     * Config class represents a link object in this applications configuration
+     * file.
+     */
+    public static class ConfigLink
+    {
+        private String href;
+        private String rel;
+        private String type;
+
+        public String getHref()
+        {
+            return href;
+        }
+
+        public String getRel()
+        {
+            return rel;
+        }
+
+        public String getType()
+        {
+            return type;
+        }
+
+        public void setHref(String href)
+        {
+            this.href = href;
+        }
+
+        public void setRel(String rel)
+        {
+            this.rel = rel;
+        }
+
+        public void setType(String type)
+        {
+            this.type = type;
+        }
+
+        public Link toLink()
+        {
+            return new Link(null, getRel(), getHref(), getType());
+        }
+    }
+
+    /**
+     * Config class represents a notice object in this applcations configuration
+     * file.
+     */
+    public static class ConfigNotice
+    {
+        private List<String> description = new ArrayList<String>();
+        private List<ConfigLink> links = new ArrayList<ConfigLink>();
+        private String title;
+
+        public List<String> getDescription()
+        {
+            return description;
+        }
+
+        public List<ConfigLink> getLinks()
+        {
+            return links;
+        }
+
+        public String getTitle()
+        {
+            return title;
+        }
+
+        public void setTitle(String title)
+        {
+            this.title = title;
+        }
+
+        public Notice toNotice()
+        {
+            return new Notice(getTitle(), getDescription(),
+                getLinks().stream().map(cLink -> cLink.toLink())
+                .collect(Collectors.toList()));
+        }
+    }
+
+    /**
+     * Constructs a set of default notices provided with every rdap response.
+     */
+    private void configDefaultNotices()
+    {
+        defaultNotices = Collections.unmodifiableList(
+            Optional.ofNullable(configNotices)
+            .map(cn -> cn.stream().map(cNotice -> cNotice.toNotice())
+                    .collect(Collectors.toList()))
+            .orElse(Collections.emptyList()));
+
+        configNotices = null;
+    }
+
+    /**
+     * Bean for a list of default RDAP notices.
+     */
+    @Bean
+    public List<Notice> defaultNotices()
+    {
+        return defaultNotices;
+    }
+
+    public List<ConfigNotice> getNotices()
+    {
+        return configNotices;
+    }
+
+    @PostConstruct
+    public void init()
+    {
+        configDefaultNotices();
+    }
+
     @Autowired
     @Bean
-    public RDAPControllerUtil rdapControllerUtil(ObjectIndex objectIndex)
+    public RDAPResponseMaker rdapResponseMaker(List<Notice> defaultNotices)
     {
-        return new RDAPControllerUtil(objectIndex);
+        return new RDAPResponseMaker(defaultNotices);
+    }
+
+    @Autowired
+    @Bean
+    public RDAPControllerUtil rdapControllerUtil(ObjectIndex objectIndex,
+        RDAPResponseMaker responseMaker)
+    {
+        return new RDAPControllerUtil(objectIndex, responseMaker);
+    }
+
+    public void setNotices(List<ConfigNotice> notices)
+    {
+        this.configNotices = notices;
     }
 }

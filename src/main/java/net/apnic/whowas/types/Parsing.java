@@ -129,11 +129,9 @@ public final class Parsing {
     }
 
     public static IpInterval parseCIDRInterval(String thing) {
-        System.out.println(thing);
         try {
             return IP_CIDR.parse(thing);
         } catch(Exception e) {
-            System.out.println(e);
             throw new RuntimeException("Could not parse address " + thing, e);
         }
     }
