@@ -22,8 +22,8 @@ class IpNetwork extends AbstractRdapObject {
 
         node.put("objectClassName", "ip network");
         node.put("handle", objectKey.getObjectName());
-        node.put("startAddress", ipInterval.low().getAddress().toString());
-        node.put("endAddress", ipInterval.high().getAddress().toString());
+        node.put("startAddress", ipInterval.low().getAddress().getHostAddress());
+        node.put("endAddress", ipInterval.high().getAddress().getHostAddress());
         node.put("ipVersion", ipInterval.low().getAddressFamily() == IP.AddressFamily.IPv4 ? "v4" : "v6");
 
         if (rpsl.length == 0) {

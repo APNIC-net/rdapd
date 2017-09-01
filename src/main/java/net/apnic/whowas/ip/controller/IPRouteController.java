@@ -3,6 +3,7 @@ package net.apnic.whowas.ip.controller;
 import javax.servlet.http.HttpServletRequest;
 
 import net.apnic.whowas.error.MalformedRequestException;
+import net.apnic.whowas.rdap.controller.RDAPControllerUtil;
 import net.apnic.whowas.rdap.TopLevelObject;
 import net.apnic.whowas.types.IpInterval;
 import net.apnic.whowas.types.Parsing;
@@ -10,7 +11,7 @@ import net.apnic.whowas.types.Parsing;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.springframework.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -19,9 +20,17 @@ import org.springframework.web.servlet.HandlerMapping;
 
 @RestController
 @RequestMapping("/ip")
-public class IPRouteController
+public class IpRouteController
 {
-    private final static Logger LOGGER = LoggerFactory.getLogger(IPRouteController.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(IpRouteController.class);
+
+    private final RDAPControllerUtil rdapControllerUtil;
+
+    @Autowired
+    public IpRouteController(RDAPControllerUtil rdapControllerUtil)
+    {
+        this.rdapControllerUtil = rdapControllerUtil;
+    }
 
     @RequestMapping(value="/**", method=RequestMethod.GET)
     public ResponseEntity<TopLevelObject> ipPath(HttpServletRequest request)
@@ -30,9 +39,11 @@ public class IPRouteController
             HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
         LOGGER.debug("ip path query for {}", param);
 
+        IpInterval range = null;
+
         try
         {
-            IpInterval range = Parsing.parseCIDRInterval(param.substring(4));
+            range = Parsing.parseCIDRInterval(param.substring(4));
             System.out.println(range);
         }
         catch(Exception ex)
@@ -40,6 +51,6 @@ public class IPRouteController
             throw new MalformedRequestException(ex);
         }
 
-        return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
+        return rdapControllerUtil.mostCurrentResponseGet(request, range);
     }
 }
