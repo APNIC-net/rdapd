@@ -56,7 +56,7 @@ public class ErrorController
     public ResponseEntity<TopLevelObject> handle(HttpServletRequest request,
         MalformedRequestException ex)
     {
-        LOGGER.debug("Malformed request recieved");
+        LOGGER.debug("Malformed request received");
         return rdapControllerUtil.errorResponseGet(request,
             Error.MALFORMED_REQUEST, HttpStatus.BAD_REQUEST);
     }
