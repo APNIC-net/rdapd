@@ -44,7 +44,6 @@ public class IpRouteController
         try
         {
             range = Parsing.parseCIDRInterval(param.substring(4));
-            System.out.println(range);
         }
         catch(Exception ex)
         {
