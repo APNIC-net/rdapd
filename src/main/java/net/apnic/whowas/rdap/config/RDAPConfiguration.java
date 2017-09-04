@@ -5,10 +5,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import javax.annotation.PostConstruct;
 
-import net.apnic.whowas.history.ObjectIndex;
-import net.apnic.whowas.rdap.controller.RDAPControllerUtil;
 import net.apnic.whowas.rdap.controller.RDAPResponseMaker;
 import net.apnic.whowas.rdap.Link;
 import net.apnic.whowas.rdap.Notice;
@@ -133,6 +130,10 @@ public class RDAPConfiguration
     @Bean
     public List<Notice> defaultNotices()
     {
+        if(defaultNotices == null)
+        {
+            configDefaultNotices();
+        }
         return defaultNotices;
     }
 
@@ -141,25 +142,11 @@ public class RDAPConfiguration
         return configNotices;
     }
 
-    @PostConstruct
-    public void init()
-    {
-        configDefaultNotices();
-    }
-
     @Autowired
     @Bean
     public RDAPResponseMaker rdapResponseMaker(List<Notice> defaultNotices)
     {
         return new RDAPResponseMaker(defaultNotices);
-    }
-
-    @Autowired
-    @Bean
-    public RDAPControllerUtil rdapControllerUtil(ObjectIndex objectIndex,
-        RDAPResponseMaker responseMaker)
-    {
-        return new RDAPControllerUtil(objectIndex, responseMaker);
     }
 
     public void setNotices(List<ConfigNotice> notices)

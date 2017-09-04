@@ -11,16 +11,20 @@ import net.apnic.whowas.rdap.http.RdapConstants;
 import net.apnic.whowas.rdap.RdapHistory;
 import net.apnic.whowas.rdap.TopLevelObject;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
 
+@Component
 public class RDAPControllerUtil
 {
     private ObjectIndex objectIndex = null;
     private HttpHeaders responseHeaders = null;
     private RDAPResponseMaker responseMaker;
 
+    @Autowired
     public RDAPControllerUtil(ObjectIndex objectIndex,
         RDAPResponseMaker responseMaker)
     {
