@@ -1,0 +1,38 @@
+
+# Settings to specifically control the RDAP protocol used by this application.
+rdap:
+
+  # A list of default notices that get appended to each RDAP response from this
+  # server. Notice objects take the following structure.
+  # title: # Title of the notice
+  # description: # List of string describing the notice
+  # links: # List of link objects in the folloing form.
+  #   - href: # href value as per RDAP spec
+  #     rel: #ref value as per RDAP spec
+  #     type: #type of link
+  notices: []
+
+database:
+  host: localhost
+  database: whowas
+  username: root
+  password: null
+
+spring:
+  application:
+    name: @project.artifactId@
+
+  datasource:
+    url: "jdbc:mysql://${database.host}:3306/${database.database}?useunicode=true&characterencoding=utf8&charactersetresults=utf8&useSSL=false"
+    username: "${database.username}"
+    password: "${database.password}"
+
+management:
+  port: 8081
+
+info:
+  build:
+    artifact: @project.artifactId@
+    name: @project.name@
+    description: @project.description@
+    version: @project.version@

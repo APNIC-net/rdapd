@@ -2,9 +2,9 @@ package net.apnic.whowas.domain.controller;
 
 import javax.servlet.http.HttpServletRequest;
 
+import net.apnic.whowas.rdap.controller.RDAPControllerUtil;
 import net.apnic.whowas.history.ObjectClass;
 import net.apnic.whowas.history.ObjectKey;
-import net.apnic.whowas.rdap.controller.RDAPControllerUtil;
 import net.apnic.whowas.rdap.TopLevelObject;
 
 import org.slf4j.Logger;
@@ -18,43 +18,36 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Rest Controller for the RDAP /domain path segment.
+ * Rest controller for the RDAP /history/domain path segment.
  *
- * Controller is responsible for dealing with current state RDAP path segments.
+ * Controller is responsible for dealing with history state RDAP path segments.
  */
 @RestController
-@RequestMapping("/domain")
-public class DomainRouteController
+@RequestMapping("/history/domain")
+public class DomainHistoryRouteController
 {
-    private final static Logger LOGGER = LoggerFactory.getLogger(DomainRouteController.class);
+    private final static Logger LOGGER =
+        LoggerFactory.getLogger(DomainHistoryRouteController.class);
 
     private final RDAPControllerUtil rdapControllerUtil;
 
     @Autowired
-    public DomainRouteController(RDAPControllerUtil rdapControllerUtil)
+    public DomainHistoryRouteController(RDAPControllerUtil rdapControllerUtil)
     {
         this.rdapControllerUtil = rdapControllerUtil;
     }
 
+    /**
+     *
+     */
     @RequestMapping(value="/{handle:.+}", method=RequestMethod.GET)
     public ResponseEntity<TopLevelObject> domainPathGet(
         HttpServletRequest request,
         @PathVariable("handle") String handle)
     {
-        LOGGER.debug("domain GET path query for {}", handle);
+        LOGGER.debug("domain history GET path query for {}", handle);
 
-        return rdapControllerUtil.mostCurrentResponseGet(
-            request, new ObjectKey(ObjectClass.DOMAIN, handle));
-    }
-
-    @RequestMapping(value="/{handle:.+}", method=RequestMethod.HEAD)
-    public ResponseEntity<TopLevelObject> domainPathHead(
-        HttpServletRequest request,
-        @PathVariable("handle") String handle)
-    {
-        LOGGER.debug("domain HEAD path query for {}", handle);
-
-        return rdapControllerUtil.mostCurrentResponseGet(
-            request, new ObjectKey(ObjectClass.DOMAIN, handle));
+        return rdapControllerUtil.historyResponse(request,
+            new ObjectKey(ObjectClass.DOMAIN, handle));
     }
 }

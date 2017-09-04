@@ -62,7 +62,7 @@ public class AutnumRouteController
      * HEAD request handler for autnum path segment.
      */
     @RequestMapping(value="/{handle}", method=RequestMethod.HEAD)
-    public ResponseEntity<Void>  autnumPathHead(
+    public ResponseEntity<TopLevelObject>  autnumPathHead(
         HttpServletRequest request,
         @PathVariable("handle") String handle)
     {
@@ -74,7 +74,7 @@ public class AutnumRouteController
             throw new MalformedRequestException(ex);
         }
 
-        return rdapControllerUtil.mostCurrentResponseHead(
+        return rdapControllerUtil.mostCurrentResponseGet(
             request, new ObjectKey(ObjectClass.AUT_NUM, handle));
     }
 }

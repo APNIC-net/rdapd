@@ -17,10 +17,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.HandlerMapping;
@@ -39,13 +36,11 @@ public class WebController {
     private final static Logger LOGGER = LoggerFactory.getLogger(WebController.class);
 
     private final IntervalTree<IP, ObjectHistory, IpInterval> intervalTree;
-    private final ObjectIndex objectIndex;
     private final BiFunction<Object, HttpServletRequest, TopLevelObject> makeResponse;
 
     @Autowired
-    WebController(IntervalTree<IP, ObjectHistory, IpInterval> intervalTree, ObjectIndex objectIndex, BiFunction<Object, HttpServletRequest, TopLevelObject> responseMaker) {
+    WebController(IntervalTree<IP, ObjectHistory, IpInterval> intervalTree, BiFunction<Object, HttpServletRequest, TopLevelObject> responseMaker) {
         this.intervalTree = intervalTree;
-        this.objectIndex = objectIndex;
         this.makeResponse = responseMaker;
     }
 
@@ -64,32 +59,6 @@ public class WebController {
                         .map(Tuple::snd)
                         .collect(Collectors.toList())),
                 request);
-    }
-
-    @RequestMapping("/history/autnum/{handle}")
-    public ResponseEntity<TopLevelObject> autnumHistory(HttpServletRequest request, @PathVariable("handle") String handle) {
-        LOGGER.info("AutNum history query for {}", handle);
-        return historyOf(request, new ObjectKey(ObjectClass.AUT_NUM, handle));
-    }
-
-    @RequestMapping("/history/entity/{handle}")
-    public ResponseEntity<TopLevelObject> entityHistory(HttpServletRequest request, @PathVariable("handle") String handle) {
-        LOGGER.info("Entity history query for {}", handle);
-        return historyOf(request, new ObjectKey(ObjectClass.ENTITY, handle));
-    }
-
-    @RequestMapping("/history/domain/{handle:.+}")
-    public ResponseEntity<TopLevelObject> domainHistory(HttpServletRequest request, @PathVariable("handle") String handle) {
-        LOGGER.info("Domain history query for {}", handle);
-        return historyOf(request, new ObjectKey(ObjectClass.DOMAIN, handle));
-    }
-
-    private ResponseEntity<TopLevelObject> historyOf(HttpServletRequest request, ObjectKey objectKey) {
-        return objectIndex.historyForObject(objectKey)
-                .map(RdapHistory::new)
-                .map(h -> makeResponse.apply(h, request))
-                .map(r -> new ResponseEntity<>(r, HttpStatus.OK))
-                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     @Bean

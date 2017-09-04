@@ -28,4 +28,9 @@ public class Link {
     public String getType() {
         return type;
     }
+
+    public Link withValue(String context)
+    {
+        return new Link(context, rel, href, type);
+    }
 }
