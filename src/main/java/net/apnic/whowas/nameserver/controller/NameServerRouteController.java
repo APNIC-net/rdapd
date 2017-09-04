@@ -54,8 +54,11 @@ public class NameServerRouteController
      */
     @RequestMapping(value="/{handle:.+}", method=RequestMethod.HEAD)
     @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
-    public void nameserverPathHead(@PathVariable("handle") String handle)
+    public ResponseEntity<TopLevelObject> nameserverPathHead(
+        HttpServletRequest request,
+        @PathVariable("handle") String handle)
     {
         LOGGER.debug("nameserver HEAD path query for {}", handle);
+        return rdapControllerUtil.notImplementedResponseGet(request);
     }
 }

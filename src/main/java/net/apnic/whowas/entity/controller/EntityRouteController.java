@@ -54,13 +54,13 @@ public class EntityRouteController
      * HEAD request handler for entity path segment.
      */
     @RequestMapping(value="/{handle}", method=RequestMethod.HEAD)
-    public ResponseEntity<Void> entityPathHead(
+    public ResponseEntity<TopLevelObject> entityPathHead(
         HttpServletRequest request,
         @PathVariable("handle") String handle)
     {
         LOGGER.debug("entity HEAD path query for {}", handle);
 
-        return rdapControllerUtil.mostCurrentResponseHead(
+        return rdapControllerUtil.mostCurrentResponseGet(
             request, new ObjectKey(ObjectClass.ENTITY, handle));
     }
 }

@@ -48,13 +48,13 @@ public class DomainRouteController
     }
 
     @RequestMapping(value="/{handle:.+}", method=RequestMethod.HEAD)
-    public ResponseEntity<Void> domainPathHead(
+    public ResponseEntity<TopLevelObject> domainPathHead(
         HttpServletRequest request,
         @PathVariable("handle") String handle)
     {
         LOGGER.debug("domain HEAD path query for {}", handle);
 
-        return rdapControllerUtil.mostCurrentResponseHead(
+        return rdapControllerUtil.mostCurrentResponseGet(
             request, new ObjectKey(ObjectClass.DOMAIN, handle));
     }
 }

@@ -5,17 +5,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import javax.annotation.PostConstruct;
 
-import net.apnic.whowas.history.ObjectHistory;
-import net.apnic.whowas.history.ObjectIndex;
-import net.apnic.whowas.intervaltree.IntervalTree;
-import net.apnic.whowas.rdap.controller.RDAPControllerUtil;
 import net.apnic.whowas.rdap.controller.RDAPResponseMaker;
 import net.apnic.whowas.rdap.Link;
 import net.apnic.whowas.rdap.Notice;
-import net.apnic.whowas.types.IP;
-import net.apnic.whowas.types.IpInterval;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -137,6 +130,10 @@ public class RDAPConfiguration
     @Bean
     public List<Notice> defaultNotices()
     {
+        if(defaultNotices == null)
+        {
+            configDefaultNotices();
+        }
         return defaultNotices;
     }
 
@@ -145,26 +142,11 @@ public class RDAPConfiguration
         return configNotices;
     }
 
-    @PostConstruct
-    public void init()
-    {
-        configDefaultNotices();
-    }
-
     @Autowired
     @Bean
     public RDAPResponseMaker rdapResponseMaker(List<Notice> defaultNotices)
     {
         return new RDAPResponseMaker(defaultNotices);
-    }
-
-    @Autowired
-    @Bean
-    public RDAPControllerUtil rdapControllerUtil(ObjectIndex objectIndex,
-        IntervalTree<IP, ObjectHistory, IpInterval> intervalTree,
-        RDAPResponseMaker responseMaker)
-    {
-        return new RDAPControllerUtil(objectIndex, intervalTree, responseMaker);
     }
 
     public void setNotices(List<ConfigNotice> notices)

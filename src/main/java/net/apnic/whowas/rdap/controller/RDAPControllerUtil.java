@@ -14,10 +14,13 @@ import net.apnic.whowas.rdap.TopLevelObject;
 import net.apnic.whowas.types.IP;
 import net.apnic.whowas.types.IpInterval;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
 
+@Component
 public class RDAPControllerUtil
 {
     private IntervalTree<IP, ObjectHistory, IpInterval> intervalTree;
@@ -25,6 +28,7 @@ public class RDAPControllerUtil
     private HttpHeaders responseHeaders = null;
     private RDAPResponseMaker responseMaker = null;
 
+    @Autowired
     public RDAPControllerUtil(ObjectIndex objectIndex,
         IntervalTree<IP, ObjectHistory, IpInterval> intervalTree,
         RDAPResponseMaker responseMaker)
@@ -102,15 +106,6 @@ public class RDAPControllerUtil
                 responseMaker.makeResponse(Error.NOT_FOUND, request),
                 responseHeaders,
                 HttpStatus.NOT_FOUND));
-    }
-
-    public ResponseEntity<Void> mostCurrentResponseHead(
-        HttpServletRequest request, ObjectKey objectKey)
-    {
-        return getObjectIndex().historyForObject(objectKey)
-            .flatMap(ObjectHistory::mostCurrent)
-            .map(rev -> new ResponseEntity<Void>(responseHeaders, HttpStatus.OK))
-            .orElse(new ResponseEntity<Void>(responseHeaders, HttpStatus.NOT_FOUND));
     }
 
     private void setupResponseHeaders()
