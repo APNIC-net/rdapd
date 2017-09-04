@@ -81,15 +81,6 @@ public class RDAPControllerUtil
                 HttpStatus.NOT_FOUND));
     }
 
-    public ResponseEntity<Void> mostCurrentResponseHead(
-        HttpServletRequest request, ObjectKey objectKey)
-    {
-        return getObjectIndex().historyForObject(objectKey)
-            .flatMap(ObjectHistory::mostCurrent)
-            .map(rev -> new ResponseEntity<Void>(responseHeaders, HttpStatus.OK))
-            .orElse(new ResponseEntity<Void>(responseHeaders, HttpStatus.NOT_FOUND));
-    }
-
     private void setupResponseHeaders()
     {
         responseHeaders = new HttpHeaders();
