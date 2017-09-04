@@ -7,7 +7,7 @@ public interface Interval<K extends Comparable<K>> extends Comparable<Interval<K
     default int compareTo(Interval<K> other) {
         int lc = low().compareTo(other.low());
         if (lc == 0) {
-            lc = high().compareTo(other.high());
+            lc = -1 * high().compareTo(other.high());
         }
         return lc;
     }

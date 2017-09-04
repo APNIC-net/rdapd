@@ -90,7 +90,7 @@ public class RDAPControllerUtil
     public ResponseEntity<TopLevelObject> mostCurrentResponseGet(
         HttpServletRequest request, IpInterval range)
     {
-        return intervalTree.intersecting(range)
+        return intervalTree.equalToAndLeastSpecific(range)
             .filter(t -> t.snd().mostCurrent().isPresent())
             .reduce((a, b) -> a.fst().compareTo(b.fst()) <= 0 ? b : a)
             .flatMap(t -> t.snd().mostCurrent())

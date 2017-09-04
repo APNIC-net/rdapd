@@ -38,6 +38,12 @@ public class AvlTree<K extends Comparable<K>, V, I extends Interval<K>>
     }
 
     @Override
+    public Stream<Tuple<I, V>> equalToAndLeastSpecific(I range)
+    {
+        return StreamSupport.stream(new EqualOrGreaterSpliterator(root, range), true);
+    }
+
+    @Override
     public Optional<V> exact(I range) {
         return exact(root, range).map(n -> n.value);
     }
@@ -191,6 +197,71 @@ public class AvlTree<K extends Comparable<K>, V, I extends Interval<K>>
 
         default boolean test(AvlNode<K, V, I> node) {
             return testNode(node.max, node.key, node.value);
+        }
+    }
+
+    private class EqualOrGreaterSpliterator implements Spliterator<Tuple<I, V>>
+    {
+        private final Deque<AvlNode<K,V,I>> pipe = new LinkedList<>();
+        private final I range;
+
+        EqualOrGreaterSpliterator(AvlNode<K,V,I> node, I range) {
+            add(node);
+            this.range = range;
+        }
+
+        private void add(AvlNode<K, V, I> node) {
+            if (node != null) {
+                pipe.add(node);
+            }
+        }
+
+        @Override
+        public boolean tryAdvance(Consumer<? super Tuple<I, V>> action) {
+            while (!pipe.isEmpty()) {
+                AvlNode<K,V,I> head = pipe.pop();
+
+                // Push the kids onto the pipe
+                // Always skip a sub-tree whose max is lower than the start of the range
+                Optional.ofNullable(head.left).filter(n -> n.max.compareTo(range.low()) >= 0).ifPresent(pipe::add);
+                // If the low value of this node is greater than the end of the range, skip the right sub-tree
+                if (head.key.low().compareTo(range.high()) <= 0) {
+                    Optional.ofNullable(head.right).filter(n -> n.max.compareTo(range.low()) >= 0).ifPresent(pipe::add);
+                }
+
+                // This node is relevant iff it intersects the range
+                if (head.intersects(range) &&  range.compareTo(head.key) >= 0) {
+                    action.accept(new Tuple<>(head.key, head.value));
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        @Override
+        public Spliterator<Tuple<I, V>> trySplit() {
+            AvlNode<K,V,I> head = pipe.poll();
+
+            if (head != null) {
+                if (pipe.isEmpty() || head.height < 4) {
+                    pipe.push(head);
+                    return null;
+                } else {
+                    return new IntersectionSpliterator(head, range);
+                }
+            } else {
+                return null;
+            }
+        }
+
+        @Override
+        public long estimateSize() {
+            return Long.MAX_VALUE;
+        }
+
+        @Override
+        public int characteristics() {
+            return Spliterator.IMMUTABLE;
         }
     }
 

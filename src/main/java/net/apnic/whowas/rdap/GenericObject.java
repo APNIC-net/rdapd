@@ -1,6 +1,7 @@
 package net.apnic.whowas.rdap;
 
 import com.fasterxml.jackson.annotation.JsonValue;
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import net.apnic.whowas.history.ObjectClass;
 import net.apnic.whowas.history.ObjectKey;
 
@@ -60,6 +61,7 @@ public class GenericObject implements RdapObject, Serializable {
         return new GenericObject(objectKey, rpsl, relatedEntities);
     }
 
+    @JsonAnyGetter
     @JsonValue
     public Map<String, Object> toJSON() {
         switch (objectKey.getObjectClass()) {

@@ -73,6 +73,17 @@ public class App {
     public IntervalTree<IP, ObjectHistory, IpInterval> ipListIntervalTree() {
         return new IntervalTree<IP, ObjectHistory, IpInterval>() {
             @Override
+            public Stream<Tuple<IpInterval, ObjectHistory>>
+                equalToAndLeastSpecific(IpInterval range) {
+                return history.getTree().equalToAndLeastSpecific(range)
+                        .flatMap(p -> history
+                                .getObjectHistory(p.snd())
+                                .map(Stream::of)
+                                .orElse(Stream.empty())
+                                .map(h -> new Tuple<>(p.fst(), h)));
+            }
+
+            @Override
             public Optional<ObjectHistory> exact(IpInterval range) {
                 return history.getTree().exact(range)
                         .flatMap(history::getObjectHistory);
