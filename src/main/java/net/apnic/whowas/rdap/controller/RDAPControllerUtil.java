@@ -1,5 +1,9 @@
 package net.apnic.whowas.rdap.controller;
 
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 
 import net.apnic.whowas.history.ObjectHistory;
@@ -13,6 +17,7 @@ import net.apnic.whowas.rdap.RdapHistory;
 import net.apnic.whowas.rdap.TopLevelObject;
 import net.apnic.whowas.types.IP;
 import net.apnic.whowas.types.IpInterval;
+import net.apnic.whowas.types.Tuple;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -66,6 +71,31 @@ public class RDAPControllerUtil
         HttpServletRequest request, ObjectKey objectKey)
     {
         return getObjectIndex().historyForObject(objectKey)
+            .map(RdapHistory::new)
+            .map(history -> responseMaker.makeResponse(history, request))
+            .map(response -> new ResponseEntity<TopLevelObject>(
+                    response, responseHeaders, HttpStatus.OK))
+            .orElse(new ResponseEntity<TopLevelObject>(
+                responseMaker.makeResponse(Error.NOT_FOUND, request),
+                responseHeaders,
+                HttpStatus.NOT_FOUND));
+    }
+
+    public ResponseEntity<TopLevelObject> historyResponse(
+        HttpServletRequest request, IpInterval range)
+    {
+        int pfxCap = range.prefixSize() +
+            (range.low().getAddressFamily() == IP.AddressFamily.IPv4 ? 8 : 16);
+
+        List<ObjectHistory> ipHistory =
+            intervalTree
+                .intersecting(range)
+                .filter(t -> t.fst().prefixSize() <= pfxCap)
+                .sorted(Comparator.comparing(Tuple::fst))
+                .map(Tuple::snd)
+                .collect(Collectors.toList());
+
+        return Optional.ofNullable(ipHistory.size() > 0 ? ipHistory : null)
             .map(RdapHistory::new)
             .map(history -> responseMaker.makeResponse(history, request))
             .map(response -> new ResponseEntity<TopLevelObject>(

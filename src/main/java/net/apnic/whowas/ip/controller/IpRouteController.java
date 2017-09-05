@@ -33,11 +33,32 @@ public class IpRouteController
     }
 
     @RequestMapping(value="/**", method=RequestMethod.GET)
-    public ResponseEntity<TopLevelObject> ipPath(HttpServletRequest request)
+    public ResponseEntity<TopLevelObject> ipPathGet(HttpServletRequest request)
     {
         String param = (String)request.getAttribute(
             HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
-        LOGGER.debug("ip path query for {}", param);
+        LOGGER.debug("ip GET path query for {}", param);
+
+        IpInterval range = null;
+
+        try
+        {
+            range = Parsing.parseCIDRInterval(param.substring(4));
+        }
+        catch(Exception ex)
+        {
+            throw new MalformedRequestException(ex);
+        }
+
+        return rdapControllerUtil.mostCurrentResponseGet(request, range);
+    }
+
+    @RequestMapping(value="/**", method=RequestMethod.HEAD)
+    public ResponseEntity<TopLevelObject> ipPathHead(HttpServletRequest request)
+    {
+        String param = (String)request.getAttribute(
+            HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
+        LOGGER.debug("ip HEAD path query for {}", param);
 
         IpInterval range = null;
 
