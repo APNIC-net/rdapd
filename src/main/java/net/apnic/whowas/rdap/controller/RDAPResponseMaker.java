@@ -10,16 +10,18 @@ import net.apnic.whowas.rdap.TopLevelObject;
 
 public class RDAPResponseMaker
 {
-    private List<Notice> defaultNotices;
+    private final List<Notice> defaultNotices;
+    private final String defaultPort43;
 
     public RDAPResponseMaker()
     {
-        this(Collections.emptyList());
+        this(Collections.emptyList(), null);
     }
 
-    public RDAPResponseMaker(List<Notice> defaultNotices)
+    public RDAPResponseMaker(List<Notice> defaultNotices, String defaultPort43)
     {
         this.defaultNotices = defaultNotices;
+        this.defaultPort43 = defaultPort43;
     }
 
 
@@ -39,6 +41,7 @@ public class RDAPResponseMaker
         return TopLevelObject.of(object,
             defaultNotices.stream()
             .map(notice -> notice.withContext(context))
-            .collect(Collectors.toList()));
+            .collect(Collectors.toList()),
+            defaultPort43);
     }
 }
