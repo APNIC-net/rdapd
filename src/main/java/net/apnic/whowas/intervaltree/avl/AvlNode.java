@@ -60,6 +60,10 @@ class AvlNode<K extends Comparable<K>, V, I extends Interval<K>> implements Seri
         return new AvlNode<>(key, map.apply(value), left, right);
     }
 
+    boolean encompases(I range) {
+        return key.low().compareTo(range.low()) <= 0 && key.high().compareTo(range.high()) >= 0;
+    }
+
     boolean intersects(I range) {
         return range.high().compareTo(key.low()) >= 0 && range.low().compareTo(key.high()) <= 0;
     }

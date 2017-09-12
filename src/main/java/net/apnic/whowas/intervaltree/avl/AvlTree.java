@@ -230,7 +230,7 @@ public class AvlTree<K extends Comparable<K>, V, I extends Interval<K>>
                 }
 
                 // This node is relevant iff it intersects the range
-                if (head.intersects(range) &&  range.compareTo(head.key) >= 0) {
+                if (head.encompases(range)) {
                     action.accept(new Tuple<>(head.key, head.value));
                     return true;
                 }
