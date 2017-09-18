@@ -12,8 +12,8 @@ import net.apnic.whowas.rdap.Notice;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 /**
  * General configuration bootstrap class that build and passes information
@@ -25,6 +25,7 @@ public class RDAPConfiguration
 {
     private List<ConfigNotice> configNotices = null;
     private List<Notice> defaultNotices = null;
+    private String defaultPort43 = null;
 
     /**
      * Config class represents a link object in this applications configuration
@@ -142,15 +143,25 @@ public class RDAPConfiguration
         return configNotices;
     }
 
+    public String getPort43()
+    {
+        return defaultPort43 == null || defaultPort43.isEmpty() ? null : defaultPort43;
+    }
+
     @Autowired
     @Bean
     public RDAPResponseMaker rdapResponseMaker(List<Notice> defaultNotices)
     {
-        return new RDAPResponseMaker(defaultNotices);
+        return new RDAPResponseMaker(defaultNotices, getPort43());
     }
 
     public void setNotices(List<ConfigNotice> notices)
     {
         this.configNotices = notices;
+    }
+
+    public void setPort43(String port43)
+    {
+        this.defaultPort43 = port43;
     }
 }

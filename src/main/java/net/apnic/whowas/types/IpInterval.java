@@ -38,4 +38,14 @@ public class IpInterval implements Interval<IP>, Serializable {
     public IP high() {
         return high;
     }
+
+    @Override
+    public String toString()
+    {
+        if(low().getAddressFamily() == IP.AddressFamily.IPv4)
+        {
+            return low().toString() + " - " + high().toString();
+        }
+        return low().toString() + "/" + prefixSize();
+    }
 }

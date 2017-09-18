@@ -12,6 +12,9 @@ rdap:
   #     type: #type of link
   notices: []
 
+  # Port43 value for RDAP responses
+  port43: null
+
 database:
   host: localhost
   database: whowas
