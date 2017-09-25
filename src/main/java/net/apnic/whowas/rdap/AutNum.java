@@ -1,46 +1,100 @@
 package net.apnic.whowas.rdap;
 
 import net.apnic.whowas.history.ObjectKey;
-import net.apnic.whowas.rpsl.RpslObject;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
- * Static method for constructing AutNum objects from WHOIS aut-num records
+ * AutNum RDAP object.
  */
-class AutNum extends AbstractRdapObject{
-    private static long parseAutNum(ObjectKey objectKey) {
-        int dotIndex = objectKey.getObjectName().indexOf(".");
-        if (dotIndex > 0) {
-            return (Long.parseLong(objectKey.getObjectName().substring(2, dotIndex)) << 16)
-                    + Long.parseLong(objectKey.getObjectName().substring(dotIndex + 1));
-        } else {
-            return Long.parseLong(objectKey.getObjectName().substring(2));
-        }
+public class AutNum
+    extends GenericObject
+{
+    private String endAutnum = null;
+    private String handle = null;
+    private String startAutnum = null;
+
+    /**
+     * Constructs a new autnum object with the given key.
+     *
+     * @param objectKey key for this object
+     */
+    public AutNum(ObjectKey objectKey)
+    {
+        super(objectKey);
     }
 
-    static Map<String, Object> fromBytes(ObjectKey objectKey, byte[] rpsl, Collection<RdapObject> relatedObjects) {
-        Map<String, Object> node = new HashMap<>();
+    /**
+     * Provides the end autnum parameter used in constructing JSON response
+     *
+     * @return String representation of end autnum in this autnum object
+     */
+    public String getEndAutnum()
+    {
+        return endAutnum;
+    }
 
-        long autnum = parseAutNum(objectKey);
-        node.put("objectClassName", "autnum");
-        node.put("handle", objectKey.getObjectName());
-        node.put("startAutnum", autnum);
-        node.put("endAutnum", autnum);
-
-        if (rpsl.length == 0) {
-            node.put("remarks", DELETED_REMARKS);
-        } else {
-            RpslObject rpslObject = new RpslObject(rpsl);
-            rpslObject.getAttributeFirstValue("as-name").ifPresent(s -> node.put("name", s));
-            rpslObject.getAttributeFirstValue("country").ifPresent(s -> node.put("country", s));
-            node.put("entities", new ArrayList<>(relatedObjects));
-            setRemarks(node, rpslObject);
+    /**
+     * {@inheritDoc}
+     *
+     * If not set this objects parent class implementation is used.
+     */
+    @Override
+    public String getHandle()
+    {
+        if(handle == null)
+        {
+            return super.getHandle();
         }
+        return handle;
+    }
 
-        return node;
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getObjectClassName()
+    {
+        return "autnum";
+    }
+
+    /**
+     * Provides the start autnum parameter used in constructing JSON response
+     *
+     * @return String representation of start autnum in this autnum object
+     */
+    public String getStartAutnum()
+    {
+        return startAutnum;
+    }
+
+    /**
+     * Sets the end autnum parameter for this object.
+     *
+     * @param endAutnum End autnum parameter
+     */
+    public void setEndAutnum(String endAutnum)
+    {
+        this.endAutnum = endAutnum;
+    }
+
+    /**
+     * Sets the handle parameter for this object.
+     *
+     * If not set this objects parent class implementation is used.
+     *
+     * @param handle Handle parameter
+     */
+    public void setHandle(String handle)
+    {
+        this.handle = handle;
+    }
+
+    /**
+     * Sets the start autnum parameter for this object.
+     *
+     * @param startAutnum Start autnum parameter
+     */
+    public void setStartAutnum(String startAutnum)
+    {
+        this.startAutnum = startAutnum;
     }
 }
