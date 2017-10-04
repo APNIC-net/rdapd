@@ -9,11 +9,15 @@ import javax.servlet.http.HttpServletRequest;
 import net.apnic.whowas.history.ObjectHistory;
 import net.apnic.whowas.history.ObjectIndex;
 import net.apnic.whowas.history.ObjectKey;
+import net.apnic.whowas.history.ObjectSearchIndex;
+import net.apnic.whowas.history.ObjectSearchKey;
 import net.apnic.whowas.history.Revision;
 import net.apnic.whowas.intervaltree.IntervalTree;
 import net.apnic.whowas.rdap.Error;
 import net.apnic.whowas.rdap.http.RdapConstants;
 import net.apnic.whowas.rdap.RdapHistory;
+import net.apnic.whowas.rdap.RdapObject;
+import net.apnic.whowas.rdap.RdapSearch;
 import net.apnic.whowas.rdap.TopLevelObject;
 import net.apnic.whowas.types.IP;
 import net.apnic.whowas.types.IpInterval;
@@ -25,16 +29,27 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
+/**
+ * A set of helper functions and utilities to make RDAP results for controllers.
+ */
 @Component
 public class RDAPControllerUtil
 {
-    private IntervalTree<IP, ObjectHistory, IpInterval> intervalTree;
-    private ObjectIndex objectIndex = null;
+    private final IntervalTree<IP, ObjectHistory, IpInterval> intervalTree;
+    private final ObjectIndex objectIndex;
+    private final ObjectSearchIndex searchIndex;
     private HttpHeaders responseHeaders = null;
-    private RDAPResponseMaker responseMaker = null;
+    private final RDAPResponseMaker responseMaker;
 
+    /**
+     * Default constructor.
+     *
+     * Requires a set of global scope beans to accomplish util functions of this
+     * class.
+     */
     @Autowired
     public RDAPControllerUtil(ObjectIndex objectIndex,
+        ObjectSearchIndex searchIndex,
         IntervalTree<IP, ObjectHistory, IpInterval> intervalTree,
         RDAPResponseMaker responseMaker)
     {
@@ -42,11 +57,7 @@ public class RDAPControllerUtil
         this.objectIndex = objectIndex;
         this.intervalTree = intervalTree;
         this.responseMaker = responseMaker;
-    }
-
-    public ObjectIndex getObjectIndex()
-    {
-        return objectIndex;
+        this.searchIndex = searchIndex;
     }
 
     public ResponseEntity<TopLevelObject> errorResponseGet(
@@ -70,7 +81,7 @@ public class RDAPControllerUtil
     public ResponseEntity<TopLevelObject> historyResponse(
         HttpServletRequest request, ObjectKey objectKey)
     {
-        return getObjectIndex().historyForObject(objectKey)
+        return objectIndex.historyForObject(objectKey)
             .map(RdapHistory::new)
             .map(history -> responseMaker.makeResponse(history, request))
             .map(response -> new ResponseEntity<TopLevelObject>(
@@ -109,7 +120,7 @@ public class RDAPControllerUtil
     public ResponseEntity<TopLevelObject> mostCurrentResponseGet(
         HttpServletRequest request, ObjectKey objectKey)
     {
-        return getObjectIndex().historyForObject(objectKey)
+        return objectIndex.historyForObject(objectKey)
             .flatMap(ObjectHistory::mostCurrent)
             .map(Revision::getContents)
             .map(rdapObject -> responseMaker.makeResponse(rdapObject, request))
@@ -119,6 +130,22 @@ public class RDAPControllerUtil
                 responseMaker.makeResponse(Error.NOT_FOUND, request),
                 responseHeaders,
                 HttpStatus.NOT_FOUND));
+    }
+
+    public ResponseEntity<TopLevelObject> mostCurrentResponseGet(
+        HttpServletRequest request, ObjectSearchKey objectSearchKey)
+    {
+        List<RdapObject> searchObjects = objectIndex.historyForObject(
+            searchIndex.historySearchForObject(objectSearchKey))
+            .filter(oHistory -> oHistory.mostCurrent().isPresent())
+            .map(oHistory -> oHistory.mostCurrent().get().getContents())
+            .collect(Collectors.toList());
+
+        return new ResponseEntity<TopLevelObject>(
+            responseMaker.makeResponse(
+                RdapSearch.build(objectSearchKey.getObjectClass(),
+                                 searchObjects), request),
+                responseHeaders, HttpStatus.OK);
     }
 
     public ResponseEntity<TopLevelObject> mostCurrentResponseGet(

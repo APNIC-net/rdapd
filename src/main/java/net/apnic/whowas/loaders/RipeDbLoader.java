@@ -1,16 +1,5 @@
 package net.apnic.whowas.loaders;
 
-import net.apnic.whowas.history.ObjectClass;
-import net.apnic.whowas.history.ObjectKey;
-import net.apnic.whowas.history.Revision;
-import net.apnic.whowas.rdap.GenericObject;
-import net.apnic.whowas.types.Tuple;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.jdbc.core.JdbcOperations;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -20,6 +9,19 @@ import java.time.ZonedDateTime;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import net.apnic.whowas.history.ObjectClass;
+import net.apnic.whowas.history.ObjectKey;
+import net.apnic.whowas.history.Revision;
+import net.apnic.whowas.rpsl.rdap.RpslRdapFactory;
+import net.apnic.whowas.types.Tuple;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import org.springframework.jdbc.core.JdbcOperations;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
 public class RipeDbLoader implements Loader {
     private static final Logger LOGGER = LoggerFactory.getLogger(RipeDbLoader.class);
@@ -47,21 +49,30 @@ public class RipeDbLoader implements Loader {
     private static void resultSetToRdap(ResultSet rs, RevisionConsumer consumer)
         throws SQLException
     {
-        ObjectClass objectClass = OBJECT_CLASSES.getOrDefault(rs.getInt("object_type"), null);
-
-        if (objectClass != null) {
-            byte[] contents = rs.getBytes("object");
-            ObjectKey objectKey = objectKeyForResultKey(objectClass,
-                                                        rs.getString("pkey"));
-
-            consumer.accept(objectKey, new Revision(
-                    fromStamp(rs.getLong("timestamp")),
-                    null,
-                    new GenericObject(objectKey, contents)));
-        }
-        else
+        try
         {
-            LOGGER.warn("Unknown object type detected " + rs.getInt("object_type"));
+            ObjectClass objectClass = OBJECT_CLASSES.getOrDefault(
+                rs.getInt("object_type"), null);
+
+            if (objectClass != null)
+            {
+                byte[] contents = rs.getBytes("object");
+                ObjectKey objectKey = objectKeyForResultKey(objectClass,
+                    rs.getString("pkey"));
+
+                consumer.accept(objectKey, new Revision(
+                    fromStamp(rs.getLong("timestamp")), null,
+                    RpslRdapFactory.rpslToRdap(objectKey, contents)));
+            }
+            else
+            {
+                LOGGER.warn("Unknown object type detected " + rs.getInt("object_type"));
+            }
+        }
+        catch(Exception ex)
+        {
+            LOGGER.warn("Failed to process revision for pkey: {} - {}",
+                rs.getString("pkey"), ex.getMessage());
         }
     }
 

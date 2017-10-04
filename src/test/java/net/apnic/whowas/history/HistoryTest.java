@@ -39,7 +39,7 @@ public class HistoryTest {
                 new ByteArrayInputStream(baos.toByteArray())).readObject();
 
         // What went in should come out
-        Optional<ObjectHistory> obj = history.getObjectHistory(DNS_KEY);
+        Optional<ObjectHistory> obj = history.historyForObject(DNS_KEY);
         assertTrue("History contains DNS key", obj.isPresent());
         assertTrue("The history has a revision",
                 obj.flatMap(ObjectHistory::mostRecent).isPresent());
@@ -54,7 +54,7 @@ public class HistoryTest {
         history.addRevision(WHO_KEY, new Revision(
                 ZonedDateTime.of(2016, 12, 10, 10, 10, 10, 0, ZoneId.systemDefault()),
                 null, WHO_OBJECT));
-        obj = history.getObjectHistory(DNS_KEY);
+        obj = history.historyForObject(DNS_KEY);
         assertTrue("History still contains DNS key", obj.isPresent());
         assertThat("There's now two revisions",
                 obj.map(o -> (Iterable<Revision>)o).orElse(Collections.emptyList()),

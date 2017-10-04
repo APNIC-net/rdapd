@@ -1,12 +1,15 @@
 package net.apnic.whowas.history;
 
 import com.github.andrewoma.dexx.collection.*;
+
 import net.apnic.whowas.intervaltree.IntervalTree;
 import net.apnic.whowas.intervaltree.avl.AvlTree;
 import net.apnic.whowas.rdap.RdapObject;
+import net.apnic.whowas.search.SearchEngine;
 import net.apnic.whowas.types.IP;
 import net.apnic.whowas.types.IpInterval;
 import net.apnic.whowas.types.Parsing;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +31,7 @@ import java.util.stream.Stream;
  * a serial number reflecting the version of the registry, and a set of indices
  * for fast interval lookups.
  */
-public final class History implements Externalizable {
+public final class History implements Externalizable, ObjectIndex {
     private static final long serialVersionUID = 5063296486972345480L;
     private static final Logger LOGGER = LoggerFactory.getLogger(History.class);
 
@@ -41,13 +44,21 @@ public final class History implements Externalizable {
     /* Related object index */
     private volatile Map<ObjectKey, Set<ObjectKey>> relatedIndex;
 
+    private Optional<SearchEngine> searchEngine;
+
+    public History()
+    {
+        this(null);
+    }
+
     /**
      * Construct a new History in which nothing has ever happened.
      */
-    public History() {
+    public History(SearchEngine searchEngine) {
         histories = HashMap.empty();
         tree = new AvlTree<>();
         relatedIndex = HashMap.empty();
+        this.searchEngine = Optional.ofNullable(searchEngine);
     }
 
     /**
@@ -86,6 +97,11 @@ public final class History implements Externalizable {
         // queries, without incurring the cost of @synchronised locking
         // everywhere, and without quadratic performance during initial loads.
         AvlTree<IP, ObjectKey, IpInterval> nextTree = tree;
+
+        if(searchEngine.isPresent())
+        {
+            searchEngine.get().putIndexEntry(revision, objectKey);
+        }
 
         // Obtain a new object history with this revision included
         ObjectHistory objectHistory = histories.get(objectKey);
@@ -224,8 +240,15 @@ public final class History implements Externalizable {
         return tree;
     }
 
-    public Optional<ObjectHistory> getObjectHistory(ObjectKey objectKey) {
+    @Override
+    public Optional<ObjectHistory> historyForObject(ObjectKey objectKey) {
         return Optional.ofNullable(histories.get(objectKey));
+    }
+
+    @Override
+    public Stream<ObjectHistory> historyForObject(Stream<ObjectKey> objectKeys)
+    {
+        return objectKeys.map(histories::get);
     }
 
     /* ---------------------------------------------------------------------- */
