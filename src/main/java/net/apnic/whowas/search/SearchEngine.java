@@ -12,11 +12,10 @@ import java.util.stream.Stream;
 
 public class SearchEngine
 {
-    HashMap<ObjectClass, HashMap<String, SearchIndex>> indexes;
+    private HashMap<ObjectClass, HashMap<String, SearchIndex>> indexes = new HashMap<>();
 
     public SearchEngine(List<SearchIndex> searchIndexes)
     {
-        indexes = new HashMap<>();
         buildIndexMap(searchIndexes);
     }
 

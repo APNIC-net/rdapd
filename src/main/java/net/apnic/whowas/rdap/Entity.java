@@ -15,7 +15,7 @@ import net.apnic.whowas.history.ObjectKey;
 public class Entity
     extends GenericObject
 {
-    private VCard vCard = null;
+    private VCard vCard = new VCard();
 
     /**
      * Constructs a new Entity object with the given key.

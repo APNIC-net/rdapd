@@ -86,6 +86,17 @@
             <artifactId>fst</artifactId>
             <version>${fst.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-core</artifactId>
+            <version>7.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-analyzers-common</artifactId>
+            <version>7.0.1</version>
+        </dependency>
+
         <!-- Persistent data structures, ported from Scala, specifically HAMT map -->
         <dependency>
             <groupId>com.github.andrewoma.dexx</groupId>
@@ -111,7 +122,6 @@
             <artifactId>logstash-logback-encoder</artifactId>
             <version>4.8</version>
         </dependency>
-
 
         <!-- Testing dependencies -->
         <dependency>

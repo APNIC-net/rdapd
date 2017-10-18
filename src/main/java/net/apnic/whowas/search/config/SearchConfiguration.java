@@ -1,12 +1,14 @@
 package net.apnic.whowas.search.config;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import net.apnic.whowas.history.ObjectClass;
 import net.apnic.whowas.history.ObjectSearchIndex;
-import net.apnic.whowas.search.BasicSearchIndex;
+import net.apnic.whowas.rdap.Entity;
 import net.apnic.whowas.search.SearchEngine;
 import net.apnic.whowas.search.SearchIndex;
+import net.apnic.whowas.search.WildCardSearchIndex;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -16,27 +18,25 @@ import org.springframework.context.annotation.Configuration;
 public class SearchConfiguration
 {
     @Bean
-    public BasicSearchIndex entityHandleSearchindex()
+    public WildCardSearchIndex entityHandleSearchindex()
     {
-        return new BasicSearchIndex(ObjectClass.ENTITY, "handle",
-            (rev, objectKey) -> objectKey.getObjectName());
+        return new WildCardSearchIndex(ObjectClass.ENTITY, "handle",
+            (rev, objectKey) -> Stream.of(objectKey.getObjectName()));
     }
 
     @Bean
-    public BasicSearchIndex entityFNSesearchindex()
+    public WildCardSearchIndex entityFNSesearchindex()
     {
-        return new BasicSearchIndex(ObjectClass.ENTITY, "fn",
+        return new WildCardSearchIndex(ObjectClass.ENTITY, "fn",
             (rev, objectKey) ->
             {
-                /*if(rev.getContents() instanceof GenericObject)
-                {
-                    ((GenericObject)rev.getContents()).getRpsl();
-                }*/
-                /*if(rev.getContents() instanceof GenericObject)
-                {
-                    //((GenericObject)rev.getContents()).getRpsl();//.getPrimaryAttribute();
-                }*/
-                return "";
+                return ((Entity)rev.getContents())
+                    .getVCard()
+                    .findVCardAttribute("fn")
+                    .map(vcard ->
+                    {
+                        return vcard.getValue().toString();
+                    });
             });
     }
 

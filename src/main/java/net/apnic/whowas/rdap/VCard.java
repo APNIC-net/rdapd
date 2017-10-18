@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 public class VCard
     implements Serializable
@@ -21,6 +22,12 @@ public class VCard
     public List<VCardAttribute> getAttributes()
     {
         return attributes;
+    }
+
+    public Stream<VCardAttribute> findVCardAttribute(String name)
+    {
+        return attributes.stream()
+            .filter(a -> a.getName().equals(name));
     }
 
     @JsonValue

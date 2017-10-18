@@ -7,6 +7,9 @@ import net.apnic.whowas.history.Revision;
 
 import java.util.stream.Stream;
 
+/**
+ *
+ */
 public interface SearchIndex
 {
     String getIndexAttribute();
