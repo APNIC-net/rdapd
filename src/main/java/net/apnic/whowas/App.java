@@ -168,6 +168,10 @@ public class App {
             LOGGER.error("Failed to load data: {}", ex.getLocalizedMessage(), ex);
             lastDbException = ex;
         }
+        finally
+        {
+            history.commit();
+        }
         LOGGER.info("IP interval tree construction completed, {} entries", history.getTree().size());
     }
 
@@ -217,6 +221,10 @@ public class App {
                 } catch (Exception ex) {
                     LOGGER.error("Error refreshing data: {}", ex.getLocalizedMessage(), ex);
                     lastDbException = ex;
+                }
+                finally
+                {
+                    history.commit();
                 }
                 return dbLoader.getLastSerial();
             });

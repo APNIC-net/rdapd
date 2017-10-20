@@ -43,6 +43,19 @@ public class WildCardSearchIndex
     }
 
     @Override
+    public void commit()
+    {
+        try
+        {
+            indexWriter.commit();
+        }
+        catch(Exception ex)
+        {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    @Override
     public String getIndexAttribute()
     {
         return indexAttribute;
@@ -55,13 +68,14 @@ public class WildCardSearchIndex
     }
 
     @Override
-    public Stream<ObjectKey> getObjectsForKey(ObjectSearchKey objectSearchKey)
+    public Stream<ObjectKey> getObjectsForKey(ObjectSearchKey objectSearchKey,
+                                              int limit)
     {
         try
         {
             DirectoryReader reader = DirectoryReader.open(directory);
             IndexSearcher searcher = new IndexSearcher(reader);
-            TopDocs docs = searcher.search(new WildcardQuery(new Term(getIndexAttribute(), objectSearchKey.getObjectName())), 10);
+            TopDocs docs = searcher.search(new WildcardQuery(new Term(getIndexAttribute(), objectSearchKey.getObjectName())), limit);
 
             ObjectKey[] keys = new ObjectKey[docs.scoreDocs.length];
             for(int i = 0; i < docs.scoreDocs.length; ++i)
@@ -96,15 +110,6 @@ public class WildCardSearchIndex
                     throw new RuntimeException(ex);
                 }
             });
-
-        try
-        {
-            indexWriter.commit();
-        }
-        catch(Exception ex)
-        {
-            throw new RuntimeException(ex);
-        }
     }
 
     private void setupIndex()

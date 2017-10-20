@@ -61,6 +61,11 @@ public final class History implements Externalizable, ObjectIndex {
         this.searchEngine = Optional.ofNullable(searchEngine);
     }
 
+    public void commit()
+    {
+        searchEngine.ifPresent(SearchEngine::commit);
+    }
+
     /**
      * Horrible way to deserialize a History.
      *
