@@ -40,6 +40,8 @@ public class EntitySearchRouteController
         @RequestParam(name="fn", required=false, defaultValue="")
         String fn)
     {
+        LOGGER.info("entities GET path query");
+
         ObjectSearchKey searchKey = null;
         if(handle.isEmpty() == false && fn.isEmpty() == true)
         {
@@ -55,8 +57,6 @@ public class EntitySearchRouteController
         {
             throw new MalformedRequestException();
         }
-
-        LOGGER.info("entities GET path query");
 
         return rdapControllerUtil.mostCurrentResponseGet(request, searchKey);
     }
