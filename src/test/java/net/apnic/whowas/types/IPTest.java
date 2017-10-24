@@ -41,7 +41,7 @@ public class IPTest {
                 new Tuple<>("64.0.0.255", 24)
         );
         tests.forEach(v -> {
-            assertThat("Test address " + v.fst() + " is correct", base.prefixFrom(toIP(v.fst())), is(equalTo(Optional.of(v.snd()))));
+            assertThat("Test address " + v.first() + " is correct", base.prefixFrom(toIP(v.first())), is(equalTo(Optional.of(v.second()))));
         });
 
 

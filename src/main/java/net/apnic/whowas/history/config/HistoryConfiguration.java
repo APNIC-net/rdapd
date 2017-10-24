@@ -37,10 +37,10 @@ public class HistoryConfiguration
                 equalToAndLeastSpecific(IpInterval range) {
                 return history.getTree().equalToAndLeastSpecific(range)
                         .flatMap(p -> history
-                                .historyForObject(p.snd())
+                                .historyForObject(p.second())
                                 .map(Stream::of)
                                 .orElse(Stream.empty())
-                                .map(h -> new Tuple<>(p.fst(), h)));
+                                .map(h -> new Tuple<>(p.first(), h)));
             }
 
             @Override
@@ -53,10 +53,10 @@ public class HistoryConfiguration
             public Stream<Tuple<IpInterval, ObjectHistory>> intersecting(IpInterval range) {
                 return history.getTree().intersecting(range)
                         .flatMap(p -> history
-                                .historyForObject(p.snd())
+                                .historyForObject(p.second())
                                 .map(Stream::of)
                                 .orElse(Stream.empty())
-                                .map(h -> new Tuple<>(p.fst(), h)));
+                                .map(h -> new Tuple<>(p.first(), h)));
             }
 
             @Override

@@ -132,5 +132,5 @@ public class RipeDbLoader implements Loader {
             new Tuple<>(11, ObjectClass.ENTITY),
             new Tuple<>(17, ObjectClass.ENTITY),
             new Tuple<>(18, ObjectClass.ENTITY))
-        .collect(Collectors.toMap(Tuple::fst, Tuple::snd));
+        .collect(Collectors.toMap(Tuple::first, Tuple::second));
 }
