@@ -1,14 +1,10 @@
 package net.apnic.whowas.search.config;
 
 import java.util.List;
-import java.util.stream.Stream;
 
-import net.apnic.whowas.history.ObjectClass;
 import net.apnic.whowas.history.ObjectSearchIndex;
-import net.apnic.whowas.rdap.Entity;
 import net.apnic.whowas.search.SearchEngine;
 import net.apnic.whowas.search.SearchIndex;
-import net.apnic.whowas.search.WildCardSearchIndex;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -23,29 +19,6 @@ public class SearchConfiguration
     private static final int MIN_SEARCH_LIMIT = 1;
 
     private int searchLimit = DEFAULT_SEARCH_LIMIT;
-
-    @Bean
-    public WildCardSearchIndex entityHandleSearchindex()
-    {
-        return new WildCardSearchIndex(ObjectClass.ENTITY, "handle",
-            (rev, objectKey) -> Stream.of(objectKey.getObjectName()));
-    }
-
-    @Bean
-    public WildCardSearchIndex entityFNSesearchindex()
-    {
-        return new WildCardSearchIndex(ObjectClass.ENTITY, "fn",
-            (rev, objectKey) ->
-            {
-                return ((Entity)rev.getContents())
-                    .getVCard()
-                    .findVCardAttribute("fn")
-                    .map(vcard ->
-                    {
-                        return vcard.getValue().toString();
-                    });
-            });
-    }
 
     public int getSearchLimit()
     {

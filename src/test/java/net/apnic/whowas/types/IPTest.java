@@ -43,8 +43,5 @@ public class IPTest {
         tests.forEach(v -> {
             assertThat("Test address " + v.first() + " is correct", base.prefixFrom(toIP(v.first())), is(equalTo(Optional.of(v.second()))));
         });
-
-
     }
-
 }
