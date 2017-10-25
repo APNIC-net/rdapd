@@ -124,6 +124,34 @@ public class WildCardSearchIndexTest
         assertEquals(keys.size(), 1);
     }
 
+    @Test
+    public void checkIndexDuplicateInsertion()
+    {
+        List<Revision> revisions = Arrays.asList(
+            revision(new ObjectKey(ObjectClass.ENTITY, "bat12"),
+                     "person: Batman\nhandle:bat1\n".getBytes(),
+                     ZonedDateTime.parse("2017-01-01T00:00:00.000+10:00"),
+                     ZonedDateTime.parse("2017-02-01T00:00:00.000+10:00")),
+
+            revision(new ObjectKey(ObjectClass.ENTITY, "bat12"),
+                     "person: Batman12\nhandle:bat12\n".getBytes(),
+                     ZonedDateTime.parse("2017-01-01T00:00:00.000+10:00"),
+                     ZonedDateTime.parse("2017-02-01T00:00:00.000+10:00"))
+        );
+
+        WildCardSearchIndex index = new WildCardSearchIndex(
+            ObjectClass.ENTITY, "handle",
+            (rev, objectKey) -> Stream.of(objectKey.getObjectName()));
+
+        revisions.forEach(rev -> index.putMapping(rev, rev.getContents().getObjectKey()));
+
+        ObjectSearchKey sKey = new ObjectSearchKey(ObjectClass.ENTITY, "handle",
+            "bat12");
+        List<ObjectKey> keys =
+            index.getObjectsForKey(sKey, 10).collect(Collectors.toList());
+        assertEquals(keys.size(), 1);
+    }
+
     private Revision revision(
         ObjectKey objectKey,
         byte[] rpsl,

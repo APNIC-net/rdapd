@@ -24,9 +24,16 @@ import org.apache.lucene.search.WildcardQuery;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
 
+/**
+ * Simple wild card search index that supports the operations outline in the
+ * RDAP spec.
+ */
 public class WildCardSearchIndex
     implements SearchIndex
 {
+    private static final String ID_FIELD_ID = "__id";
+    private static final String KEY_FIELD_ID = "__key";
+
     private Directory directory = null;
     private final IndexExtractor<String> extractor;
     private final String indexAttribute;
@@ -73,15 +80,18 @@ public class WildCardSearchIndex
     {
         try
         {
-            DirectoryReader reader = DirectoryReader.open(directory);
-            IndexSearcher searcher = new IndexSearcher(reader);
-            TopDocs docs = searcher.search(new WildcardQuery(new Term(getIndexAttribute(), objectSearchKey.getObjectName())), limit);
+            IndexSearcher searcher = new IndexSearcher(
+                DirectoryReader.open(indexWriter));
+            TopDocs docs = searcher.search(
+                new WildcardQuery(new Term(getIndexAttribute(),
+                                           objectSearchKey.getObjectName())),
+                limit);
 
             ObjectKey[] keys = new ObjectKey[docs.scoreDocs.length];
             for(int i = 0; i < docs.scoreDocs.length; ++i)
             {
                 keys[i] = new ObjectKey(getIndexClass(),
-                    searcher.doc(docs.scoreDocs[i].doc).get("handle"));
+                    searcher.doc(docs.scoreDocs[i].doc).get(KEY_FIELD_ID));
             }
             return Arrays.stream(keys);
         }
@@ -97,13 +107,16 @@ public class WildCardSearchIndex
         extractor.extract(revision, objectKey)
             .forEach(key ->
             {
+                String idVal = key + objectKey.getObjectName();
                 Document doc = new Document();
                 doc.add(new StringField(getIndexAttribute(), key, Field.Store.YES));
-                doc.add(new StoredField("handle", objectKey.getObjectName()));
+                doc.add(new StoredField(KEY_FIELD_ID, objectKey.getObjectName()));
+                doc.add(new StringField(ID_FIELD_ID, idVal, Field.Store.YES));
 
                 try
                 {
-                    indexWriter.addDocument(doc);
+                    Term term = new Term(ID_FIELD_ID, idVal);
+                    indexWriter.updateDocument(term, doc);
                 }
                 catch(Exception ex)
                 {
