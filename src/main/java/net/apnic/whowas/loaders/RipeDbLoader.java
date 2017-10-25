@@ -13,7 +13,7 @@ import java.util.stream.Stream;
 import net.apnic.whowas.history.ObjectClass;
 import net.apnic.whowas.history.ObjectKey;
 import net.apnic.whowas.history.Revision;
-import net.apnic.whowas.rpsl.rdap.RpslRdapFactory;
+import net.apnic.whowas.rpsl.rdap.RpslToRdap;
 import net.apnic.whowas.types.Tuple;
 
 import org.slf4j.Logger;
@@ -62,7 +62,7 @@ public class RipeDbLoader implements Loader {
 
                 consumer.accept(objectKey, new Revision(
                     fromStamp(rs.getLong("timestamp")), null,
-                    RpslRdapFactory.rpslToRdap(objectKey, contents)));
+                    RpslToRdap.rpslToRdap(objectKey, contents)));
             }
             else
             {

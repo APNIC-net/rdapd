@@ -10,6 +10,7 @@ import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -38,7 +39,8 @@ import net.apnic.whowas.types.Parsing;
 /**
  * Utility class for converting raw RPSL data into RDAP objects.
  */
-public class RpslRdapFactory
+public class RpslToRdap
+    implements BiFunction<ObjectKey, byte[], RdapObject>
 {
     private static final Pattern ENTITY_KEYS =
             Pattern.compile("^(?:admin-c|tech-c|zone-c|mnt-irt):\\s*(.*?)$",
@@ -113,13 +115,22 @@ public class RpslRdapFactory
     }
 
     /**
+     * @see rpslToRdap()
+     */
+    @Override
+    public RdapObject apply(ObjectKey key, byte[] rpsl)
+    {
+        return rpslToRdap(key, rpsl);
+    }
+
+    /**
      * Converts rpsl data into autnum object.
      *
      * @param key ObjectKey describing the object to be converted
      * @param rpsl Raw RPSL data
      * @return Autnum object
      */
-    public static AutNum autnumFromRpsl(ObjectKey key, byte[] rpsl)
+    private static AutNum autnumFromRpsl(ObjectKey key, byte[] rpsl)
     {
         AutNum rval = new AutNum(key);
 
@@ -151,7 +162,7 @@ public class RpslRdapFactory
      * @param rpsl Raw RPSL data
      * @return Domain object
      */
-    public static Domain domainFromRpsl(ObjectKey key, byte[] rpsl)
+    private static Domain domainFromRpsl(ObjectKey key, byte[] rpsl)
     {
         Domain rval = new Domain(key);
 
@@ -176,7 +187,7 @@ public class RpslRdapFactory
      * @param rpsl Raw RPSL data
      * @return Entity object
      */
-    public static Entity entityFromRpsl(ObjectKey key, byte[] rpsl)
+    private static Entity entityFromRpsl(ObjectKey key, byte[] rpsl)
     {
         Entity rval = new Entity(key);
 
@@ -245,7 +256,7 @@ public class RpslRdapFactory
      * @param rpsl Raw RPSL data
      * @return IpNetwork object
      */
-    public static IpNetwork ipNetworkFromRpsl(ObjectKey key, byte[] rpsl)
+    private static IpNetwork ipNetworkFromRpsl(ObjectKey key, byte[] rpsl)
     {
         IpInterval ipInterval = Parsing.parseInterval(key.getObjectName());
         IpNetwork rval = new IpNetwork(key, ipInterval);
