@@ -2,6 +2,7 @@ package net.apnic.whowas.search;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import net.apnic.whowas.history.ObjectClass;
@@ -104,25 +105,24 @@ public class WildCardSearchIndex
     @Override
     public void putMapping(Revision revision, ObjectKey objectKey)
     {
-        extractor.extract(revision, objectKey)
-            .forEach(key ->
-            {
-                String idVal = key + objectKey.getObjectName();
-                Document doc = new Document();
-                doc.add(new StringField(getIndexAttribute(), key, Field.Store.YES));
-                doc.add(new StoredField(KEY_FIELD_ID, objectKey.getObjectName()));
-                doc.add(new StringField(ID_FIELD_ID, idVal, Field.Store.YES));
+        if(revision != null && objectKey != null && objectKey.getObjectClass().equals(getIndexClass())) {
+            extractor.extract(revision, objectKey)
+                    .forEach(key ->
+                    {
+                        String idVal = key + objectKey.getObjectName();
+                        Document doc = new Document();
+                        doc.add(new StringField(getIndexAttribute(), key, Field.Store.YES));
+                        doc.add(new StoredField(KEY_FIELD_ID, objectKey.getObjectName()));
+                        doc.add(new StringField(ID_FIELD_ID, idVal, Field.Store.YES));
 
-                try
-                {
-                    Term term = new Term(ID_FIELD_ID, idVal);
-                    indexWriter.updateDocument(term, doc);
-                }
-                catch(Exception ex)
-                {
-                    throw new RuntimeException(ex);
-                }
-            });
+                        try {
+                            Term term = new Term(ID_FIELD_ID, idVal);
+                            indexWriter.updateDocument(term, doc);
+                        } catch (Exception ex) {
+                            throw new RuntimeException(ex);
+                        }
+                    });
+        }
     }
 
     private void setupIndex()
