@@ -4,8 +4,11 @@ import javax.servlet.http.HttpServletRequest;
 
 import net.apnic.whowas.error.MalformedRequestException;
 import net.apnic.whowas.history.ObjectClass;
+import net.apnic.whowas.history.ObjectIndex;
+import net.apnic.whowas.history.ObjectSearchIndex;
 import net.apnic.whowas.history.ObjectSearchKey;
 import net.apnic.whowas.rdap.controller.RDAPControllerUtil;
+import net.apnic.whowas.rdap.controller.RDAPResponseMaker;
 import net.apnic.whowas.rdap.TopLevelObject;
 
 import org.slf4j.Logger;
@@ -24,12 +27,17 @@ public class EntitySearchRouteController
 {
     private final static Logger LOGGER = LoggerFactory.getLogger(EntitySearchRouteController.class);
 
+    private final ObjectIndex objectIndex;
+    private final ObjectSearchIndex searchIndex;
     private final RDAPControllerUtil rdapControllerUtil;
 
     @Autowired
-    public EntitySearchRouteController(RDAPControllerUtil rdapControllerUtil)
+    public EntitySearchRouteController(ObjectIndex objectIndex,
+        ObjectSearchIndex searchIndex, RDAPResponseMaker rdapResponseMaker)
     {
-        this.rdapControllerUtil = rdapControllerUtil;
+        this.objectIndex = objectIndex;
+        this.rdapControllerUtil = new RDAPControllerUtil(rdapResponseMaker);
+        this.searchIndex = searchIndex;
     }
 
     @RequestMapping(method=RequestMethod.GET)
@@ -58,6 +66,10 @@ public class EntitySearchRouteController
             throw new MalformedRequestException();
         }
 
-        return rdapControllerUtil.mostCurrentResponseGet(request, searchKey);
+        return rdapControllerUtil.searchResponse(request, ObjectClass.ENTITY,
+            objectIndex.historyForObject(
+                searchIndex.historySearchForObject(searchKey))
+                .filter(oHistory -> oHistory.mostCurrent().isPresent())
+                .map(oHistory -> oHistory.mostCurrent().get().getContents()));
     }
 }

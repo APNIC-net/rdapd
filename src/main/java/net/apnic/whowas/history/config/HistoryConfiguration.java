@@ -7,7 +7,6 @@ import net.apnic.whowas.history.History;
 import net.apnic.whowas.history.ObjectHistory;
 import net.apnic.whowas.history.ObjectIndex;
 import net.apnic.whowas.intervaltree.IntervalTree;
-import net.apnic.whowas.search.SearchEngine;
 import net.apnic.whowas.types.IP;
 import net.apnic.whowas.types.IpInterval;
 import net.apnic.whowas.types.Tuple;
@@ -19,11 +18,10 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class HistoryConfiguration
 {
-    @Autowired
     @Bean
-    public History history(SearchEngine searchEngine)
+    public History history()
     {
-        return new History(searchEngine);
+        return new History();
     }
 
     @Autowired

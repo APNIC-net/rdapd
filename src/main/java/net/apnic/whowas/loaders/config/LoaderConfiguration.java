@@ -18,6 +18,7 @@ import javax.annotation.PostConstruct;
 import net.apnic.whowas.history.History;
 import net.apnic.whowas.loaders.RipeDbLoader;
 import net.apnic.whowas.progress.Bar;
+import net.apnic.whowas.search.SearchEngine;
 
 import org.nustaq.serialization.FSTObjectInput;
 import org.nustaq.serialization.FSTObjectOutput;
@@ -58,6 +59,9 @@ public class LoaderConfiguration
     @Autowired
     private JdbcOperations jdbcOperations;
 
+    @Autowired
+    SearchEngine searchEngine;
+
     private void buildTree()
     {
         if (snapshotFile != null) {
@@ -88,13 +92,14 @@ public class LoaderConfiguration
                     bar.inc();
                 }
                 history.addRevision(k, r);
+                searchEngine.putIndexEntry(r, k);
             });
         } catch (Exception ex) {
             LOGGER.error("Failed to load data: {}", ex.getLocalizedMessage(), ex);
         }
         finally
         {
-            history.commit();
+            searchEngine.commit();
         }
         LOGGER.info("IP interval tree construction completed, {} entries", history.getTree().size());
     }
@@ -113,13 +118,17 @@ public class LoaderConfiguration
             LOGGER.debug("CRON triggered refresh begun");
             asyncLoader = executorService.submit(() -> {
                 try {
-                    dbLoader.loadWith(history::addRevision);
+                    dbLoader.loadWith((key, revision) ->
+                    {
+                        history.addRevision(key, revision);
+                        searchEngine.putIndexEntry(revision, key);
+                    });
                 } catch (Exception ex) {
                     LOGGER.error("Error refreshing data: {}", ex.getLocalizedMessage(), ex);
                 }
                 finally
                 {
-                    history.commit();
+                    searchEngine.commit();
                 }
                 return dbLoader.getLastSerial();
             });

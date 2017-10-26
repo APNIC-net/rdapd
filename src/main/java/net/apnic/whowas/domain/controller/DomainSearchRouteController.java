@@ -4,8 +4,11 @@ import javax.servlet.http.HttpServletRequest;
 
 import net.apnic.whowas.error.MalformedRequestException;
 import net.apnic.whowas.history.ObjectClass;
+import net.apnic.whowas.history.ObjectIndex;
+import net.apnic.whowas.history.ObjectSearchIndex;
 import net.apnic.whowas.history.ObjectSearchKey;
 import net.apnic.whowas.rdap.controller.RDAPControllerUtil;
+import net.apnic.whowas.rdap.controller.RDAPResponseMaker;
 import net.apnic.whowas.rdap.TopLevelObject;
 
 import org.slf4j.Logger;
@@ -30,12 +33,17 @@ public class DomainSearchRouteController
 {
     private final static Logger LOGGER = LoggerFactory.getLogger(DomainSearchRouteController.class);
 
+    private final ObjectIndex objectIndex;
     private final RDAPControllerUtil rdapControllerUtil;
+    private final ObjectSearchIndex searchIndex;
 
     @Autowired
-    public DomainSearchRouteController(RDAPControllerUtil rdapControllerUtil)
+    public DomainSearchRouteController(ObjectIndex objectIndex,
+        ObjectSearchIndex searchIndex, RDAPResponseMaker rdapResponseMaker)
     {
-        this.rdapControllerUtil = rdapControllerUtil;
+        this.objectIndex = objectIndex;
+        this.rdapControllerUtil = new RDAPControllerUtil(rdapResponseMaker);
+        this.searchIndex = searchIndex;
     }
 
     @RequestMapping(method=RequestMethod.GET)
@@ -56,7 +64,11 @@ public class DomainSearchRouteController
             ObjectSearchKey searchKey = new ObjectSearchKey(ObjectClass.DOMAIN,
                 "name", name);
 
-            return rdapControllerUtil.mostCurrentResponseGet(request, searchKey);
+            return rdapControllerUtil.searchResponse(request, ObjectClass.DOMAIN,
+                objectIndex.historyForObject(
+                    searchIndex.historySearchForObject(searchKey))
+                    .filter(oHistory -> oHistory.mostCurrent().isPresent())
+                    .map(oHistory -> oHistory.mostCurrent().get().getContents()));
         }
         // If name is not specificed and no other parameters exist
         else if(name.isEmpty() && (nsLdhName.isEmpty() == false ||

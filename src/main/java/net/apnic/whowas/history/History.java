@@ -5,7 +5,6 @@ import com.github.andrewoma.dexx.collection.*;
 import net.apnic.whowas.intervaltree.IntervalTree;
 import net.apnic.whowas.intervaltree.avl.AvlTree;
 import net.apnic.whowas.rdap.RdapObject;
-import net.apnic.whowas.search.SearchEngine;
 import net.apnic.whowas.types.IP;
 import net.apnic.whowas.types.IpInterval;
 import net.apnic.whowas.types.Parsing;
@@ -44,26 +43,13 @@ public final class History implements Externalizable, ObjectIndex {
     /* Related object index */
     private volatile Map<ObjectKey, Set<ObjectKey>> relatedIndex;
 
-    private Optional<SearchEngine> searchEngine;
-
-    public History()
-    {
-        this(null);
-    }
-
     /**
      * Construct a new History in which nothing has ever happened.
      */
-    public History(SearchEngine searchEngine) {
+    public History() {
         histories = HashMap.empty();
         tree = new AvlTree<>();
         relatedIndex = HashMap.empty();
-        this.searchEngine = Optional.ofNullable(searchEngine);
-    }
-
-    public void commit()
-    {
-        searchEngine.ifPresent(SearchEngine::commit);
     }
 
     /**
@@ -102,11 +88,6 @@ public final class History implements Externalizable, ObjectIndex {
         // queries, without incurring the cost of @synchronised locking
         // everywhere, and without quadratic performance during initial loads.
         AvlTree<IP, ObjectKey, IpInterval> nextTree = tree;
-
-        if(searchEngine.isPresent())
-        {
-            searchEngine.get().putIndexEntry(revision, objectKey);
-        }
 
         // Obtain a new object history with this revision included
         ObjectHistory objectHistory = histories.get(objectKey);

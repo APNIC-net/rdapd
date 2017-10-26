@@ -3,8 +3,12 @@ package net.apnic.whowas.entity.controller;
 import javax.servlet.http.HttpServletRequest;
 
 import net.apnic.whowas.history.ObjectClass;
+import net.apnic.whowas.history.ObjectHistory;
+import net.apnic.whowas.history.ObjectIndex;
 import net.apnic.whowas.history.ObjectKey;
+import net.apnic.whowas.history.Revision;
 import net.apnic.whowas.rdap.controller.RDAPControllerUtil;
+import net.apnic.whowas.rdap.controller.RDAPResponseMaker;
 import net.apnic.whowas.rdap.TopLevelObject;
 
 import org.slf4j.Logger;
@@ -28,12 +32,15 @@ public class EntityRouteController
 {
     private final static Logger LOGGER = LoggerFactory.getLogger(EntityRouteController.class);
 
+    private final ObjectIndex objectIndex;
     private final RDAPControllerUtil rdapControllerUtil;
 
     @Autowired
-    public EntityRouteController(RDAPControllerUtil rdapControllerUtil)
+    public EntityRouteController(ObjectIndex objectIndex,
+        RDAPResponseMaker rdapResponseMaker)
     {
-        this.rdapControllerUtil = rdapControllerUtil;
+        this.objectIndex = objectIndex;
+        this.rdapControllerUtil = new RDAPControllerUtil(rdapResponseMaker);
     }
 
     /**
@@ -46,8 +53,10 @@ public class EntityRouteController
     {
         LOGGER.debug("entity GET path query for {}", handle);
 
-        return rdapControllerUtil.mostCurrentResponseGet(
-            request, new ObjectKey(ObjectClass.ENTITY, handle));
+        return rdapControllerUtil.singleObjectResponse(request,
+            objectIndex.historyForObject(new ObjectKey(ObjectClass.ENTITY, handle))
+            .flatMap(ObjectHistory::mostCurrent)
+            .map(Revision::getContents).orElse(null));
     }
 
     /**
@@ -60,7 +69,9 @@ public class EntityRouteController
     {
         LOGGER.debug("entity HEAD path query for {}", handle);
 
-        return rdapControllerUtil.mostCurrentResponseGet(
-            request, new ObjectKey(ObjectClass.ENTITY, handle));
+        return rdapControllerUtil.singleObjectResponse(request,
+            objectIndex.historyForObject(new ObjectKey(ObjectClass.ENTITY, handle))
+            .flatMap(ObjectHistory::mostCurrent)
+            .map(Revision::getContents).orElse(null));
     }
 }

@@ -3,8 +3,12 @@ package net.apnic.whowas.domain.controller;
 import javax.servlet.http.HttpServletRequest;
 
 import net.apnic.whowas.history.ObjectClass;
+import net.apnic.whowas.history.ObjectHistory;
+import net.apnic.whowas.history.ObjectIndex;
 import net.apnic.whowas.history.ObjectKey;
+import net.apnic.whowas.history.Revision;
 import net.apnic.whowas.rdap.controller.RDAPControllerUtil;
+import net.apnic.whowas.rdap.controller.RDAPResponseMaker;
 import net.apnic.whowas.rdap.TopLevelObject;
 
 import org.slf4j.Logger;
@@ -28,12 +32,15 @@ public class DomainRouteController
 {
     private final static Logger LOGGER = LoggerFactory.getLogger(DomainRouteController.class);
 
+    private final ObjectIndex objectIndex;
     private final RDAPControllerUtil rdapControllerUtil;
 
     @Autowired
-    public DomainRouteController(RDAPControllerUtil rdapControllerUtil)
+    public DomainRouteController(ObjectIndex objectIndex,
+        RDAPResponseMaker rdapResponseMaker)
     {
-        this.rdapControllerUtil = rdapControllerUtil;
+        this.objectIndex = objectIndex;
+        this.rdapControllerUtil = new RDAPControllerUtil(rdapResponseMaker);
     }
 
     @RequestMapping(value="/{handle:.+}", method=RequestMethod.GET)
@@ -43,8 +50,11 @@ public class DomainRouteController
     {
         LOGGER.debug("domain GET path query for {}", handle);
 
-        return rdapControllerUtil.mostCurrentResponseGet(
-            request, new ObjectKey(ObjectClass.DOMAIN, handle));
+        return rdapControllerUtil.singleObjectResponse(request,
+            objectIndex.historyForObject(
+                new ObjectKey(ObjectClass.DOMAIN, handle))
+            .flatMap(ObjectHistory::mostCurrent)
+            .map(Revision::getContents).orElse(null));
     }
 
     @RequestMapping(value="/{handle:.+}", method=RequestMethod.HEAD)
@@ -54,7 +64,10 @@ public class DomainRouteController
     {
         LOGGER.debug("domain HEAD path query for {}", handle);
 
-        return rdapControllerUtil.mostCurrentResponseGet(
-            request, new ObjectKey(ObjectClass.DOMAIN, handle));
+        return rdapControllerUtil.singleObjectResponse(request,
+            objectIndex.historyForObject(
+                new ObjectKey(ObjectClass.DOMAIN, handle))
+            .flatMap(ObjectHistory::mostCurrent)
+            .map(Revision::getContents).orElse(null));
     }
 }
