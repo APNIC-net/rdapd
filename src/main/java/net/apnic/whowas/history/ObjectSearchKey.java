@@ -1,20 +1,28 @@
 package net.apnic.whowas.history;
 
-public class ObjectSearchKey
-    extends ObjectKey
-{
-    private String attribute;
+public class ObjectSearchKey {
+    private final String attribute;
+    private final ObjectClass objectClass;
+    private final String objectName;
 
     public ObjectSearchKey(ObjectClass objectClass, String attribute,
-                           String objectName)
-    {
-        super(objectClass, objectName);
+                           String objectName) {
         this.attribute = attribute;
+        this.objectClass = objectClass;
+        this.objectName = objectName;
     }
 
     public String getAttribute()
     {
         return attribute;
+    }
+
+    public ObjectClass getObjectClass() {
+        return objectClass;
+    }
+
+    public String getObjectName() {
+        return objectName;
     }
 
     @Override
