@@ -1,6 +1,5 @@
 package net.apnic.whowas.search;
 
-import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -11,11 +10,10 @@ import net.apnic.whowas.history.ObjectKey;
 import net.apnic.whowas.history.ObjectSearchKey;
 import net.apnic.whowas.history.Revision;
 import net.apnic.whowas.rdap.RdapObject;
-import net.apnic.whowas.rpsl.rdap.RpslToRdap;
-import net.apnic.whowas.search.WildCardSearchIndex;
+import org.junit.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import org.junit.jupiter.api.Test;
+
 
 public class WildCardSearchIndexTest
 {
@@ -23,25 +21,10 @@ public class WildCardSearchIndexTest
     public void checkExactMatching()
     {
         List<Revision> revisions = Arrays.asList(
-            revision(new ObjectKey(ObjectClass.ENTITY, "bat1"),
-                     "person: Batman\nhandle:bat1\n".getBytes(),
-                     ZonedDateTime.parse("2017-01-01T00:00:00.000+10:00"),
-                     ZonedDateTime.parse("2017-02-01T00:00:00.000+10:00")),
-
-            revision(new ObjectKey(ObjectClass.ENTITY, "bat12"),
-                     "person: Batman12\nhandle:bat12\n".getBytes(),
-                     ZonedDateTime.parse("2017-01-01T00:00:00.000+10:00"),
-                     ZonedDateTime.parse("2017-02-01T00:00:00.000+10:00")),
-
-            revision(new ObjectKey(ObjectClass.ENTITY, "bat"),
-                     "person: Batman\nhandle:bat\n".getBytes(),
-                     ZonedDateTime.parse("2017-01-01T00:00:00.000+10:00"),
-                     ZonedDateTime.parse("2017-02-01T00:00:00.000+10:00")),
-
-            revision(new ObjectKey(ObjectClass.ENTITY, "wing-bat1"),
-                     "person: Batman\nhandle:bat\n".getBytes(),
-                     ZonedDateTime.parse("2017-01-01T00:00:00.000+10:00"),
-                     ZonedDateTime.parse("2017-02-01T00:00:00.000+10:00"))
+            revision("bat1"),
+            revision("bat12"),
+            revision("bat"),
+            revision("wing-bat1")
         );
 
         WildCardSearchIndex index = new WildCardSearchIndex(
@@ -69,25 +52,10 @@ public class WildCardSearchIndexTest
     public void checkWildCardMatching()
     {
         List<Revision> revisions = Arrays.asList(
-            revision(new ObjectKey(ObjectClass.ENTITY, "bat1"),
-                     "person: Batman\nhandle:bat1\n".getBytes(),
-                     ZonedDateTime.parse("2017-01-01T00:00:00.000+10:00"),
-                     ZonedDateTime.parse("2017-02-01T00:00:00.000+10:00")),
-
-            revision(new ObjectKey(ObjectClass.ENTITY, "bat12"),
-                     "person: Batman12\nhandle:bat12\n".getBytes(),
-                     ZonedDateTime.parse("2017-01-01T00:00:00.000+10:00"),
-                     ZonedDateTime.parse("2017-02-01T00:00:00.000+10:00")),
-
-            revision(new ObjectKey(ObjectClass.ENTITY, "bat"),
-                     "person: Batman\nhandle:bat\n".getBytes(),
-                     ZonedDateTime.parse("2017-01-01T00:00:00.000+10:00"),
-                     ZonedDateTime.parse("2017-02-01T00:00:00.000+10:00")),
-
-            revision(new ObjectKey(ObjectClass.ENTITY, "wing-bat1"),
-                     "person: Batman\nhandle:bat\n".getBytes(),
-                     ZonedDateTime.parse("2017-01-01T00:00:00.000+10:00"),
-                     ZonedDateTime.parse("2017-02-01T00:00:00.000+10:00"))
+            revision("bat1"),
+            revision("bat12"),
+            revision("bat"),
+            revision("wing-bat1")
         );
 
         WildCardSearchIndex index = new WildCardSearchIndex(
@@ -128,15 +96,8 @@ public class WildCardSearchIndexTest
     public void checkIndexDuplicateInsertion()
     {
         List<Revision> revisions = Arrays.asList(
-            revision(new ObjectKey(ObjectClass.ENTITY, "bat12"),
-                     "person: Batman\nhandle:bat1\n".getBytes(),
-                     ZonedDateTime.parse("2017-01-01T00:00:00.000+10:00"),
-                     ZonedDateTime.parse("2017-02-01T00:00:00.000+10:00")),
-
-            revision(new ObjectKey(ObjectClass.ENTITY, "bat12"),
-                     "person: Batman12\nhandle:bat12\n".getBytes(),
-                     ZonedDateTime.parse("2017-01-01T00:00:00.000+10:00"),
-                     ZonedDateTime.parse("2017-02-01T00:00:00.000+10:00"))
+            revision(new ObjectKey(ObjectClass.ENTITY, "bat12")),
+            revision(new ObjectKey(ObjectClass.ENTITY, "bat12"))
         );
 
         WildCardSearchIndex index = new WildCardSearchIndex(
@@ -152,13 +113,32 @@ public class WildCardSearchIndexTest
         assertEquals(keys.size(), 1);
     }
 
-    private Revision revision(
-        ObjectKey objectKey,
-        byte[] rpsl,
-        ZonedDateTime validFrom,
-        ZonedDateTime validUntil)
-    {
-        return new Revision(validFrom, validUntil,
-            RpslToRdap.rpslToRdap(objectKey, rpsl));
+    private Revision revision(String objectName) {
+        ObjectKey objectKey = new ObjectKey(ObjectClass.AUT_NUM, objectName);
+        return new Revision(null, null,
+            new EmptyObject(objectKey));
+    }
+
+    private Revision revision(ObjectKey objectKey) {
+        return new Revision(null, null,
+                new EmptyObject(objectKey));
+    }
+
+    static class EmptyObject implements RdapObject {
+        private final ObjectKey key;
+
+        public EmptyObject(ObjectKey key) {
+            this.key = key;
+        }
+
+        @Override
+        public ObjectKey getObjectKey() {
+            return key;
+        }
+
+        @Override
+        public boolean isDeleted() {
+            return false;
+        }
     }
 }
