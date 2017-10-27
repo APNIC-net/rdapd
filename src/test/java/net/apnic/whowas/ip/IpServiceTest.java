@@ -5,7 +5,7 @@ import net.apnic.whowas.history.ObjectClass;
 import net.apnic.whowas.history.ObjectKey;
 import net.apnic.whowas.history.Revision;
 import net.apnic.whowas.history.config.HistoryConfiguration;
-import net.apnic.whowas.rdap.RdapObject;
+import net.apnic.whowas.rdap.IpNetwork;
 import net.apnic.whowas.types.Parsing;
 import org.junit.Test;
 
@@ -21,7 +21,7 @@ public class IpServiceTest {
     ZonedDateTime dummyDateTime = null;
 
     @Test
-    public void findsMostSpecificEncompassingRange() {
+    public void figitndsMostSpecificEncompassingRange() {
         History history = new History();
         for( String s : Arrays.asList(
                 "10.0.0.0/8",
@@ -100,34 +100,15 @@ public class IpServiceTest {
         );
     }
 
-    static class EmptyObject implements RdapObject {
-        private final ObjectKey key;
-
+    static class EmptyObject extends IpNetwork {
         public EmptyObject(ObjectKey key) {
-            this.key = key;
-        }
-
-        @Override
-        public ObjectKey getObjectKey() {
-            return key;
-        }
-
-        @Override
-        public boolean isDeleted() {
-            return false;
+            super(key, Parsing.parseCIDRInterval(key.getObjectName()));
         }
     }
 
-    static class DeletedObject implements RdapObject {
-        private final ObjectKey key;
-
+    static class DeletedObject extends IpNetwork {
         public DeletedObject(ObjectKey key) {
-            this.key = key;
-        }
-
-        @Override
-        public ObjectKey getObjectKey() {
-            return key;
+            super(key, Parsing.parseCIDRInterval(key.getObjectName()));
         }
 
         @Override

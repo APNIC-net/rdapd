@@ -13,6 +13,7 @@ import net.apnic.whowas.history.Revision;
 import net.apnic.whowas.intervaltree.Interval;
 import net.apnic.whowas.intervaltree.IntervalTree;
 import net.apnic.whowas.ip.IpService;
+import net.apnic.whowas.rdap.IpNetwork;
 import net.apnic.whowas.types.IP;
 import net.apnic.whowas.types.IpInterval;
 import net.apnic.whowas.types.Tuple;
@@ -60,7 +61,8 @@ public class HistoryConfiguration
                 .filter(t -> t.second().mostCurrent().isPresent())
                 .reduce(mostSpecific)
                 .flatMap(t -> t.second().mostCurrent())
-                .map(Revision::getContents);
+                .map(Revision::getContents)
+                .map(rdapObject -> (IpNetwork) rdapObject);
     }
 
     private <K extends Comparable<K>, V, V2, I extends Interval<K>> IntervalTree<K, V2, I> lazyMap(
