@@ -90,7 +90,7 @@ public class IpRouteController
     {
         return historyTree.equalToAndLeastSpecific(range)
             .filter(t -> t.second().mostCurrent().isPresent())
-            .reduce((a, b) -> a.first().compareTo(b.first()) >= 0 ? b : a)
+            .reduce((a, b) -> a.first().compareTo(b.first()) <= 0 ? b : a)
             .flatMap(t -> t.second().mostCurrent());
     }
 }
