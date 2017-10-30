@@ -1,13 +1,16 @@
 package net.apnic.whowas.ip.controller;
 
-import java.util.stream.Stream;
+import java.util.Optional;
 
+import net.apnic.whowas.history.ObjectClass;
 import net.apnic.whowas.history.ObjectHistory;
+import net.apnic.whowas.history.ObjectKey;
 import net.apnic.whowas.intervaltree.IntervalTree;
+import net.apnic.whowas.ip.IpService;
 import static net.apnic.whowas.rdap.controller.RDAPControllerTesting.testObjectHistory;
 import static net.apnic.whowas.rdap.controller.RDAPControllerTesting.isRDAP;
-import net.apnic.whowas.types.IP;
-import net.apnic.whowas.types.IpInterval;
+import net.apnic.whowas.rdap.IpNetwork;
+import net.apnic.whowas.types.Parsing;
 import net.apnic.whowas.types.Tuple;
 
 import static org.hamcrest.Matchers.is;
@@ -38,7 +41,7 @@ public class IpRouteControllerTest
     static class TestRDAPControllerConfiguration {}
 
     @MockBean
-    IntervalTree<IP, ObjectHistory, IpInterval> historyTree;
+    IpService ipService;
 
     @Autowired
     private MockMvc mvc;
@@ -47,8 +50,10 @@ public class IpRouteControllerTest
     public void indexLookupHasResults()
         throws Exception
     {
-        given(historyTree.equalToAndLeastSpecific(any())).willReturn(
-            Stream.of(new Tuple<>(null, testObjectHistory())));
+        given(ipService.find(any())).willReturn(
+            Optional.of(new IpNetwork(
+                new ObjectKey(ObjectClass.IP_NETWORK, "10.0.0.0 - 10.255.255.255"), 
+                Parsing.parseInterval("10.0.0.0/8"))));
 
         mvc.perform(get("/ip/10.0.0.0"))
             .andExpect(status().isOk())
@@ -59,7 +64,7 @@ public class IpRouteControllerTest
     public void runtimeExceptionIs500()
         throws Exception
     {
-        given(historyTree.equalToAndLeastSpecific(any())).willThrow(
+        given(ipService.find(any())).willThrow(
             new RuntimeException("Test exception"));
 
         mvc.perform(get("/ip/10.0.0.0"))
@@ -72,7 +77,7 @@ public class IpRouteControllerTest
     public void noSearchResultsIsNotFoundRDAPResponse()
         throws Exception
     {
-        given(historyTree.equalToAndLeastSpecific(any())).willReturn(Stream.empty());
+        given(ipService.find(any())).willReturn(Optional.empty());
 
         mvc.perform(get("/ip/10.0.0.0"))
             .andExpect(status().isNotFound())

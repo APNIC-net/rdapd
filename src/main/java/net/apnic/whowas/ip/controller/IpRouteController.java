@@ -1,16 +1,12 @@
 package net.apnic.whowas.ip.controller;
 
-import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 
 import net.apnic.whowas.error.MalformedRequestException;
-import net.apnic.whowas.history.ObjectHistory;
-import net.apnic.whowas.history.Revision;
-import net.apnic.whowas.intervaltree.IntervalTree;
+import net.apnic.whowas.ip.IpService;
 import net.apnic.whowas.rdap.controller.RDAPControllerUtil;
 import net.apnic.whowas.rdap.controller.RDAPResponseMaker;
 import net.apnic.whowas.rdap.TopLevelObject;
-import net.apnic.whowas.types.IP;
 import net.apnic.whowas.types.IpInterval;
 import net.apnic.whowas.types.Parsing;
 
@@ -30,15 +26,14 @@ public class IpRouteController
 {
     private final static Logger LOGGER = LoggerFactory.getLogger(IpRouteController.class);
 
-    private final IntervalTree<IP, ObjectHistory, IpInterval> historyTree;
+    private final IpService ipService;
     private final RDAPControllerUtil rdapControllerUtil;
 
     @Autowired
-    public IpRouteController(
-        IntervalTree<IP, ObjectHistory, IpInterval> historyTree,
+    public IpRouteController(IpService ipService,
         RDAPResponseMaker rdapResponseMaker)
     {
-        this.historyTree = historyTree;
+        this.ipService = ipService;
         this.rdapControllerUtil = new RDAPControllerUtil(rdapResponseMaker);
     }
 
@@ -61,7 +56,7 @@ public class IpRouteController
         }
 
         return rdapControllerUtil.singleObjectResponse(request,
-            mostCurrent(range).map(Revision::getContents).orElse(null));
+            ipService.find(range).orElse(null));
     }
 
     @RequestMapping(value="/**", method=RequestMethod.HEAD)
@@ -83,14 +78,6 @@ public class IpRouteController
         }
 
         return rdapControllerUtil.singleObjectResponse(request,
-            mostCurrent(range).map(Revision::getContents).orElse(null));
-    }
-
-    private Optional<Revision> mostCurrent(IpInterval range)
-    {
-        return historyTree.equalToAndLeastSpecific(range)
-            .filter(t -> t.second().mostCurrent().isPresent())
-            .reduce((a, b) -> a.first().compareTo(b.first()) <= 0 ? b : a)
-            .flatMap(t -> t.second().mostCurrent());
+            ipService.find(range).orElse(null));
     }
 }

@@ -28,7 +28,11 @@ public class IpServiceTest {
                 "10.0.0.0/16",
                 "10.0.0.0/22",
                 "10.0.0.0/24",
-                "10.0.1.0/24"
+                "10.0.1.0/24",
+                "101.0.0.0/8",
+                "101.0.0.0/22",
+                "59.0.0.0/8",
+                "59.167.0.0/16"
         )) {
             ObjectKey objectKey = new ObjectKey(ObjectClass.IP_NETWORK, s);
             history.addRevision(
@@ -62,6 +66,41 @@ public class IpServiceTest {
         assertThat(
                 ipService.find(Parsing.parseCIDRInterval("10.0.0.0/20")).get().getObjectKey().getObjectName(),
                 is("10.0.0.0/16")
+        );
+
+        assertThat(
+                ipService.find(Parsing.parseCIDRInterval("101.0.0.6")).get().getObjectKey().getObjectName(),
+                is("101.0.0.0/22")
+        );
+
+        assertThat(
+                ipService.find(Parsing.parseCIDRInterval("101.0.0.0/24")).get().getObjectKey().getObjectName(),
+                is("101.0.0.0/22")
+        );
+
+        assertThat(
+                ipService.find(Parsing.parseCIDRInterval("101.0.0.0/22")).get().getObjectKey().getObjectName(),
+                is("101.0.0.0/22")
+        );
+
+        assertThat(
+                ipService.find(Parsing.parseCIDRInterval("59.167.223.68")).get().getObjectKey().getObjectName(),
+                is("59.167.0.0/16")
+        );
+
+        assertThat(
+                ipService.find(Parsing.parseCIDRInterval("59.167.228.0/24")).get().getObjectKey().getObjectName(),
+                is("59.167.0.0/16")
+        );
+
+        assertThat(
+                ipService.find(Parsing.parseCIDRInterval("59.167.0.0/24")).get().getObjectKey().getObjectName(),
+                is("59.167.0.0/16")
+        );
+
+        assertThat(
+                ipService.find(Parsing.parseCIDRInterval("59.167.0.0/16")).get().getObjectKey().getObjectName(),
+                is("59.167.0.0/16")
         );
 
         assertThat(

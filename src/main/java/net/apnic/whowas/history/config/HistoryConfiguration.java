@@ -55,7 +55,7 @@ public class HistoryConfiguration
         );
 
         final BinaryOperator<Tuple<IpInterval, ObjectHistory>> mostSpecific =
-                (a, b) -> a.first().compareTo(b.first()) >= 0 ? b : a;
+                (a, b) -> a.first().compareTo(b.first()) <= 0 ? b : a;
 
         return ipInterval -> tree.equalToAndLeastSpecific(ipInterval)
                 .filter(t -> t.second().mostCurrent().isPresent())
