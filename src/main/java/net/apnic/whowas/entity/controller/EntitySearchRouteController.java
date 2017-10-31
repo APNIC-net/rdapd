@@ -10,6 +10,7 @@ import net.apnic.whowas.history.ObjectSearchKey;
 import net.apnic.whowas.rdap.controller.RDAPControllerUtil;
 import net.apnic.whowas.rdap.controller.RDAPResponseMaker;
 import net.apnic.whowas.rdap.TopLevelObject;
+import net.apnic.whowas.search.SearchResponse;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,10 +67,11 @@ public class EntitySearchRouteController
             throw new MalformedRequestException();
         }
 
+        SearchResponse response = searchIndex.historySearchForObject(searchKey);
         return rdapControllerUtil.searchResponse(request, ObjectClass.ENTITY,
-            objectIndex.historyForObject(
-                searchIndex.historySearchForObject(searchKey))
+            objectIndex.historyForObject(response.getKeys())
                 .filter(oHistory -> oHistory.mostCurrent().isPresent())
-                .map(oHistory -> oHistory.mostCurrent().get().getContents()));
+                .map(oHistory -> oHistory.mostCurrent().get().getContents()),
+                response.isTruncated());
     }
 }

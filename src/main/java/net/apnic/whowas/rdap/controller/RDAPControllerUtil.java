@@ -97,14 +97,22 @@ public class RDAPControllerUtil
 
     public ResponseEntity<TopLevelObject> searchResponse(
         HttpServletRequest request, ObjectClass objectClass,
-        Stream<RdapObject> rdapObjectStream)
+        Stream<RdapObject> rdapObjectStream, boolean truncated)
     {
+        TopLevelObject tlo = null;
+        RdapSearch rdapSearch = RdapSearch.build(objectClass,
+            rdapObjectStream.collect(Collectors.toList()));
+
+        if(truncated)
+        {
+            tlo = responseMaker.makeTruncatedResponse(rdapSearch, request);
+        }
+        else
+        {
+            tlo = responseMaker.makeResponse(rdapSearch, request);
+        }
         return new ResponseEntity<TopLevelObject>(
-            responseMaker.makeResponse(
-                RdapSearch.build(objectClass,
-                                 rdapObjectStream.collect(Collectors.toList())),
-                                 request),
-                responseHeaders, HttpStatus.OK);
+            tlo, responseHeaders, HttpStatus.OK);
     }
 
     private void setupResponseHeaders()

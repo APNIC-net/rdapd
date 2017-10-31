@@ -10,6 +10,7 @@ import net.apnic.whowas.history.ObjectSearchKey;
 import net.apnic.whowas.rdap.controller.RDAPControllerUtil;
 import net.apnic.whowas.rdap.controller.RDAPResponseMaker;
 import net.apnic.whowas.rdap.TopLevelObject;
+import net.apnic.whowas.search.SearchResponse;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,11 +65,13 @@ public class DomainSearchRouteController
             ObjectSearchKey searchKey = new ObjectSearchKey(ObjectClass.DOMAIN,
                 "name", name);
 
+            SearchResponse response = searchIndex.historySearchForObject(searchKey);
+
             return rdapControllerUtil.searchResponse(request, ObjectClass.DOMAIN,
-                objectIndex.historyForObject(
-                    searchIndex.historySearchForObject(searchKey))
+                objectIndex.historyForObject(response.getKeys())
                     .filter(oHistory -> oHistory.mostCurrent().isPresent())
-                    .map(oHistory -> oHistory.mostCurrent().get().getContents()));
+                    .map(oHistory -> oHistory.mostCurrent().get().getContents()),
+                    response.isTruncated());
         }
         // If name is not specificed and no other parameters exist
         else if(name.isEmpty() && (nsLdhName.isEmpty() == false ||

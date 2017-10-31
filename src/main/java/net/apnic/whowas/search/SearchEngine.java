@@ -1,14 +1,13 @@
 package net.apnic.whowas.search;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Optional;
+
 import net.apnic.whowas.history.ObjectClass;
 import net.apnic.whowas.history.ObjectKey;
 import net.apnic.whowas.history.ObjectSearchKey;
 import net.apnic.whowas.history.Revision;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Stream;
 
 public class SearchEngine
 {
@@ -47,11 +46,11 @@ public class SearchEngine
         });
     }
 
-    public Stream<ObjectKey> getObjectsForKey(ObjectSearchKey objectSearchKey)
+    public SearchResponse getObjectsForKey(ObjectSearchKey objectSearchKey)
     {
         return Optional.ofNullable(indexes.get(objectSearchKey.getObjectClass()))
             .map(cIndex -> cIndex.get(objectSearchKey.getAttribute()))
             .map(sIndex -> sIndex.getObjectsForKey(objectSearchKey, searchLimit))
-            .orElseGet(() -> Stream.empty());
+            .orElseGet(() -> SearchResponse.makeEmpty());
     }
 }

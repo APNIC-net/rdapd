@@ -2,7 +2,6 @@ package net.apnic.whowas.search;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.stream.Stream;
 
 import net.apnic.whowas.history.ObjectClass;
 import net.apnic.whowas.history.ObjectKey;
@@ -75,8 +74,8 @@ public class WildCardSearchIndex
     }
 
     @Override
-    public Stream<ObjectKey> getObjectsForKey(ObjectSearchKey objectSearchKey,
-                                              int limit)
+    public SearchResponse getObjectsForKey(ObjectSearchKey objectSearchKey,
+                                           int limit)
     {
         try
         {
@@ -93,7 +92,7 @@ public class WildCardSearchIndex
                 keys[i] = new ObjectKey(getIndexClass(),
                     searcher.doc(docs.scoreDocs[i].doc).get(KEY_FIELD_ID));
             }
-            return Arrays.stream(keys);
+            return SearchResponse.make(Arrays.stream(keys), docs.totalHits > limit);
         }
         catch(Exception ex)
         {

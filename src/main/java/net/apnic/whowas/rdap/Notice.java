@@ -16,13 +16,21 @@ public class Notice
     private final String title;
     private final List<String> description;
     private final List<Link> links;
+    private final String type;
+
+    public Notice(String title, List<String> description, List<Link> links)
+    {
+        this(title, null, description, links);
+    }
 
     /**
      * Constructs a new Notice object
      */
-    public Notice(String title, List<String> description, List<Link> links)
+    public Notice(String title, String type, List<String> description,
+                  List<Link> links)
     {
         this.title = title;
+        this.type = type;
         this.description = Collections.unmodifiableList(
             new ArrayList<>(Optional.ofNullable(description)
                                     .orElse(Collections.emptyList())));
@@ -37,6 +45,14 @@ public class Notice
     public String getTitle()
     {
         return title;
+    }
+
+    /**
+     * Returns the notice type
+     */
+    public String getType()
+    {
+        return type;
     }
 
     /**
@@ -57,7 +73,7 @@ public class Notice
 
     public Notice withContext(String context)
     {
-        return new Notice(title, description,
+        return new Notice(title, type, description,
             links.stream().map(link -> link.withValue(context))
             .collect(Collectors.toList()));
     }

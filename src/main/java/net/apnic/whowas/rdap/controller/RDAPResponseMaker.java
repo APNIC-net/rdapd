@@ -3,6 +3,7 @@ package net.apnic.whowas.rdap.controller;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.servlet.http.HttpServletRequest;
 
 import net.apnic.whowas.rdap.Notice;
@@ -12,16 +13,20 @@ public class RDAPResponseMaker
 {
     private final List<Notice> defaultNotices;
     private final String defaultPort43;
+    private final Notice defaultTruncatedNotice;
 
     public RDAPResponseMaker()
     {
-        this(Collections.emptyList(), null);
+        this(Collections.emptyList(), null, null);
     }
 
-    public RDAPResponseMaker(List<Notice> defaultNotices, String defaultPort43)
+    public RDAPResponseMaker(List<Notice> defaultNotices,
+        Notice defaultTruncatedNotice,
+        String defaultPort43)
     {
         this.defaultNotices = defaultNotices;
         this.defaultPort43 = defaultPort43;
+        this.defaultTruncatedNotice  = defaultTruncatedNotice;
     }
 
 
@@ -40,6 +45,21 @@ public class RDAPResponseMaker
     {
         return TopLevelObject.of(object,
             defaultNotices.stream()
+            .map(notice -> notice.withContext(context))
+            .collect(Collectors.toList()),
+            defaultPort43);
+    }
+
+    public TopLevelObject makeTruncatedResponse(Object object,
+        HttpServletRequest request)
+    {
+        return makeTruncatedResponse(object, request.getRequestURL().toString());
+    }
+
+    public TopLevelObject makeTruncatedResponse(Object object, String context)
+    {
+        return TopLevelObject.of(object,
+            Stream.concat(defaultNotices.stream(), Stream.of(defaultTruncatedNotice))
             .map(notice -> notice.withContext(context))
             .collect(Collectors.toList()),
             defaultPort43);

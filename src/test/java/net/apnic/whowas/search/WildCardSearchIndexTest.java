@@ -39,13 +39,13 @@ public class WildCardSearchIndexTest
         ObjectSearchKey sKey = new ObjectSearchKey(ObjectClass.ENTITY, "handle",
             "bat1");
         List<ObjectKey> keys =
-            index.getObjectsForKey(sKey, 10).collect(Collectors.toList());
+            index.getObjectsForKey(sKey, 10).getKeys().collect(Collectors.toList());
         assertEquals(keys.size(), 1);
         assertEquals(keys.get(0).getObjectName(), "bat1");
 
         // Exact seach for bat12
         sKey = new ObjectSearchKey(ObjectClass.ENTITY, "handle", "bat12");
-        keys = index.getObjectsForKey(sKey, 10).collect(Collectors.toList());
+        keys = index.getObjectsForKey(sKey, 10).getKeys().collect(Collectors.toList());
         assertEquals(keys.size(), 1);
         assertEquals(keys.get(0).getObjectName(), "bat12");
     }
@@ -70,27 +70,27 @@ public class WildCardSearchIndexTest
         ObjectSearchKey sKey = new ObjectSearchKey(ObjectClass.ENTITY, "handle",
             "bat1*");
         List<ObjectKey> keys =
-            index.getObjectsForKey(sKey, 10).collect(Collectors.toList());
+            index.getObjectsForKey(sKey, 10).getKeys().collect(Collectors.toList());
         assertEquals(keys.size(), 2);
 
         // Wild card seach for bat, bat1, bat12
         sKey = new ObjectSearchKey(ObjectClass.ENTITY, "handle", "bat*");
-        keys = index.getObjectsForKey(sKey, 10).collect(Collectors.toList());
+        keys = index.getObjectsForKey(sKey, 10).getKeys().collect(Collectors.toList());
         assertEquals(keys.size(), 3);
 
         // Wild card seach for wing-bat1, bat, bat1, bat12
         sKey = new ObjectSearchKey(ObjectClass.ENTITY, "handle", "*bat*");
-        keys = index.getObjectsForKey(sKey, 10).collect(Collectors.toList());
+        keys = index.getObjectsForKey(sKey, 10).getKeys().collect(Collectors.toList());
         assertEquals(keys.size(), 4);
         //
         // Wild card seach for wing-bat1, bat, bat1, bat12
         sKey = new ObjectSearchKey(ObjectClass.ENTITY, "handle", "*b*t*");
-        keys = index.getObjectsForKey(sKey, 10).collect(Collectors.toList());
+        keys = index.getObjectsForKey(sKey, 10).getKeys().collect(Collectors.toList());
         assertEquals(keys.size(), 4);
 
         // Wild card seach for wing-bat1
         sKey = new ObjectSearchKey(ObjectClass.ENTITY, "handle", "wing*");
-        keys = index.getObjectsForKey(sKey, 10).collect(Collectors.toList());
+        keys = index.getObjectsForKey(sKey, 10).getKeys().collect(Collectors.toList());
         assertEquals(keys.size(), 1);
     }
 
@@ -111,7 +111,7 @@ public class WildCardSearchIndexTest
         ObjectSearchKey sKey = new ObjectSearchKey(ObjectClass.ENTITY, "handle",
             "bat12");
         List<ObjectKey> keys =
-            index.getObjectsForKey(sKey, 10).collect(Collectors.toList());
+            index.getObjectsForKey(sKey, 10).getKeys().collect(Collectors.toList());
         assertEquals(keys.size(), 1);
     }
 
@@ -125,7 +125,7 @@ public class WildCardSearchIndexTest
         index.putMapping(revision(objectKey), objectKey);
 
         List<ObjectKey> results = index.getObjectsForKey(new ObjectSearchKey(ObjectClass.ENTITY, "handle", "myObject"), 10)
-                .collect(Collectors.toList());
+                .getKeys().collect(Collectors.toList());
 
         assertThat(results, empty());
     }

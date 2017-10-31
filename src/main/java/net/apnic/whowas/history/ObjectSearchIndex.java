@@ -1,8 +1,8 @@
 package net.apnic.whowas.history;
 
-import java.util.stream.Stream;
+import net.apnic.whowas.search.SearchResponse;
 
 public interface ObjectSearchIndex
 {
-    Stream<ObjectKey> historySearchForObject(ObjectSearchKey searchKey);
+    SearchResponse historySearchForObject(ObjectSearchKey searchKey);
 }

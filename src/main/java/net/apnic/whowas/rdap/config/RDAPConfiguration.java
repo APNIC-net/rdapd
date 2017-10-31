@@ -1,5 +1,6 @@
 package net.apnic.whowas.rdap.config;
 
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -23,6 +24,16 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix="rdap")
 public class RDAPConfiguration
 {
+    private static final Notice TRUNCATED_NOTICE;
+
+    static
+    {
+        TRUNCATED_NOTICE = new Notice(
+            "Search Policy",
+            "result set truncated due to limits",
+            Arrays.asList("Search results limited"), null);
+    }
+
     private List<ConfigNotice> configNotices = null;
     private List<Notice> defaultNotices = null;
     private String defaultPort43 = null;
@@ -152,7 +163,7 @@ public class RDAPConfiguration
     @Bean
     public RDAPResponseMaker rdapResponseMaker(List<Notice> defaultNotices)
     {
-        return new RDAPResponseMaker(defaultNotices, getPort43());
+        return new RDAPResponseMaker(defaultNotices, TRUNCATED_NOTICE, getPort43());
     }
 
     public void setNotices(List<ConfigNotice> notices)
