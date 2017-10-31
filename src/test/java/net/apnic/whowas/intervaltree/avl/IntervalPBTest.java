@@ -7,11 +7,14 @@ import com.pholser.junit.quickcheck.runner.JUnitQuickcheck;
 import net.apnic.whowas.types.IpInterval;
 import net.apnic.whowas.types.Parsing;
 import org.hamcrest.Matcher;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static net.apnic.whowas.FuncTypeSafeMatchers.encompasses;
 import static org.hamcrest.Matchers.everyItem;
@@ -46,5 +49,23 @@ public class IntervalPBTest {
                 intervals,
                 is(sortedByPrefix)
         );
+    }
+
+    /*
+        This natural ordering is consistent with the natural ordering defined by RIPE's ipresource library
+     */
+    @Test
+    public void naturalOrderingExample() {
+        List<IpInterval> expected = Stream.of(
+                "10.0.0.0/23",
+                "10.0.0.0/24",
+                "10.0.1.0/24",
+                "10.0.128.0/17",
+                "10.0.129.0/24"
+        ).map(Parsing::parseCIDRInterval).collect(Collectors.toList());
+
+        List<IpInterval> sortedByNaturalOrder = expected.stream().sorted().collect(Collectors.toList());
+
+        assertThat(expected, is(sortedByNaturalOrder));
     }
 }
