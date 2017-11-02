@@ -7,9 +7,13 @@ import net.apnic.whowas.rdap.GenericObject;
 import net.apnic.whowas.types.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcOperations;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -21,14 +25,15 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@Component
 public class RipeDbLoader implements Loader {
     private static final Logger LOGGER = LoggerFactory.getLogger(RipeDbLoader.class);
 
     private long lastSerial;
     private final transient JdbcOperations operations;
 
-    public RipeDbLoader(JdbcOperations jdbcOperations, long serial) {
-        this.lastSerial = serial;
+    public RipeDbLoader(JdbcOperations jdbcOperations) {
+        this.lastSerial = -1;
         this.operations = jdbcOperations;
     }
 

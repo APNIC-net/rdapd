@@ -25,7 +25,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 
@@ -42,7 +41,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.Properties;
 import java.util.stream.Stream;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterInputStream;
@@ -103,14 +101,12 @@ public class App {
     ApplicationContext context;
 
     @Autowired
-    private JdbcOperations jdbcOperations;
-
     private RipeDbLoader dbLoader;
+
     private Exception lastDbException = null;
 
     @PostConstruct
     public void initialise() {
-        dbLoader = new RipeDbLoader(jdbcOperations, -1L);
         executorService.execute(this::buildTree);
     }
 
