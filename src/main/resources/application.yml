@@ -27,8 +27,17 @@ spring:
     username: "${database.username}"
     password: "${database.password}"
 
+  mvc:
+    throw-exception-if-no-handler-found: true
+    favicon:
+      enabled: false
+  resources:
+    add-mappings: false
+
+
 management:
   port: 8081
+  add-application-context-header: false
 
 info:
   build:
