@@ -42,6 +42,11 @@ public class RDAPControllerTesting
         );
     }
 
+    public static ResultMatcher isRDAPHeader() {
+        return compositeResultMatcher(
+                header().string("Content-Type", "application/rdap+json"));
+    }
+
     public static ResultMatcher compositeResultMatcher(final ResultMatcher... matchers) {
         return mvcResult -> {
             for(ResultMatcher resultMatcher : matchers) {
