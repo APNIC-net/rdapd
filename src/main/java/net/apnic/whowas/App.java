@@ -25,7 +25,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 
@@ -38,11 +37,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.Properties;
+import java.util.concurrent.*;
 import java.util.stream.Stream;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterInputStream;
@@ -57,16 +52,7 @@ public class App {
     private final History history = new History();
 
     public static void main(String[] args) {
-        SpringApplication app = new SpringApplication(App.class);
-        Properties defaultProps = new Properties();
-
-        defaultProps.setProperty(
-                "spring.mvc.throw-exception-if-no-handler-found", "true");
-        defaultProps.setProperty("spring.resources.add-mappings", "false");
-        defaultProps.setProperty("spring.mvc.favicon.enabled", "false");
-        defaultProps.setProperty("management.add-application-context-header", "false");
-        app.setDefaultProperties(defaultProps);
-        app.run(args);
+        SpringApplication.run(App.class, args);
     }
 
     @Bean
@@ -123,15 +109,19 @@ public class App {
     ApplicationContext context;
 
     @Autowired
-    private JdbcOperations jdbcOperations;
-
     private RipeDbLoader dbLoader;
+
     private Exception lastDbException = null;
 
     @PostConstruct
-    public void initialise() {
-        dbLoader = new RipeDbLoader(jdbcOperations, -1L);
-        executorService.execute(this::buildTree);
+    public void initialise() throws ExecutionException, InterruptedException {
+        /*
+          Scoping the initial load of data to @PostConstruct
+          results in the loading completing before the servlet context is started,
+          preventing requests from being served from partially loaded data.
+        */
+        Future initialDataLoaded = executorService.submit(this::buildTree);
+        initialDataLoaded.get();
     }
 
     private void buildTree() {
