@@ -29,9 +29,10 @@ public class RDAPConfiguration
     static
     {
         TRUNCATED_NOTICE = new Notice(
-            "Search Policy",
-            "result set truncated due to limits",
-            Arrays.asList("Search results limited"), null);
+            "Data Policy",
+            "object truncated due to unexplainable reason",
+            Arrays.asList("Some of the data in this object has been removed."),
+            null);
     }
 
     private List<ConfigNotice> configNotices = null;
