@@ -97,4 +97,9 @@ public class IpNetwork
     {
         this.type = type;
     }
+
+    public String toString()
+    {
+        return String.format("ip: %s", ipInterval);
+    }
 }

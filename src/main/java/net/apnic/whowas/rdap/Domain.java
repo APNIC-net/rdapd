@@ -84,4 +84,12 @@ public class Domain
     {
         return "domain";
     }
+
+    /**
+     * {@inheritDocs}
+     */
+    public String toString()
+    {
+        return String.format("domain: %s", getObjectKey().getObjectName());
+    }
 }
