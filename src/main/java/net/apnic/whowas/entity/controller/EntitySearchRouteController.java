@@ -7,6 +7,7 @@ import net.apnic.whowas.history.ObjectClass;
 import net.apnic.whowas.history.ObjectIndex;
 import net.apnic.whowas.history.ObjectSearchIndex;
 import net.apnic.whowas.history.ObjectSearchKey;
+import net.apnic.whowas.history.ObjectSearchType;
 import net.apnic.whowas.rdap.controller.RDAPControllerUtil;
 import net.apnic.whowas.rdap.controller.RDAPResponseMaker;
 import net.apnic.whowas.rdap.TopLevelObject;
@@ -44,6 +45,8 @@ public class EntitySearchRouteController
     @RequestMapping(method=RequestMethod.GET)
     public ResponseEntity<TopLevelObject> entitiesGetPath(
         HttpServletRequest request,
+        @RequestParam(name="searchtype", required=false, defaultValue="")
+        String searchtype,
         @RequestParam(name="handle", required=false, defaultValue="")
         String handle,
         @RequestParam(name="fn", required=false, defaultValue="")
@@ -51,16 +54,26 @@ public class EntitySearchRouteController
     {
         LOGGER.info("entities GET path query");
 
+        ObjectSearchType objectSearchType =
+              (!searchtype.isEmpty() && searchtype.equals("regex"))
+                ? ObjectSearchType.REGEX
+            : (searchtype.isEmpty())
+                ? ObjectSearchType.STANDARD
+                : null;
+        if (objectSearchType == null) {
+            throw new MalformedRequestException();
+        }
+
         ObjectSearchKey searchKey = null;
         if(handle.isEmpty() == false && fn.isEmpty() == true)
         {
             searchKey = new ObjectSearchKey(ObjectClass.ENTITY, "handle",
-                                            handle);
+                                            handle, objectSearchType);
         }
         else if(handle.isEmpty() == true && fn.isEmpty() == false)
         {
             searchKey = new ObjectSearchKey(ObjectClass.ENTITY, "fn",
-                                            fn);
+                                            fn, objectSearchType);
         }
         else
         {

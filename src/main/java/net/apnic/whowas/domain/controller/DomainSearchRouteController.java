@@ -7,6 +7,7 @@ import net.apnic.whowas.history.ObjectClass;
 import net.apnic.whowas.history.ObjectIndex;
 import net.apnic.whowas.history.ObjectSearchIndex;
 import net.apnic.whowas.history.ObjectSearchKey;
+import net.apnic.whowas.history.ObjectSearchType;
 import net.apnic.whowas.rdap.controller.RDAPControllerUtil;
 import net.apnic.whowas.rdap.controller.RDAPResponseMaker;
 import net.apnic.whowas.rdap.TopLevelObject;
@@ -50,6 +51,8 @@ public class DomainSearchRouteController
     @RequestMapping(method=RequestMethod.GET)
     public ResponseEntity<TopLevelObject> domainsPathGet(
         HttpServletRequest request,
+        @RequestParam(name="searchtype", required=false, defaultValue="")
+        String searchtype,
         @RequestParam(name="name", required=true, defaultValue="")
         String name,
         @RequestParam(name="nsLdhName", required=false, defaultValue="")
@@ -59,11 +62,20 @@ public class DomainSearchRouteController
     {
         LOGGER.debug("domains GET path query");
 
-        // If name is specificed and no other parameters
-        if(name.isEmpty() == false && nsLdhName.isEmpty() && nsIp.isEmpty())
+        ObjectSearchType objectSearchType =
+              (!searchtype.isEmpty() && searchtype.equals("regex"))
+                ? ObjectSearchType.REGEX
+            : (searchtype.isEmpty())
+                ? ObjectSearchType.STANDARD
+                : null;
+        if (objectSearchType == null) {
+            throw new MalformedRequestException();
+        }
+
+        if (name.isEmpty() == false && nsLdhName.isEmpty() && nsIp.isEmpty())
         {
             ObjectSearchKey searchKey = new ObjectSearchKey(ObjectClass.DOMAIN,
-                "name", name);
+                "name", name, objectSearchType);
 
             SearchResponse response = searchIndex.historySearchForObject(searchKey);
 

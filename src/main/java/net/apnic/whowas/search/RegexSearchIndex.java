@@ -20,21 +20,21 @@ import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.TopDocs;
-import org.apache.lucene.search.WildcardQuery;
+import org.apache.lucene.search.RegexpQuery;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
 
 /**
- * Simple wild card search index that supports the operations outline in the
- * RDAP spec.
+ * Simple regex search index that supports the operations outlined in
+ * draft-fregly-regext-rdap-search-regex.
  */
-public class WildCardSearchIndex
+public class RegexSearchIndex
     implements SearchIndex
 {
     private static final String ID_FIELD_ID = "__id";
     private static final String KEY_FIELD_ID = "__key";
-    private static final ObjectSearchType wildCardObjectSearchType =
-        ObjectSearchType.STANDARD;
+    private static final ObjectSearchType regexObjectSearchType =
+        ObjectSearchType.REGEX;
 
     private Directory directory = null;
     private final IndexExtractor<String> extractor;
@@ -42,7 +42,7 @@ public class WildCardSearchIndex
     private final ObjectClass indexClass;
     private IndexWriter indexWriter = null;
 
-    public WildCardSearchIndex(ObjectClass indexClass, String indexAttribute,
+    public RegexSearchIndex(ObjectClass indexClass, String indexAttribute,
                                IndexExtractor<String> extractor)
     {
         this.extractor = extractor;
@@ -67,7 +67,7 @@ public class WildCardSearchIndex
     @Override
     public boolean supportsSearchType(ObjectSearchType objectSearchType)
     {
-        return (objectSearchType == wildCardObjectSearchType);
+        return (objectSearchType == regexObjectSearchType);
     }
 
     @Override
@@ -91,7 +91,7 @@ public class WildCardSearchIndex
             IndexSearcher searcher = new IndexSearcher(
                 DirectoryReader.open(indexWriter));
             TopDocs docs = searcher.search(
-                new WildcardQuery(new Term(getIndexAttribute(),
+                new RegexpQuery(new Term(getIndexAttribute(),
                                            objectSearchKey.getObjectName())),
                 limit);
 
