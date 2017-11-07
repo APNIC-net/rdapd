@@ -234,7 +234,8 @@ public final class History implements Externalizable, ObjectIndex {
     @Override
     public Stream<ObjectHistory> historyForObject(Stream<ObjectKey> objectKeys)
     {
-        return objectKeys.map(histories::get);
+        return objectKeys.map(histories::get)
+            .filter(x -> x != null);
     }
 
     /* ---------------------------------------------------------------------- */
