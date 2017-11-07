@@ -79,4 +79,12 @@ public class Entity
     {
         this.vCard = vCard;
     }
+
+    /**
+     * {@inheritDocs}
+     */
+    public String toString()
+    {
+        return String.format("entity: %s", getObjectKey().getObjectName());
+    }
 }

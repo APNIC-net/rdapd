@@ -97,4 +97,13 @@ public class AutNum
     {
         this.startAutnum = startAutnum;
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    public String toString()
+    {
+        return String.format("autnum: %s - %s", getStartAutnum(),
+            getEndAutnum());
+    }
 }
