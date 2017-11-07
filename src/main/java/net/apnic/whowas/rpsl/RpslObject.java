@@ -24,8 +24,8 @@ public class RpslObject {
      */
     public List<String> getAttribute(String key) {
         return attributes.stream()
-                .filter(o -> o.fst().equals(key))
-                .map(Tuple::snd)
+                .filter(o -> o.first().equals(key))
+                .map(Tuple::second)
                 .collect(Collectors.toList());
     }
 
@@ -37,8 +37,8 @@ public class RpslObject {
      */
     public Optional<String> getAttributeFirstValue(String key) {
         return attributes.stream()
-                .filter(o -> o.fst().equals(key))
-                .map(Tuple::snd)
+                .filter(o -> o.first().equals(key))
+                .map(Tuple::second)
                 .findFirst();
     }
 

@@ -3,6 +3,7 @@ package net.apnic.whowas.nameserver.controller;
 import javax.servlet.http.HttpServletRequest;
 
 import net.apnic.whowas.rdap.controller.RDAPControllerUtil;
+import net.apnic.whowas.rdap.controller.RDAPResponseMaker;
 import net.apnic.whowas.rdap.TopLevelObject;
 
 import org.slf4j.Logger;
@@ -31,9 +32,9 @@ public class NameServerHistoryRouteController
     private final RDAPControllerUtil rdapControllerUtil;
 
     @Autowired
-    public NameServerHistoryRouteController(RDAPControllerUtil rdapControllerUtil)
+    public NameServerHistoryRouteController(RDAPResponseMaker rdapResponseMaker)
     {
-        this.rdapControllerUtil = rdapControllerUtil;
+        this.rdapControllerUtil = new RDAPControllerUtil(rdapResponseMaker);
     }
 
     /**

@@ -3,7 +3,9 @@ package net.apnic.whowas.ip.controller;
 import javax.servlet.http.HttpServletRequest;
 
 import net.apnic.whowas.error.MalformedRequestException;
+import net.apnic.whowas.ip.IpService;
 import net.apnic.whowas.rdap.controller.RDAPControllerUtil;
+import net.apnic.whowas.rdap.controller.RDAPResponseMaker;
 import net.apnic.whowas.rdap.TopLevelObject;
 import net.apnic.whowas.types.IpInterval;
 import net.apnic.whowas.types.Parsing;
@@ -24,12 +26,15 @@ public class IpRouteController
 {
     private final static Logger LOGGER = LoggerFactory.getLogger(IpRouteController.class);
 
+    private final IpService ipService;
     private final RDAPControllerUtil rdapControllerUtil;
 
     @Autowired
-    public IpRouteController(RDAPControllerUtil rdapControllerUtil)
+    public IpRouteController(IpService ipService,
+        RDAPResponseMaker rdapResponseMaker)
     {
-        this.rdapControllerUtil = rdapControllerUtil;
+        this.ipService = ipService;
+        this.rdapControllerUtil = new RDAPControllerUtil(rdapResponseMaker);
     }
 
     @RequestMapping(value="/**", method=RequestMethod.GET)
@@ -50,7 +55,8 @@ public class IpRouteController
             throw new MalformedRequestException(ex);
         }
 
-        return rdapControllerUtil.mostCurrentResponseGet(request, range);
+        return rdapControllerUtil.singleObjectResponse(request,
+            ipService.find(range).orElse(null));
     }
 
     @RequestMapping(value="/**", method=RequestMethod.HEAD)
@@ -71,6 +77,7 @@ public class IpRouteController
             throw new MalformedRequestException(ex);
         }
 
-        return rdapControllerUtil.mostCurrentResponseGet(request, range);
+        return rdapControllerUtil.singleObjectResponse(request,
+            ipService.find(range).orElse(null));
     }
 }

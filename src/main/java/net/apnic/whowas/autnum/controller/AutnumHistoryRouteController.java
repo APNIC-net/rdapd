@@ -3,7 +3,9 @@ package net.apnic.whowas.autnum.controller;
 import javax.servlet.http.HttpServletRequest;
 
 import net.apnic.whowas.rdap.controller.RDAPControllerUtil;
+import net.apnic.whowas.rdap.controller.RDAPResponseMaker;
 import net.apnic.whowas.history.ObjectClass;
+import net.apnic.whowas.history.ObjectIndex;
 import net.apnic.whowas.history.ObjectKey;
 import net.apnic.whowas.rdap.TopLevelObject;
 
@@ -28,12 +30,15 @@ public class AutnumHistoryRouteController
 {
     private final static Logger LOGGER = LoggerFactory.getLogger(AutnumHistoryRouteController.class);
 
+    private final ObjectIndex objectIndex;
     private final RDAPControllerUtil rdapControllerUtil;
 
     @Autowired
-    public AutnumHistoryRouteController(RDAPControllerUtil rdapControllerUtil)
+    public AutnumHistoryRouteController(ObjectIndex objectIndex,
+        RDAPResponseMaker rdapResponseMaker)
     {
-        this.rdapControllerUtil = rdapControllerUtil;
+        this.objectIndex = objectIndex;
+        this.rdapControllerUtil = new RDAPControllerUtil(rdapResponseMaker);
     }
 
     /**
@@ -47,6 +52,7 @@ public class AutnumHistoryRouteController
         LOGGER.debug("autnum history GET path query for {}", handle);
 
         return rdapControllerUtil.historyResponse(request,
-            new ObjectKey(ObjectClass.AUT_NUM, handle));
+            objectIndex.historyForObject(
+                new ObjectKey(ObjectClass.AUT_NUM, handle)).orElse(null));
     }
 }

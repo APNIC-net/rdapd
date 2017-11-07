@@ -1,5 +1,6 @@
 package net.apnic.whowas.rdap.config;
 
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -10,8 +11,8 @@ import net.apnic.whowas.rdap.controller.RDAPResponseMaker;
 import net.apnic.whowas.rdap.Link;
 import net.apnic.whowas.rdap.Notice;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -23,6 +24,18 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix="rdap")
 public class RDAPConfiguration
 {
+    private static final Notice TRUNCATED_NOTICE;
+
+    static
+    {
+        TRUNCATED_NOTICE = new Notice(
+            "Data Policy",
+            "result set truncated due to unexplainable reasons",
+            Arrays.asList("The list of results does not contain all results for" +
+                "an unexplainable reason."),
+            null);
+    }
+
     private List<ConfigNotice> configNotices = null;
     private List<Notice> defaultNotices = null;
     private String defaultPort43 = null;
@@ -152,7 +165,7 @@ public class RDAPConfiguration
     @Bean
     public RDAPResponseMaker rdapResponseMaker(List<Notice> defaultNotices)
     {
-        return new RDAPResponseMaker(defaultNotices, getPort43());
+        return new RDAPResponseMaker(defaultNotices, TRUNCATED_NOTICE, getPort43());
     }
 
     public void setNotices(List<ConfigNotice> notices)

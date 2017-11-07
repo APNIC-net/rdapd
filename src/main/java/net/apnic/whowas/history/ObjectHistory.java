@@ -36,7 +36,7 @@ public final class ObjectHistory implements Serializable, Iterable<Revision> {
         this(objectKey, Vector.empty());
     }
 
-    ObjectHistory appendRevision(Revision revision) {
+    public ObjectHistory appendRevision(Revision revision) {
         List<Revision> newRevisions = Optional.ofNullable(revisions.last())
                 .filter(r -> r.getValidUntil() == null || r.getValidUntil().isAfter(revision.getValidFrom()))
                 .map(r -> {

@@ -4,6 +4,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import net.apnic.whowas.error.MalformedRequestException;
 import net.apnic.whowas.rdap.controller.RDAPControllerUtil;
+import net.apnic.whowas.rdap.controller.RDAPResponseMaker;
 import net.apnic.whowas.rdap.Error;
 import net.apnic.whowas.rdap.TopLevelObject;
 
@@ -26,9 +27,9 @@ public class ErrorController
 
     private final RDAPControllerUtil rdapControllerUtil;
 
-    public ErrorController(RDAPControllerUtil rdapControllerUtil)
+    public ErrorController(RDAPResponseMaker rdapResponseMaker)
     {
-        this.rdapControllerUtil = rdapControllerUtil;
+        this.rdapControllerUtil = new RDAPControllerUtil(rdapResponseMaker);
     }
 
     /**

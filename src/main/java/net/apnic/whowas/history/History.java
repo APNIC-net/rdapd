@@ -1,12 +1,14 @@
 package net.apnic.whowas.history;
 
 import com.github.andrewoma.dexx.collection.*;
+
 import net.apnic.whowas.intervaltree.IntervalTree;
 import net.apnic.whowas.intervaltree.avl.AvlTree;
 import net.apnic.whowas.rdap.RdapObject;
 import net.apnic.whowas.types.IP;
 import net.apnic.whowas.types.IpInterval;
 import net.apnic.whowas.types.Parsing;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +30,7 @@ import java.util.stream.Stream;
  * a serial number reflecting the version of the registry, and a set of indices
  * for fast interval lookups.
  */
-public final class History implements Externalizable {
+public final class History implements Externalizable, ObjectIndex {
     private static final long serialVersionUID = 5063296486972345480L;
     private static final Logger LOGGER = LoggerFactory.getLogger(History.class);
 
@@ -224,8 +226,16 @@ public final class History implements Externalizable {
         return tree;
     }
 
-    public Optional<ObjectHistory> getObjectHistory(ObjectKey objectKey) {
+    @Override
+    public Optional<ObjectHistory> historyForObject(ObjectKey objectKey) {
         return Optional.ofNullable(histories.get(objectKey));
+    }
+
+    @Override
+    public Stream<ObjectHistory> historyForObject(Stream<ObjectKey> objectKeys)
+    {
+        return objectKeys.map(histories::get)
+            .filter(x -> x != null);
     }
 
     /* ---------------------------------------------------------------------- */
