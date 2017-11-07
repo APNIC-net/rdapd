@@ -63,9 +63,9 @@ public class DomainSearchRouteController
         LOGGER.debug("domains GET path query");
 
         ObjectSearchType objectSearchType =
-              (!searchtype.isEmpty() && searchtype.equals("regex"))
+              !searchtype.isEmpty() && searchtype.equals("regex")
                 ? ObjectSearchType.REGEX
-            : (searchtype.isEmpty())
+            : searchtype.isEmpty()
                 ? ObjectSearchType.STANDARD
                 : null;
         if (objectSearchType == null) {

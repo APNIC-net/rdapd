@@ -67,7 +67,7 @@ public class RegexSearchIndex
     @Override
     public boolean supportsSearchType(ObjectSearchType objectSearchType)
     {
-        return (objectSearchType == regexObjectSearchType);
+        return objectSearchType == regexObjectSearchType;
     }
 
     @Override

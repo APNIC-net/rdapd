@@ -67,7 +67,7 @@ public class WildCardSearchIndex
     @Override
     public boolean supportsSearchType(ObjectSearchType objectSearchType)
     {
-        return (objectSearchType == wildCardObjectSearchType);
+        return objectSearchType == wildCardObjectSearchType;
     }
 
     @Override

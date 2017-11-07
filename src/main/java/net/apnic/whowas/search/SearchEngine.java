@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
 
 import net.apnic.whowas.history.ObjectClass;
 import net.apnic.whowas.history.ObjectKey;
@@ -68,7 +67,7 @@ public class SearchEngine
             Optional.ofNullable(indexes.get(objectSearchKey.getObjectClass()))
                 .map(cIndex -> cIndex.get(objectSearchKey.getAttribute()))
                 .orElse(null);
-        if ((fieldIndexes == null) || (fieldIndexes.isEmpty())) {
+        if (fieldIndexes == null || fieldIndexes.isEmpty()) {
             return SearchResponse.makeEmpty();
         }
         SearchIndex applicableIndex = fieldIndexes.stream()
