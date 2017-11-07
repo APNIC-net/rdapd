@@ -21,9 +21,9 @@ public class IpServiceTest {
     ZonedDateTime dummyDateTime = null;
 
     @Test
-    public void figitndsMostSpecificEncompassingRange() {
+    public void findMostSpecificEncompassingRange() {
         History history = new History();
-        for( String s : Arrays.asList(
+        for(String s : Arrays.asList(
                 "10.0.0.0/8",
                 "10.0.0.0/16",
                 "10.0.0.0/22",
@@ -32,7 +32,10 @@ public class IpServiceTest {
                 "101.0.0.0/8",
                 "101.0.0.0/22",
                 "59.0.0.0/8",
-                "59.167.0.0/16"
+                "59.167.0.0/16",
+                "2001:4400::/23",
+                "2001:4400:abcd::/48",
+                "2001:8000::/19"
         )) {
             ObjectKey objectKey = new ObjectKey(ObjectClass.IP_NETWORK, s);
             history.addRevision(
@@ -108,6 +111,25 @@ public class IpServiceTest {
                 is(Optional.empty())
         );
 
+        assertThat(
+                ipService.find(Parsing.parseCIDRInterval("2001:4400::/23")).get().getObjectKey().getObjectName(),
+                is("2001:4400::/23")
+        );
+
+        assertThat(
+                ipService.find(Parsing.parseCIDRInterval("2001:4400:1::/48")).get().getObjectKey().getObjectName(),
+                is("2001:4400::/23")
+        );
+
+        assertThat(
+                ipService.find(Parsing.parseCIDRInterval("2001:4400:abcd::/48")).get().getObjectKey().getObjectName(),
+                is("2001:4400:abcd::/48")
+        );
+
+        assertThat(
+                ipService.find(Parsing.parseCIDRInterval("2001:8000::/19")).get().getObjectKey().getObjectName(),
+                is("2001:8000::/19")
+        );
     }
 
     @Test
