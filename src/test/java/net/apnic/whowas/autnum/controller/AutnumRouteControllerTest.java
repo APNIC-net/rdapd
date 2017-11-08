@@ -93,6 +93,26 @@ public class AutnumRouteControllerTest
     }
 
     @Test
+    public void indexLookupDoesNotSupportASRanges()
+        throws Exception
+    {
+        given(objectIndex.historyForObject(any(ObjectKey.class))).willReturn(
+            Optional.of(RDAPControllerTesting.testObjectHistory()));
+
+        mvc.perform(get("/autnum/123-1234"))
+            .andExpect(status().isBadRequest())
+            .andExpect(RDAPControllerTesting.isRDAP());
+
+        mvc.perform(get("/autnum/AS123-AS1234"))
+            .andExpect(status().isBadRequest())
+            .andExpect(RDAPControllerTesting.isRDAP());
+
+        mvc.perform(get("/autnum/AS123-1234"))
+            .andExpect(status().isBadRequest())
+            .andExpect(RDAPControllerTesting.isRDAP());
+    }
+
+    @Test
     public void malformedRequest()
         throws Exception
     {
