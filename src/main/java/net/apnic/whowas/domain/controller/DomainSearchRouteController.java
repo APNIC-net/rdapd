@@ -73,7 +73,7 @@ public class DomainSearchRouteController
                     .map(oHistory -> oHistory.mostCurrent().get().getContents()),
                     response.isTruncated());
         }
-        // If name is not specificed and no other parameters exist
+        // If name is not specificed and at least one other paramter exists
         else if(name.isEmpty() && (nsLdhName.isEmpty() == false ||
                 nsIp.isEmpty() == false))
         {
