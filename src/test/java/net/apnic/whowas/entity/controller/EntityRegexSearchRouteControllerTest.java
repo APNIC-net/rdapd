@@ -185,4 +185,14 @@ public class EntityRegexSearchRouteControllerTest
             .andExpect(RDAPControllerTesting.isRDAP())
             .andExpect(jsonPath("$.entitySearchResults", hasSize(2)));
     }
+
+    @Test
+    public void searchInvalidRegex()
+        throws Exception
+    {
+        mvc.perform(
+            get("/entities?fn={fn}&searchtype=regex", "[asdf"))
+            .andExpect(status().isBadRequest())
+            .andExpect(RDAPControllerTesting.isRDAP());
+    }
 }

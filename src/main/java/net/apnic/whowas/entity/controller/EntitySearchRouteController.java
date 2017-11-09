@@ -80,7 +80,17 @@ public class EntitySearchRouteController
             throw new MalformedRequestException();
         }
 
-        SearchResponse response = searchIndex.historySearchForObject(searchKey);
+        SearchResponse response = null;
+        try {
+            response = searchIndex.historySearchForObject(searchKey);
+        } catch (RuntimeException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof IllegalArgumentException) {
+                throw new MalformedRequestException();
+            }
+            throw e;
+        }
+
         return rdapControllerUtil.searchResponse(request, ObjectClass.ENTITY,
             objectIndex.historyForObject(response.getKeys())
                 .filter(oHistory -> oHistory.mostCurrent().isPresent())
