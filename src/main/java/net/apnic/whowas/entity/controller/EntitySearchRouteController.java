@@ -68,12 +68,12 @@ public class EntitySearchRouteController
         if(handle.isEmpty() == false && fn.isEmpty() == true)
         {
             searchKey = new ObjectSearchKey(ObjectClass.ENTITY, "handle",
-                                            handle, objectSearchType);
+                                            handle.toLowerCase(), objectSearchType);
         }
         else if(handle.isEmpty() == true && fn.isEmpty() == false)
         {
             searchKey = new ObjectSearchKey(ObjectClass.ENTITY, "fn",
-                                            fn, objectSearchType);
+                                            fn.toLowerCase(), objectSearchType);
         }
         else
         {

@@ -118,7 +118,7 @@ public class RegexSearchIndex
                     {
                         String idVal = key + objectKey.getObjectName();
                         Document doc = new Document();
-                        doc.add(new StringField(getIndexAttribute(), key, Field.Store.YES));
+                        doc.add(new StringField(getIndexAttribute(), key.toLowerCase(), Field.Store.YES));
                         doc.add(new StoredField(KEY_FIELD_ID, objectKey.getObjectName()));
                         doc.add(new StringField(ID_FIELD_ID, idVal, Field.Store.YES));
 

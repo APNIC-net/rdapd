@@ -176,7 +176,6 @@ public class EntityRegexSearchRouteControllerTest
     }
 
     @Test
-    @Ignore
     public void searchCaseInsensitive()
         throws Exception
     {
