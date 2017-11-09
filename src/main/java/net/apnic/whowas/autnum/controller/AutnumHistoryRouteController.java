@@ -2,12 +2,14 @@ package net.apnic.whowas.autnum.controller;
 
 import javax.servlet.http.HttpServletRequest;
 
+import net.apnic.whowas.error.MalformedRequestException;
 import net.apnic.whowas.rdap.controller.RDAPControllerUtil;
 import net.apnic.whowas.rdap.controller.RDAPResponseMaker;
 import net.apnic.whowas.history.ObjectClass;
 import net.apnic.whowas.history.ObjectIndex;
 import net.apnic.whowas.history.ObjectKey;
 import net.apnic.whowas.rdap.TopLevelObject;
+import net.apnic.whowas.types.Parsing;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,6 +52,12 @@ public class AutnumHistoryRouteController
         @PathVariable("handle") String handle)
     {
         LOGGER.debug("autnum history GET path query for {}", handle);
+
+        try {
+            handle = Parsing.parseAutnum(handle);
+        } catch(Exception ex) {
+            throw new MalformedRequestException(ex);
+        }
 
         return rdapControllerUtil.historyResponse(request,
             objectIndex.historyForObject(
