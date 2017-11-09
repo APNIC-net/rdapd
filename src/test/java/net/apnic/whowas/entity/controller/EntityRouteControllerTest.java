@@ -123,6 +123,6 @@ public class EntityRouteControllerTest
             .andReturn();
 
         String content = result.getResponse().getContentAsString();
-        Assert.assertTrue(content.contains("secretpass"));
+        Assert.assertFalse(content.contains("secretpass"));
     }
 }
