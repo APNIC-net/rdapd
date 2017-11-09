@@ -9,6 +9,7 @@ import net.apnic.whowas.intervaltree.IntervalTree;
 import net.apnic.whowas.ip.IpService;
 import static net.apnic.whowas.rdap.controller.RDAPControllerTesting.testObjectHistory;
 import static net.apnic.whowas.rdap.controller.RDAPControllerTesting.isRDAP;
+import static net.apnic.whowas.rdap.controller.RDAPControllerTesting.isRDAPHeader;
 import net.apnic.whowas.rdap.IpNetwork;
 import net.apnic.whowas.types.Parsing;
 import net.apnic.whowas.types.Tuple;
@@ -29,6 +30,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.head;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -52,12 +54,16 @@ public class IpRouteControllerTest
     {
         given(ipService.find(any())).willReturn(
             Optional.of(new IpNetwork(
-                new ObjectKey(ObjectClass.IP_NETWORK, "10.0.0.0 - 10.255.255.255"), 
+                new ObjectKey(ObjectClass.IP_NETWORK, "10.0.0.0 - 10.255.255.255"),
                 Parsing.parseInterval("10.0.0.0/8"))));
 
         mvc.perform(get("/ip/10.0.0.0"))
             .andExpect(status().isOk())
             .andExpect(isRDAP());
+
+        mvc.perform(head("/ip/10.0.0.0"))
+            .andExpect(status().isOk())
+            .andExpect(isRDAPHeader());
     }
 
     @Test
@@ -81,6 +87,25 @@ public class IpRouteControllerTest
 
         mvc.perform(get("/ip/10.0.0.0"))
             .andExpect(status().isNotFound())
+            .andExpect(isRDAP());
+    }
+
+    @Test
+    public void malformedRequest()
+        throws Exception
+    {
+        given(ipService.find(any())).willReturn(Optional.empty());
+
+        mvc.perform(get("/ip/bad-ip"))
+            .andExpect(status().isBadRequest())
+            .andExpect(isRDAP());
+
+        mvc.perform(get("/ip/10.1.1.2/16"))
+            .andExpect(status().isBadRequest())
+            .andExpect(isRDAP());
+
+        mvc.perform(get("/ip/2001:abcd::/16"))
+            .andExpect(status().isBadRequest())
             .andExpect(isRDAP());
     }
 }
