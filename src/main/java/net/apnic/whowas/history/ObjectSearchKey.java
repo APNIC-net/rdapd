@@ -11,8 +11,21 @@ public class ObjectSearchKey {
                            ObjectSearchType objectSearchType) {
         this.attribute = attribute;
         this.objectClass = objectClass;
-        this.objectName = objectName;
         this.objectSearchType = objectSearchType;
+
+        if (objectSearchType == ObjectSearchType.REGEX) {
+            objectName =
+                (objectName.matches("\\^.*"))
+                    ? objectName.substring(1)
+                    : ".*" + objectName;
+            objectName =
+                (objectName.matches(".*\\$"))
+                    ? objectName.substring(0, objectName.length() - 1)
+                    : objectName + ".*";
+            objectName = objectName.toLowerCase();
+        }
+
+        this.objectName = objectName;
     }
 
     public ObjectSearchKey(ObjectClass objectClass, String attribute,

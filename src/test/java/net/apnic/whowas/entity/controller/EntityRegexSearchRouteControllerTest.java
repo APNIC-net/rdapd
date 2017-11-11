@@ -187,6 +187,50 @@ public class EntityRegexSearchRouteControllerTest
     }
 
     @Test
+    public void searchSubpatternMatches()
+        throws Exception
+    {
+        mvc.perform(
+            get("/entities?fn={fn}&searchtype=regex", "john"))
+            .andExpect(status().isOk())
+            .andExpect(RDAPControllerTesting.isRDAP())
+            .andExpect(jsonPath("$.entitySearchResults", hasSize(3)));
+    }
+
+    @Test
+    public void searchAnchorInitial()
+        throws Exception
+    {
+        mvc.perform(
+            get("/entities?fn={fn}&searchtype=regex", "^John"))
+            .andExpect(status().isOk())
+            .andExpect(RDAPControllerTesting.isRDAP())
+            .andExpect(jsonPath("$.entitySearchResults", hasSize(3)));
+    }
+
+    @Test
+    public void searchAnchorFinal()
+        throws Exception
+    {
+        mvc.perform(
+            get("/entities?fn={fn}&searchtype=regex", "3$"))
+            .andExpect(status().isOk())
+            .andExpect(RDAPControllerTesting.isRDAP())
+            .andExpect(jsonPath("$.entitySearchResults", hasSize(2)));
+    }
+
+    @Test
+    public void searchAnchorBoth()
+        throws Exception
+    {
+        mvc.perform(
+            get("/entities?fn={fn}&searchtype=regex", "^John 1$"))
+            .andExpect(status().isOk())
+            .andExpect(RDAPControllerTesting.isRDAP())
+            .andExpect(jsonPath("$.entitySearchResults", hasSize(1)));
+    }
+
+    @Test
     public void searchInvalidRegex()
         throws Exception
     {
