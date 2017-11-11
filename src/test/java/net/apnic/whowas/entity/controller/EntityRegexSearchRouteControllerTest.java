@@ -43,7 +43,7 @@ public class EntityRegexSearchRouteControllerTest
     @Autowired
     SearchEngine searchEngine;
 
-    int allCount = 6;
+    int allCount = 7;
 
     @Before
     public void beforeEach() {
@@ -53,6 +53,7 @@ public class EntityRegexSearchRouteControllerTest
         addPerson("John 1", "J1-AP");
         addPerson("John 2", "J2-AP");
         addPerson("John 3", "J3-AP");
+        addPerson("ﬁﬁﬁﬁ 1", "ﬁ1-AP");
     }
 
     private Revision makePerson(ObjectKey objectKey, String name, String nicHdl)
@@ -223,6 +224,28 @@ public class EntityRegexSearchRouteControllerTest
     {
         mvc.perform(
             get("/entities?fn={fn}&searchtype=regex", "^John 1$"))
+            .andExpect(status().isOk())
+            .andExpect(RDAPControllerTesting.isRDAP())
+            .andExpect(jsonPath("$.entitySearchResults", hasSize(1)));
+    }
+
+    @Test
+    public void searchUnicodeExactMatch()
+        throws Exception
+    {
+        mvc.perform(
+            get("/entities?fn={fn}&searchtype=regex", "^ﬁﬁﬁﬁ 1$"))
+            .andExpect(status().isOk())
+            .andExpect(RDAPControllerTesting.isRDAP())
+            .andExpect(jsonPath("$.entitySearchResults", hasSize(1)));
+    }
+
+    @Test
+    public void searchUnicodeNormalisation()
+        throws Exception
+    {
+        mvc.perform(
+            get("/entities?fn={fn}&searchtype=regex", "^fifififi 1$"))
             .andExpect(status().isOk())
             .andExpect(RDAPControllerTesting.isRDAP())
             .andExpect(jsonPath("$.entitySearchResults", hasSize(1)));

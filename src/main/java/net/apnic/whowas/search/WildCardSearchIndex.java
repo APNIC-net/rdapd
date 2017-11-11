@@ -1,6 +1,7 @@
 package net.apnic.whowas.search;
 
 import java.io.IOException;
+import java.text.Normalizer;
 import java.util.Arrays;
 
 import net.apnic.whowas.history.ObjectClass;
@@ -118,7 +119,10 @@ public class WildCardSearchIndex
                     {
                         String idVal = key + objectKey.getObjectName();
                         Document doc = new Document();
-                        doc.add(new StringField(getIndexAttribute(), key, Field.Store.YES));
+                        doc.add(new StringField(getIndexAttribute(),
+                                                Normalizer.normalize(key.toLowerCase(),
+                                                                     Normalizer.Form.NFKC),
+                                                Field.Store.YES));
                         doc.add(new StoredField(KEY_FIELD_ID, objectKey.getObjectName()));
                         doc.add(new StringField(ID_FIELD_ID, idVal, Field.Store.YES));
 

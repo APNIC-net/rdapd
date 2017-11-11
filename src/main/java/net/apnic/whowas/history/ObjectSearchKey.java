@@ -1,5 +1,7 @@
 package net.apnic.whowas.history;
 
+import java.text.Normalizer;
+
 public class ObjectSearchKey {
     private final String attribute;
     private final ObjectClass objectClass;
@@ -25,7 +27,9 @@ public class ObjectSearchKey {
             objectName = objectName.toLowerCase();
         }
 
-        this.objectName = objectName;
+        this.objectName =
+            Normalizer.normalize(objectName,
+                                 Normalizer.Form.NFKC);
     }
 
     public ObjectSearchKey(ObjectClass objectClass, String attribute,
