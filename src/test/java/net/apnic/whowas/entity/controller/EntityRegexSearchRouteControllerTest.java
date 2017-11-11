@@ -163,17 +163,15 @@ public class EntityRegexSearchRouteControllerTest
             .andExpect(jsonPath("$.entitySearchResults", hasSize(2)));
     }
 
-    @Test
-    @Ignore
-    public void searchCharacterClasses()
-        throws Exception
-    {
-        mvc.perform(
-            get("/entities?fn={fn}&searchtype=regex", "Name [[:digit:]]"))
-            .andExpect(status().isOk())
-            .andExpect(RDAPControllerTesting.isRDAP())
-            .andExpect(jsonPath("$.entitySearchResults", hasSize(3)));
-    }
+    /* POSIX character classes are a little awkward.  Lucene doesn't
+     * support them as part of its regex syntax, so it would be
+     * necessary to expand them into the corresponding bracket
+     * expressions.  That would be OK if all the data were ASCII, but
+     * since Unicode may be present, the expansions should really
+     * include those extra characters as well.  That could lead to
+     * very long regexes that are slow to execute (unverified).
+     * Before checking that, confirm how character classes are
+     * intended to be implemented with the draft authors. */
 
     @Test
     public void searchCaseInsensitive()
