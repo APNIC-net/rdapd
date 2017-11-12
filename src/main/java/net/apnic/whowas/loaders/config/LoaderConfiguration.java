@@ -53,6 +53,9 @@ public class LoaderConfiguration
     @Value("${snapshot.file:#{null}}")
     private String snapshotFile;
 
+    @Value("${loader.serial:-1}")
+    private long serial;
+
     @Autowired
     History history;
 
@@ -107,7 +110,7 @@ public class LoaderConfiguration
     @PostConstruct
     public void initialise()
     {
-        dbLoader = new RipeDbLoader(jdbcOperations, -1L);
+        dbLoader = new RipeDbLoader(jdbcOperations, serial);
         executorService.execute(this::buildTree);
     }
 
