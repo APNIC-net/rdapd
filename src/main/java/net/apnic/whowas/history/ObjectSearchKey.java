@@ -17,11 +17,11 @@ public class ObjectSearchKey {
 
         if (objectSearchType == ObjectSearchType.REGEX) {
             objectName =
-                (objectName.matches("\\^.*"))
+                objectName.matches("\\^.*")
                     ? objectName.substring(1)
                     : ".*" + objectName;
             objectName =
-                (objectName.matches(".*\\$"))
+                objectName.matches(".*\\$")
                     ? objectName.substring(0, objectName.length() - 1)
                     : objectName + ".*";
             objectName = objectName.toLowerCase();
