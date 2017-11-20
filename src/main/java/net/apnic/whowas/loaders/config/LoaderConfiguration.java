@@ -48,6 +48,8 @@ public class LoaderConfiguration
 
     @Autowired
     private ApplicationContext context;
+
+    @Autowired
     private RipeDbLoader dbLoader;
 
     @Value("${snapshot.file:#{null}}")
@@ -55,9 +57,6 @@ public class LoaderConfiguration
 
     @Autowired
     History history;
-
-    @Autowired
-    private JdbcOperations jdbcOperations;
 
     @Autowired
     SearchEngine searchEngine;
@@ -105,9 +104,7 @@ public class LoaderConfiguration
     }
 
     @PostConstruct
-    public void initialise()
-    {
-        dbLoader = new RipeDbLoader(jdbcOperations, -1L);
+    public void initialise() {
         executorService.execute(this::buildTree);
     }
 

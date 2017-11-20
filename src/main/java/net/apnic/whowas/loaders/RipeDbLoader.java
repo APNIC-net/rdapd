@@ -20,17 +20,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.jdbc.core.JdbcOperations;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
+@Component
 public class RipeDbLoader implements Loader {
     private static final Logger LOGGER = LoggerFactory.getLogger(RipeDbLoader.class);
 
     private long lastSerial;
     private final transient JdbcOperations operations;
 
-    public RipeDbLoader(JdbcOperations jdbcOperations, long serial) {
-        this.lastSerial = serial;
+    public RipeDbLoader(JdbcOperations jdbcOperations) {
+        this.lastSerial = -1;
         this.operations = jdbcOperations;
     }
 
