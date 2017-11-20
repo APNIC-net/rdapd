@@ -7,10 +7,7 @@ import java.io.IOException;
 import java.time.temporal.ChronoUnit;
 import java.time.ZonedDateTime;
 import java.time.ZoneId;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterInputStream;
 import javax.annotation.PostConstruct;
@@ -104,8 +101,14 @@ public class LoaderConfiguration
     }
 
     @PostConstruct
-    public void initialise() {
-        executorService.execute(this::buildTree);
+    public void initialise() throws ExecutionException, InterruptedException {
+            /*
+          Scoping the initial load of data to @PostConstruct
+          results in the loading completing before the servlet context is started,
+                    preventing requests from being served from partially loaded data.
+        */
+        Future initialDataLoaded = executorService.submit(this::buildTree);
+        initialDataLoaded.get();
     }
 
     @Scheduled(fixedRate = 15000L)
