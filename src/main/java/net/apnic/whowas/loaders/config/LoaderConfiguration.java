@@ -30,8 +30,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.ApplicationContext;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.transaction.PlatformTransactionManager;
 
 @Configuration
@@ -116,6 +118,11 @@ public class LoaderConfiguration
         */
         Future initialDataLoaded = executorService.submit(this::buildTree);
         initialDataLoaded.get();
+    }
+
+    @Bean
+    TaskScheduler taskScheduler() {
+        return new ThreadPoolTaskScheduler();
     }
 
     @Scheduled(fixedRate = 15000L)
