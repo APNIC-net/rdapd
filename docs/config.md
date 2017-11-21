@@ -1,30 +1,28 @@
-# Overview
-The following documentation depicts the external configuration that is
-possible in *whowas*.
+# Configuration
 
-# Configuration File
-*whowas* is configured through a YAML file by the name of
+## Configuration File
+
+WHOWAS is configured through a YAML file by the name of
 *application.yml*.  The static path of the file is
 ```src/main/resource/application.yml```.  Its syntax is like so:
 
 ```
-# Settings to specifically control the RDAP protocol used by this application.
+# Protocol-specific settings.
 rdap:
-
-  # A list of default notices that get appended to each RDAP response from this
-  # server. Notice objects take the following structure.
-  # title: # Title of the notice
+  # A list of default notices that are appended to each RDAP response
+  # from this server.  Notice objects take the following structure.
+  # title:       # Title of the notice
   # description: # List of string describing the notice
-  # links: # List of link objects in the folloing form.
-  #   - href: # href value as per RDAP spec
-  #     rel: #ref value as per RDAP spec
-  #     type: #type of link
+  # links:       # List of link objects in the folloing form.
+  #   - href:       # href value as per RDAP spec
+  #     rel:        # ref value as per RDAP spec
+  #     type:       # Type of link
   notices: []
 
-  # Port43 value for RDAP responses
+  # Port43 value for RDAP responses.
   port43: null
 
-# Database infomation for a DB that matches the RIPE schema
+# Database infomation for a database that matches the RIPE schema.
 database:
   host: localhost
   database: whowas
@@ -41,6 +39,6 @@ management:
   port: 8081
 ```
 
-To configure *whowas* at runtime, it's necessary to create a
+To configure WHOWAS at runtime, it's necessary to create a
 configuration file that can be given to the application. See
-[deploy](deploy.md) documentation.
+the [deploy](deploy.md) documentation.
