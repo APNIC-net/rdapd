@@ -7,12 +7,6 @@ ENV RESOURCE_DIR=$BUILD_DIR/target/classes
 
 EXPOSE 8080
 
-#RUN cd /tmp && \
-#    wget http://www-eu.apache.org/dist/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz && \
-#    tar xf apache-maven-$MAVEN_VERSION-bin.tar.gz && \
-#    mv apache-maven-$MAVEN_VERSION $M2_HOME && \
-#    rm -f apache-maven-$MAVEN_VERSION-bin.tar.gz
-
 WORKDIR $BUILD_DIR
 COPY pom.xml ./
 # Download a large number of dependencies early, such that source file changes don't require this step to re-run
