@@ -336,9 +336,9 @@
                                 </entryPoint>
                                 <workdir>/app</workdir>
                                 <healthCheck>
-                                    <interval>1m</interval>
+                                    <interval>10s</interval>
                                     <timeout>15s</timeout>
-                                    <retries>7</retries>
+                                    <retries>3</retries>
                                     <cmd>curl -f http://localhost:8081/health || exit 1</cmd>
                                 </healthCheck>
                                 <assembly>
