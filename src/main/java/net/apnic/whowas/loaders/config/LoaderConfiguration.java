@@ -32,6 +32,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.transaction.PlatformTransactionManager;
 
 @Configuration
 @EnableScheduling
@@ -56,6 +57,13 @@ public class LoaderConfiguration
 
     @Autowired
     SearchEngine searchEngine;
+
+    /*
+        This is autowired here to trigger Spring to initialise the transaction manager bean
+        before @PostConstruct is invoked. Without this, the initial data load will hang.
+     */
+    @Autowired
+    PlatformTransactionManager platformTransactionManager;
 
     private void buildTree()
     {
