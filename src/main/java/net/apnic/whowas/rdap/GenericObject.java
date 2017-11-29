@@ -2,12 +2,15 @@ package net.apnic.whowas.rdap;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import net.apnic.whowas.history.ObjectKey;
 
@@ -21,10 +24,10 @@ public abstract class GenericObject
 
     private String country = null;
     private boolean deleted = false;
-    private Collection<ObjectKey> entityKeys = Collections.emptySet();
+    private List<Event> events = Collections.emptyList();
     private final ObjectKey objectKey;
     private String name = null;
-    private Collection<RdapObject> relatedObjects;
+    private Collection<RelatedEntity> relatedEntities;
     private ArrayNode remarks = null;
 
     /**
@@ -34,7 +37,7 @@ public abstract class GenericObject
      */
     public GenericObject(ObjectKey objectKey)
     {
-        this(objectKey, Collections.emptySet());
+        this(objectKey, Collections.emptyList());
     }
 
     /**
@@ -45,10 +48,10 @@ public abstract class GenericObject
      * @param relatedObjects
      */
     public GenericObject(ObjectKey objectKey,
-                         Collection<RdapObject> relatedObjects)
+                         Collection<RelatedEntity> relatedEntities)
     {
         this.objectKey = objectKey;
-        this.relatedObjects = relatedObjects;
+        this.relatedEntities = relatedEntities;
     }
 
     /**
@@ -65,26 +68,19 @@ public abstract class GenericObject
         return this.country;
     }
 
-    /**
-     * Returns collection of related objects set on this object.
-     *
-     * Convience format method for output list of related entities.
-     *
-     * @return Related objects sets on this object
-     */
-    public Collection<RdapObject> getEntities()
-    {
-        return relatedObjects;
-    }
-
-    /**
-     * {@inheritDocs}
-     */
-    @Override
     @JsonIgnore
+    @Override
     public Collection<ObjectKey> getEntityKeys()
     {
-        return entityKeys;
+        return getRelatedEntities().stream()
+            .map(RelatedEntity::getObjectKey)
+            .collect(Collectors.toList());
+    }
+
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public List<Event> getEvents()
+    {
+        return events;
     }
 
     /**
@@ -129,15 +125,12 @@ public abstract class GenericObject
         return objectKey;
     }
 
-    /**
-     * Returns the set of related objects set on this object.
-     *
-     * @return Collection of related objects that have been set
-     */
-    @JsonIgnore
-    public Collection<RdapObject> getRelatedObjects()
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    @JsonProperty("entities")
+    @Override
+    public Collection<RelatedEntity> getRelatedEntities()
     {
-        return relatedObjects;
+        return relatedEntities;
     }
 
     /**
@@ -187,14 +180,9 @@ public abstract class GenericObject
         this.deleted = deleted;
     }
 
-    /**
-     * Sets the entity keys associated with the object.
-     *
-     * @param entityKeys Entity keys to set
-     */
-    public void setEntityKeys(Collection<ObjectKey> entityKeys)
+    public void setEvents(List<Event> events)
     {
-        this.entityKeys = entityKeys;
+        this.events = events;
     }
 
     /**
@@ -205,6 +193,11 @@ public abstract class GenericObject
     public void setName(String name)
     {
         this.name = name;
+    }
+
+    public void setRelatedEntities(Collection<RelatedEntity> relatedEntities)
+    {
+        this.relatedEntities = relatedEntities;
     }
 
     /**
@@ -223,12 +216,12 @@ public abstract class GenericObject
      * {@inheritDocs}
      */
     @Override
-    public RdapObject withEntities(Collection<RdapObject> relatedEntities)
+    public RdapObject withRelatedEntities(Collection<RelatedEntity> relatedEntities)
     {
         try
         {
             GenericObject go = (GenericObject)clone();
-            go.relatedObjects = relatedEntities;
+            go.relatedEntities = relatedEntities;
             return go;
         }
         catch(CloneNotSupportedException ex)

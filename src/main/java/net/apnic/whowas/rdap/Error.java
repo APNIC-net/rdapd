@@ -3,8 +3,6 @@ package net.apnic.whowas.rdap;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 import net.apnic.whowas.history.ObjectKey;
@@ -41,12 +39,6 @@ public class Error
         return description;
     }
 
-    @Override
-    public Collection<ObjectKey> getEntityKeys()
-    {
-        return Collections.emptyList();
-    }
-
     public String getErrorCode()
     {
         return errorCode;
@@ -62,17 +54,5 @@ public class Error
     public String getTitle()
     {
         return title;
-    }
-
-    @Override
-    public boolean isDeleted()
-    {
-        return false;
-    }
-
-    @Override
-    public RdapObject withEntities(Collection<RdapObject> relatedEntities)
-    {
-        return this;
     }
 }

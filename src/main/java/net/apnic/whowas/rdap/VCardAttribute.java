@@ -13,6 +13,13 @@ import java.util.Map;
 public class VCardAttribute
     implements Serializable
 {
+    public static final VCardAttribute VERSION_ATTRIBUTE;
+
+    static
+    {
+        VERSION_ATTRIBUTE = new VCardAttribute("version", "text", "4.0");
+    }
+
     private final String name;
     private final Map<String, String> parameters;
     private final String type;

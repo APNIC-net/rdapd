@@ -6,18 +6,15 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 
-import java.nio.charset.Charset;
-import java.util.Collection;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -27,9 +24,12 @@ import net.apnic.whowas.history.ObjectKey;
 import net.apnic.whowas.rdap.AutNum;
 import net.apnic.whowas.rdap.Domain;
 import net.apnic.whowas.rdap.Entity;
+import net.apnic.whowas.rdap.Event;
 import net.apnic.whowas.rdap.GenericObject;
 import net.apnic.whowas.rdap.IpNetwork;
 import net.apnic.whowas.rdap.RdapObject;
+import net.apnic.whowas.rdap.RelatedEntity;
+import net.apnic.whowas.rdap.Role;
 import net.apnic.whowas.rdap.VCard;
 import net.apnic.whowas.rdap.VCardAttribute;
 import net.apnic.whowas.rpsl.RpslObject;
@@ -42,16 +42,39 @@ import net.apnic.whowas.types.Parsing;
 public class RpslToRdap
     implements BiFunction<ObjectKey, byte[], RdapObject>
 {
-    private static final Pattern ENTITY_KEYS =
-            Pattern.compile("^(?:admin-c|tech-c|zone-c|mnt-irt):\\s*(.*?)$",
-                    Pattern.MULTILINE | Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-
     static final ArrayNode DELETED_REMARKS;
     static {
         ObjectNode notice = new ObjectNode(JsonNodeFactory.instance);
         notice.put("title", "deleted");
         notice.set("description", new ArrayNode(JsonNodeFactory.instance, Collections.singletonList(new TextNode("This object has been deleted"))));
         DELETED_REMARKS = new ArrayNode(JsonNodeFactory.instance, Collections.singletonList(notice));
+    }
+
+    private static enum EntityKey
+    {
+        ADMINC("admin-c", Stream.of(Role.ADMINISTRATIVE).collect(Collectors.toSet())),
+        TECHC("tech-c", Stream.of(Role.TECHNICAL).collect(Collectors.toSet())),
+        ZONEC("zone-c", Stream.of(Role.TECHNICAL).collect(Collectors.toSet())),
+        MAINTAINERC("mnt-irt", Stream.of(Role.ABUSE).collect(Collectors.toSet()));
+
+        private final Set<Role> roles;
+        private final String rpslKey;
+
+        EntityKey(String rpslKey, Set<Role> roles)
+        {
+            this.rpslKey = rpslKey;
+            this.roles = roles;
+        }
+
+        public Set<Role> getRoles()
+        {
+            return roles;
+        }
+
+        public String getRpslKey()
+        {
+            return rpslKey;
+        }
     }
 
     private static enum RpslVCardAttribute
@@ -141,7 +164,7 @@ public class RpslToRdap
 
         String autnum = parseAutnum(key);
         RpslObject rpslObject = new RpslObject(rpsl);
-        rval.setEntityKeys(getEntityKeys(key, rpsl));
+        rval.setRelatedEntities(getRelatedEntities(rpslObject));
         rval.setStartAutnum(autnum);
         rval.setEndAutnum(autnum);
         rpslObject.getAttributeFirstValue("aut-num")
@@ -150,6 +173,7 @@ public class RpslToRdap
             .ifPresent(s -> rval.setName(s));
         rpslObject.getAttributeFirstValue("country")
             .ifPresent(s -> rval.setCountry(s));
+        rval.setEvents(getEvents(rpslObject));
         rval.setRemarks(getRemarks(rpslObject));
 
         return rval;
@@ -172,9 +196,10 @@ public class RpslToRdap
         }
 
         RpslObject rpslObject = new RpslObject(rpsl);
-        rval.setEntityKeys(getEntityKeys(key, rpsl));
+        rval.setRelatedEntities(getRelatedEntities(rpslObject));
         rpslObject.getAttribute("nserver").stream()
             .forEach(fqdn -> rval.addNameServer(fqdn));
+        rval.setEvents(getEvents(rpslObject));
         rval.setRemarks(getRemarks(rpslObject));
 
         return rval;
@@ -203,6 +228,7 @@ public class RpslToRdap
             .flatMap(a -> a.getProperty(rpslObject))
             .forEach(vCard::addAttribute);
         rval.setVCard(vCard);
+        rval.setEvents(getEvents(rpslObject));
         rval.setRemarks(getRemarks(rpslObject));
 
         return rval;
@@ -215,20 +241,25 @@ public class RpslToRdap
         return rdapObject;
     }
 
-    private static Collection<ObjectKey> getEntityKeys(ObjectKey key, byte[] rpsl)
+    private static List<RelatedEntity> getRelatedEntities(RpslObject rpslObject)
     {
-        if (key.getObjectClass() == ObjectClass.ENTITY)
+        List<RelatedEntity> entities = new ArrayList();
+        for(EntityKey val : EntityKey.values())
         {
-            return Collections.emptySet();
+            entities.addAll(rpslObject.getAttribute(val.getRpslKey()).stream()
+                .map(handle -> new ObjectKey(ObjectClass.ENTITY, handle))
+                .map(key -> new RelatedEntity(key, val.getRoles()))
+                .collect(Collectors.toList()));
         }
+        return entities;
+    }
 
-        Matcher m = ENTITY_KEYS.matcher(new String(rpsl, Charset.forName("UTF-8")));
-        Set<ObjectKey> keys = new HashSet<>();
-        while (m.find())
-        {
-            keys.add(new ObjectKey(ObjectClass.ENTITY, m.group(1)));
-        }
-        return keys;
+    private static List<Event> getEvents(RpslObject rpslObject)
+    {
+        return rpslObject.getAttributeFirstValue("last-modified")
+            .map(val -> Arrays.asList(
+                new Event(Event.EventAction.LAST_CHANGED, val)))
+            .orElse(Collections.emptyList());
     }
 
     private static ArrayNode getRemarks(RpslObject rpslObject)
@@ -267,13 +298,14 @@ public class RpslToRdap
         }
 
         RpslObject rpslObject = new RpslObject(rpsl);
-        rval.setEntityKeys(getEntityKeys(key, rpsl));
+        rval.setRelatedEntities(getRelatedEntities(rpslObject));
         rpslObject.getAttributeFirstValue("netname")
             .ifPresent(s -> rval.setName(s));
         rpslObject.getAttributeFirstValue("status")
             .ifPresent(s -> rval.setType(s));
         rpslObject.getAttributeFirstValue("country")
             .ifPresent(s -> rval.setCountry(s));
+        rval.setEvents(getEvents(rpslObject));
         rval.setRemarks(getRemarks(rpslObject));
 
         return rval;

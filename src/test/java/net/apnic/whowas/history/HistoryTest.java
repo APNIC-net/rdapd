@@ -1,8 +1,5 @@
 package net.apnic.whowas.history;
 
-import net.apnic.whowas.rdap.RdapObject;
-import org.junit.Test;
-
 import java.io.*;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -10,9 +7,14 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
 
+import static org.hamcrest.Matchers.*;
+
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.hamcrest.Matchers.*;
+import org.junit.Test;
+
+import net.apnic.whowas.rdap.RdapObject;
+import net.apnic.whowas.rdap.RelatedEntity;
 
 public class HistoryTest {
     private static final ObjectKey DNS_KEY = new ObjectKey(ObjectClass.DOMAIN, "1.0.0.127.in-addr.arpa");
@@ -96,7 +98,8 @@ class StaticObject implements Serializable, RdapObject {
     }
 
     @Override
-    public RdapObject withEntities(Collection<RdapObject> relatedEntities) {
+    public RdapObject withRelatedEntities(
+        Collection<RelatedEntity> relatedEntities) {
         updatedTimes++;
         return this;
     }

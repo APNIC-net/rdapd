@@ -1,10 +1,8 @@
 package net.apnic.whowas.rdap;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 
 import net.apnic.whowas.history.ObjectKey;
@@ -25,16 +23,6 @@ public class Entity
     public Entity(ObjectKey objectKey)
     {
         super(objectKey);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    public Collection<RdapObject> getEntities()
-    {
-        return super.getEntities();
     }
 
     /**

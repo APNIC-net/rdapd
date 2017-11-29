@@ -1,5 +1,7 @@
 package net.apnic.whowas.rdap;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -50,6 +52,7 @@ public class Notice
     /**
      * Returns the notice type
      */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public String getType()
     {
         return type;
@@ -66,6 +69,7 @@ public class Notice
     /**
      * Returns the list of Link objects used in this Notice
      */
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public List<Link> getLinks()
     {
         return links;

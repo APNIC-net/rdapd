@@ -6,13 +6,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
 public class VCard
     implements Serializable
 {
-    private final ArrayList<VCardAttribute> attributes = new ArrayList<>();
+    private final ArrayList<VCardAttribute> attributes = new ArrayList(
+        Arrays.asList(VCardAttribute.VERSION_ATTRIBUTE));
 
     public void addAttribute(VCardAttribute attribute)
     {

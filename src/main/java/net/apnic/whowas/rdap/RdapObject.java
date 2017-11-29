@@ -9,7 +9,18 @@ import java.util.Collections;
 /**
  * Abstraction of an RDAP object
  */
-public interface RdapObject {
+public interface RdapObject
+{
+    /**
+     * The keys of the entities this object references.
+     *
+     * @return the keys of the entities this object references.
+     **/
+    @JsonIgnore
+    default Collection<ObjectKey> getEntityKeys() {
+        return Collections.emptySet();
+    }
+
     /**
      * The key of this RDAP object
      *
@@ -18,21 +29,19 @@ public interface RdapObject {
     @JsonIgnore
     ObjectKey getObjectKey();
 
-    /**
-     * The keys of the entities this object references.
-     *
-     * @return the keys of the entities this object references.
-     */
-    @JsonIgnore
-    default Collection<ObjectKey> getEntityKeys() {
-        return Collections.emptySet();
+    default Collection<RelatedEntity> getRelatedEntities()
+    {
+        return Collections.emptyList();
     }
 
     /**
      * Whether this object has been considered deleted out of current state.
      */
     @JsonIgnore
-    boolean isDeleted();
+    default boolean isDeleted()
+    {
+        return false;
+    }
 
     /**
      * Create a new RdapObject with the given related entities incorporated.
@@ -40,7 +49,9 @@ public interface RdapObject {
      * @param relatedEntities the entities to incorporate.
      * @return an RdapObject with the given related entities incorporated.
      */
-    default RdapObject withEntities(Collection<RdapObject> relatedEntities) {
+    default RdapObject withRelatedEntities(
+        Collection<RelatedEntity> relatedEntities)
+    {
         return this;
     }
 }
