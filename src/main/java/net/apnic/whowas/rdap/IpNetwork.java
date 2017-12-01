@@ -63,9 +63,18 @@ public class IpNetwork
      * {@inheritDoc}
      */
     @Override
-    public String getObjectClassName()
+    public ObjectType getObjectType()
     {
-        return "ip network";
+        return ObjectType.IP;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getPathHandle()
+    {
+        return getIpInterval().toCIDRString();
     }
 
     /**

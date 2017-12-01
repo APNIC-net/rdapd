@@ -80,9 +80,18 @@ public class Domain
      * {@inheritDocs}
      */
     @Override
-    public String getObjectClassName()
+    public ObjectType getObjectType()
     {
-        return "domain";
+        return ObjectType.DOMAIN;
+    }
+
+    /**
+     * {@inheritDocs}
+     */
+    @Override
+    public String getPathHandle()
+    {
+        return getHandle();
     }
 
     /**

@@ -51,9 +51,18 @@ public class AutNum
      * {@inheritDoc}
      */
     @Override
-    public String getObjectClassName()
+    public ObjectType getObjectType()
     {
-        return "autnum";
+        return ObjectType.AUTNUM;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getPathHandle()
+    {
+        return getStartAutnum();
     }
 
     /**

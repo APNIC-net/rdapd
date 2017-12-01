@@ -28,9 +28,19 @@ public class Entity
     /**
      * {@inheritDoc}
      */
-    public String getObjectClassName()
+    @Override
+    public ObjectType getObjectType()
     {
-        return "entity";
+        return ObjectType.ENTITY;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getPathHandle()
+    {
+        return getHandle();
     }
 
     /**

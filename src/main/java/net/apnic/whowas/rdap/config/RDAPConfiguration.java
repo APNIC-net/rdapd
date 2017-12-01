@@ -1,13 +1,18 @@
 package net.apnic.whowas.rdap.config;
 
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
 
 import net.apnic.whowas.rdap.controller.RDAPResponseMaker;
+import net.apnic.whowas.rdap.json.LinkSerializer;
 import net.apnic.whowas.rdap.Link;
 import net.apnic.whowas.rdap.Notice;
 
@@ -39,6 +44,17 @@ public class RDAPConfiguration
     private List<ConfigNotice> configNotices = null;
     private List<Notice> defaultNotices = null;
     private String defaultPort43 = null;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @PostConstruct
+    public void init()
+    {
+        SimpleModule module = new SimpleModule();
+        module.addSerializer(Link.class, new LinkSerializer());
+        objectMapper.registerModule(module);
+    }
 
     /**
      * Config class represents a link object in this applications configuration
@@ -82,7 +98,7 @@ public class RDAPConfiguration
 
         public Link toLink()
         {
-            return new Link(null, getRel(), getHref(), getType());
+            return new Link(getRel(), getHref(), getType());
         }
     }
 

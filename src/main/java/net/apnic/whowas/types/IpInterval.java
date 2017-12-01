@@ -5,6 +5,9 @@ import net.apnic.whowas.intervaltree.Interval;
 import java.io.Serializable;
 
 public class IpInterval implements Interval<IP>, Serializable {
+    private static final String CIDR_DELIMITER = "/";
+    private static final String RANGE_DELIMITER = "-";
+
     private final IP low, high;
 
     public IpInterval(IP low, IP high) {
@@ -39,13 +42,18 @@ public class IpInterval implements Interval<IP>, Serializable {
         return high;
     }
 
+    public String toCIDRString()
+    {
+        return low().toString() + CIDR_DELIMITER + prefixSize();
+    }
+
     @Override
     public String toString()
     {
         if(low().getAddressFamily() == IP.AddressFamily.IPv4)
         {
-            return low().toString() + " - " + high().toString();
+            return low().toString() + RANGE_DELIMITER + high().toString();
         }
-        return low().toString() + "/" + prefixSize();
+        return low().toString() + CIDR_DELIMITER + prefixSize();
     }
 }

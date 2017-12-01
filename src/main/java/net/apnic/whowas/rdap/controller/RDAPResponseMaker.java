@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.servlet.http.HttpServletRequest;
 
+import net.apnic.whowas.error.MalformedRequestException;
 import net.apnic.whowas.rdap.Notice;
 import net.apnic.whowas.rdap.TopLevelObject;
 
@@ -29,38 +30,35 @@ public class RDAPResponseMaker
         this.defaultTruncatedNotice  = defaultTruncatedNotice;
     }
 
-
-    public TopLevelObject makeResponse(Object object)
+    public TopLevelObject makeResponse(Object object, HttpServletRequest request)
     {
-        return makeResponse(object, "");
-    }
+        try
+        {
+            RequestContext.setContext(request);
+        }
+        catch(Exception ex)
+        {
+            throw new MalformedRequestException(ex);
+        }
 
-    public TopLevelObject makeResponse(Object object,
-        HttpServletRequest request)
-    {
-        return makeResponse(object, request.getRequestURL().toString());
-    }
-
-    public TopLevelObject makeResponse(Object object, String context)
-    {
         return TopLevelObject.of(object,
-            defaultNotices.stream()
-            .map(notice -> notice.withContext(context))
-            .collect(Collectors.toList()),
-            defaultPort43);
+            defaultNotices, defaultPort43);
     }
 
     public TopLevelObject makeTruncatedResponse(Object object,
         HttpServletRequest request)
     {
-        return makeTruncatedResponse(object, request.getRequestURL().toString());
-    }
+        try
+        {
+            RequestContext.setContext(request);
+        }
+        catch(Exception ex)
+        {
+            throw new MalformedRequestException(ex);
+        }
 
-    public TopLevelObject makeTruncatedResponse(Object object, String context)
-    {
         return TopLevelObject.of(object,
             Stream.concat(defaultNotices.stream(), Stream.of(defaultTruncatedNotice))
-            .map(notice -> notice.withContext(context))
             .collect(Collectors.toList()),
             defaultPort43);
     }

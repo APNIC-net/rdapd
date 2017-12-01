@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * Class represents a single RDAP Notice object.
@@ -73,12 +72,5 @@ public class Notice
     public List<Link> getLinks()
     {
         return links;
-    }
-
-    public Notice withContext(String context)
-    {
-        return new Notice(title, type, description,
-            links.stream().map(link -> link.withValue(context))
-            .collect(Collectors.toList()));
     }
 }

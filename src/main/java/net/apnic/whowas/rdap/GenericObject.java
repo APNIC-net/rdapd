@@ -7,12 +7,14 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import net.apnic.whowas.history.ObjectKey;
+import net.apnic.whowas.rdap.http.RdapConstants;
 
 /**
  * Generic abstract parent class for concrete RDAP objects.
@@ -93,6 +95,13 @@ public abstract class GenericObject
         return getObjectKey().getObjectName();
     }
 
+    public List<Link> getLinks()
+    {
+        return Arrays.asList(
+            new RelativeLink("self", getObjectType().getPathSegment() + "/" + getPathHandle(),
+                RdapConstants.RDAP_MEDIA_TYPE.toString()));
+    }
+
     /**
      * Returns the name set for this object.
      *
@@ -105,15 +114,6 @@ public abstract class GenericObject
     }
 
     /**
-     * Provides the object class name for children of this class.
-     *
-     * Must be implemented by children.
-     *
-     * @return object class name
-     */
-    public abstract String getObjectClassName();
-
-    /**
      * Returns the object key this object was constructed with.
      *
      * @return ObjectKey this object was constructed with
@@ -124,6 +124,24 @@ public abstract class GenericObject
     {
         return objectKey;
     }
+
+    /**
+     * Provides the object type for children of this class.
+     *
+     * Must be implemented by children.
+     *
+     * @return Object class type
+     */
+    public abstract ObjectType getObjectType();
+
+    /**
+     * Provides the handle used as part of this object RDAP path segment.
+     *
+     * Must be implemented by children.
+     *
+     * @return Objects path handle
+     */
+    public abstract String getPathHandle();
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     @JsonProperty("entities")
