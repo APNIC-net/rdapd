@@ -29,6 +29,7 @@ public interface RdapObject
     @JsonIgnore
     ObjectKey getObjectKey();
 
+    @JsonIgnore
     default Collection<RelatedEntity> getRelatedEntities()
     {
         return Collections.emptyList();
