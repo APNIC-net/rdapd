@@ -141,6 +141,7 @@ public abstract class GenericObject
      *
      * @return Objects path handle
      */
+    @JsonIgnore
     public abstract String getPathHandle();
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
