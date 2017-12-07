@@ -125,6 +125,11 @@ public abstract class GenericObject
         return objectKey;
     }
 
+    public String getObjectClassName()
+    {
+        return getObjectType().getClassName();
+    }
+
     /**
      * Provides the object type for children of this class.
      *
@@ -132,6 +137,7 @@ public abstract class GenericObject
      *
      * @return Object class type
      */
+    @JsonIgnore
     public abstract ObjectType getObjectType();
 
     /**
