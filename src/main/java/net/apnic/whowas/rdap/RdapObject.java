@@ -1,6 +1,9 @@
 package net.apnic.whowas.rdap;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import net.apnic.whowas.history.ObjectKey;
 
 import java.util.Collection;
@@ -29,7 +32,8 @@ public interface RdapObject
     @JsonIgnore
     ObjectKey getObjectKey();
 
-    @JsonIgnore
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    @JsonProperty("entities")
     default Collection<RelatedEntity> getRelatedEntities()
     {
         return Collections.emptyList();

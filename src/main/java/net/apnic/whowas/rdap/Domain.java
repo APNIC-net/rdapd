@@ -73,7 +73,7 @@ public class Domain
      *
      * @return List of NameServers
      */
-    @Jsonproperty("nameservers")
+    @JsonProperty("nameservers")
     public List<NameServer> getNameServers()
     {
         return nameServers;

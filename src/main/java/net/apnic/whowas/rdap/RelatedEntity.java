@@ -3,7 +3,7 @@ package net.apnic.whowas.rdap;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
-import java.util.Collections;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
@@ -17,7 +17,7 @@ public class RelatedEntity
 
     public RelatedEntity(ObjectKey key)
     {
-        this(key, Collections.emptySet());
+        this(key, new HashSet());
     }
 
     public RelatedEntity(ObjectKey key, Set<Role> roles)
@@ -36,6 +36,11 @@ public class RelatedEntity
         this.key = key;
         this.roles = roles;
         this.object = object;
+    }
+
+    public void addRoles(Set<Role> roles)
+    {
+        this.roles.addAll(roles);
     }
 
     @JsonUnwrapped

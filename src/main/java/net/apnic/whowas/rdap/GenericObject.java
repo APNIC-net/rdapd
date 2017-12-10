@@ -2,7 +2,6 @@ package net.apnic.whowas.rdap;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 
@@ -150,8 +149,6 @@ public abstract class GenericObject
     @JsonIgnore
     public abstract String getPathHandle();
 
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    @JsonProperty("entities")
     @Override
     public Collection<RelatedEntity> getRelatedEntities()
     {

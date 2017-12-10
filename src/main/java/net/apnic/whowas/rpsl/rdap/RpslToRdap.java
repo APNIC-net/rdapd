@@ -6,8 +6,8 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.function.BiFunction;
@@ -241,17 +241,22 @@ public class RpslToRdap
         return rdapObject;
     }
 
-    private static List<RelatedEntity> getRelatedEntities(RpslObject rpslObject)
+    private static Collection<RelatedEntity> getRelatedEntities(RpslObject rpslObject)
     {
-        List<RelatedEntity> entities = new ArrayList();
+        HashMap<ObjectKey, RelatedEntity> entities = new HashMap();
         for(EntityKey val : EntityKey.values())
         {
-            entities.addAll(rpslObject.getAttribute(val.getRpslKey()).stream()
-                .map(handle -> new ObjectKey(ObjectClass.ENTITY, handle))
-                .map(key -> new RelatedEntity(key, val.getRoles()))
-                .collect(Collectors.toList()));
+            rpslObject.getAttribute(val.getRpslKey()).stream()
+                .forEach(handle ->
+                {
+                    ObjectKey oKey = new ObjectKey(ObjectClass.ENTITY, handle);
+                    RelatedEntity rEntity =
+                        entities.getOrDefault(oKey, new RelatedEntity(oKey));
+                    rEntity.addRoles(val.getRoles());
+                    entities.put(oKey, rEntity);
+                });
         }
-        return entities;
+        return entities.values();
     }
 
     private static List<Event> getEvents(RpslObject rpslObject)
