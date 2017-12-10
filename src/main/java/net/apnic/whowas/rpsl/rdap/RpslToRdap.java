@@ -87,7 +87,7 @@ public class RpslToRdap
                 .filter(l -> !l.isEmpty())
                 .map(l -> String.join("\n", l))
                 .map(s -> Collections.singletonMap("label", s))
-                .map(p -> makeNode("adr", p, Collections.emptyList()))),
+                .map(p -> makeNode("adr", p, Arrays.asList("", "", "", "", "", "", "")))),
 
         PHONE_TEL("phone", "tel", Collections.singletonMap("type", "voice")),
 
