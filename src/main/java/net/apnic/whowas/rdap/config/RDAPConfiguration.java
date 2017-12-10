@@ -36,7 +36,7 @@ public class RDAPConfiguration
         TRUNCATED_NOTICE = new Notice(
             "Data Policy",
             "result set truncated due to unexplainable reasons",
-            Arrays.asList("The list of results does not contain all results for" +
+            Arrays.asList("The list of results does not contain all results for " +
                 "an unexplainable reason."),
             null);
     }
