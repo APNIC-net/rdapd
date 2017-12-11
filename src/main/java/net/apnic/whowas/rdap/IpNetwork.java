@@ -34,7 +34,7 @@ public class IpNetwork
      */
     public String getEndAddress()
     {
-        return ipInterval.high().getAddress().getHostAddress();
+        return ipInterval.high().toString();
     }
 
     /**
@@ -84,7 +84,7 @@ public class IpNetwork
      */
     public String getStartAddress()
     {
-        return ipInterval.low().getAddress().getHostAddress();
+        return ipInterval.low().toString();
     }
 
     /**

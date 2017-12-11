@@ -50,10 +50,8 @@ public class IpInterval implements Interval<IP>, Serializable {
     @Override
     public String toString()
     {
-        if(low().getAddressFamily() == IP.AddressFamily.IPv4)
-        {
-            return low().toString() + RANGE_DELIMITER + high().toString();
-        }
-        return low().toString() + CIDR_DELIMITER + prefixSize();
+        return low().getAddressFamily() == IP.AddressFamily.IPv4 ?
+            low().toString() + RANGE_DELIMITER + high().toString() :
+            low().toString() + CIDR_DELIMITER + prefixSize();
     }
 }

@@ -1,5 +1,7 @@
 package net.apnic.whowas.types;
 
+import com.googlecode.ipv6.IPv6Address;
+
 import java.io.Serializable;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
@@ -130,7 +132,9 @@ public class IP implements Comparable<IP>, Serializable {
 
     @Override
     public String toString() {
-        return address.getHostAddress();
+        return getAddressFamily() == AddressFamily.IPv4 ?
+            address.getHostAddress() :
+            IPv6Address.fromInetAddress(getAddress()).toString();
     }
 
     /**
