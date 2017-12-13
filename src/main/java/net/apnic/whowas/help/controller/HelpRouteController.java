@@ -39,7 +39,7 @@ public class HelpRouteController
     }
 
     @RequestMapping(method=RequestMethod.HEAD)
-    public ResponseEntity<TopLevelObject> helpPathGet(HttpServletRequest request)
+    public ResponseEntity<TopLevelObject> helpPathHead(HttpServletRequest request)
     {
         LOGGER.debug("help HEAD path query");
         return rdapControllerUtil.makeGenericResponse(request, null);
