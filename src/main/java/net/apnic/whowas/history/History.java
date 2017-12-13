@@ -218,7 +218,6 @@ public final class History implements Externalizable, ObjectIndex {
                             historyForObject(relatedEntity.getObjectKey())
                             .flatMap(ObjectHistory::mostRecent)
                             .map(Revision::getContents)))
-                    .filter(relatedEntity -> relatedEntity.getObject().isPresent())
                     .collect(Collectors.toList())));
     }
 

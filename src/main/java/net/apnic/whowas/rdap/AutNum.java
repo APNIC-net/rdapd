@@ -8,9 +8,12 @@ import net.apnic.whowas.history.ObjectKey;
 public class AutNum
     extends GenericObject
 {
-    private String endAutnum = null;
+    private static final long MAX_AUTNUM = 0xFFFFFFFFL;
+    private static final long MIN_AUTNUM = 0x1L;
+
+    private long endAutnum = 0L;
     private String handle = null;
-    private String startAutnum = null;
+    private long startAutnum = 0L;
 
     /**
      * Constructs a new autnum object with the given key.
@@ -27,7 +30,7 @@ public class AutNum
      *
      * @return String representation of end autnum in this autnum object
      */
-    public String getEndAutnum()
+    public long getEndAutnum()
     {
         return endAutnum;
     }
@@ -62,7 +65,7 @@ public class AutNum
     @Override
     public String getPathHandle()
     {
-        return getStartAutnum();
+        return Long.toString(getStartAutnum());
     }
 
     /**
@@ -70,7 +73,7 @@ public class AutNum
      *
      * @return String representation of start autnum in this autnum object
      */
-    public String getStartAutnum()
+    public long getStartAutnum()
     {
         return startAutnum;
     }
@@ -82,6 +85,20 @@ public class AutNum
      */
     public void setEndAutnum(String endAutnum)
     {
+        setEndAutnum(Long.parseLong(endAutnum));
+    }
+
+    /**
+     * Sets the end autnum parameter for this object.
+     *
+     * @param endAutnum End autnum parameter
+     */
+    public void setEndAutnum(long endAutnum)
+    {
+    /*    if(endAutnum < MIN_AUTNUM || endAutnum > MAX_AUTNUM)
+        {
+            throw new IllegalArgumentException("Invalid autnum");
+        }*/
         this.endAutnum = endAutnum;
     }
 
@@ -104,6 +121,28 @@ public class AutNum
      */
     public void setStartAutnum(String startAutnum)
     {
+        try
+        {
+            setStartAutnum(Long.parseLong(startAutnum));
+        }
+        catch(Exception ex)
+        {
+            System.out.println("error " + startAutnum);
+            throw new RuntimeException(ex);
+        }
+    }
+
+    /**
+     * Sets the start autnum parameter for this object.
+     *
+     * @param startAutnum Start autnum parameter
+     */
+    public void setStartAutnum(long startAutnum)
+    {
+        if(startAutnum < MIN_AUTNUM || startAutnum > MAX_AUTNUM)
+        {
+            throw new IllegalArgumentException("Invalid autnum");
+        }
         this.startAutnum = startAutnum;
     }
 

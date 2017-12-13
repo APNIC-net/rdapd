@@ -38,7 +38,7 @@ public class RipeDbLoader implements Loader {
     {
         if(type == ObjectClass.AUT_NUM)
         {
-            return new ObjectKey(type, pkey.startsWith("AS") ? pkey.substring(2) : pkey);
+            return new ObjectKey(type, pkey.startsWith("AS") || pkey.startsWith("as") ? pkey.substring(2) : pkey);
         }
         else
         {

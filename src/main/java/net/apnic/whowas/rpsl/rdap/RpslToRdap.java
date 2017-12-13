@@ -321,7 +321,7 @@ public class RpslToRdap
         int dotIndex = objectKey.getObjectName().indexOf(".");
         if (dotIndex > 0) {
             return Long.toString(
-                Long.parseLong(objectKey.getObjectName().substring(0, dotIndex)) << 16 +
+                (Long.parseLong(objectKey.getObjectName().substring(0, dotIndex)) << 16) +
                 Long.parseLong(objectKey.getObjectName().substring(dotIndex + 1))).toString();
         } else {
             return objectKey.getObjectName();
