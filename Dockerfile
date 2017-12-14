@@ -14,15 +14,15 @@ RUN mvn package clean --fail-never
 
 COPY src/ ./src/
 RUN mvn package -DskipDocker && \
-	mkdir -p $APP_DIR/config && \
+    mkdir -p $APP_DIR/config && \
     cp target/*.jar $APP_DIR && \
     cp target/docker-extras/entrypoint.sh $APP_DIR && \
     chmod 0744 $APP_DIR/entrypoint.sh && \
-	cp $RESOURCE_DIR/*.yml $APP_DIR/config && \
+    cp $RESOURCE_DIR/*.yml $APP_DIR/config && \
     rm -rf $BUILD_DIR ${M2_HOME}
 
 WORKDIR $APP_DIR
-RUN useradd -MrU history && \
+RUN addUser -S history && \
     chown -R history /app
 
 USER history
