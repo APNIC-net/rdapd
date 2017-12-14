@@ -227,6 +227,7 @@ public class RpslToRdap
             .stream()
             .flatMap(a -> a.getProperty(rpslObject))
             .forEach(vCard::addAttribute);
+        rval.setRelatedEntities(getRelatedEntities(rpslObject));
         rval.setVCard(vCard);
         rval.setEvents(getEvents(rpslObject));
         rval.setRemarks(getRemarks(rpslObject));
@@ -274,6 +275,7 @@ public class RpslToRdap
                     String attrName = a.equals("description") ? "descr" : a;
                     List<JsonNode> notes = rpslObject.getAttribute(attrName)
                             .stream()
+                            .map(note -> note.replaceAll("( )+", "$1"))
                             .map(TextNode::new)
                             .collect(Collectors.toList());
                     if (notes.isEmpty()) return Stream.empty();
