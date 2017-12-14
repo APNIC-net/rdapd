@@ -128,5 +128,6 @@ public class RDAPControllerUtil
     {
         responseHeaders = new HttpHeaders();
         responseHeaders.setContentType(RdapConstants.RDAP_MEDIA_TYPE);
+        responseHeaders.add("Access-Control-Allow-Origin", "*");
     }
 }
