@@ -22,7 +22,7 @@ RUN mvn package -DskipDocker && \
     rm -rf $BUILD_DIR ${M2_HOME}
 
 WORKDIR $APP_DIR
-RUN addUser -S rdapd && \
+RUN adduser -S rdapd && \
     chown -R rdapd /app
 
 USER rdapd
