@@ -22,8 +22,8 @@ RUN mvn package -DskipDocker && \
     rm -rf $BUILD_DIR ${M2_HOME}
 
 WORKDIR $APP_DIR
-RUN addUser -S history && \
-    chown -R history /app
+RUN addUser -S rdapd && \
+    chown -R rdapd /app
 
-USER history
+USER rdapd
 ENTRYPOINT ["./entrypoint.sh"]
