@@ -269,7 +269,7 @@ public class RpslToRdap
 
     private static ArrayNode getRemarks(RpslObject rpslObject)
     {
-        List<JsonNode> remarks = Stream.of("remarks", "description")
+        List<JsonNode> remarks = Stream.of("description", "remarks")
                 .flatMap(a -> {
                     String attrName = a.equals("description") ? "descr" : a;
                     List<JsonNode> notes = rpslObject.getAttribute(attrName)
