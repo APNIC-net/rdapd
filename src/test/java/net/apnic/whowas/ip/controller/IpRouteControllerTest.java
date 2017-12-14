@@ -76,7 +76,7 @@ public class IpRouteControllerTest
         mvc.perform(get("/ip/10.0.0.0"))
             .andExpect(status().isInternalServerError())
             .andExpect(isRDAP())
-            .andExpect(jsonPath("$.errorCode", is("500")));
+            .andExpect(jsonPath("$.errorCode", is(500)));
     }
 
     @Test

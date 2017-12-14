@@ -72,12 +72,12 @@ public class DomainHistoryRouteControllerTest
         mvc.perform(get("/history/domain/1.2.3.10.in-addr.arpa"))
             .andExpect(status().isInternalServerError())
             .andExpect(RDAPControllerTesting.isRDAP())
-            .andExpect(jsonPath("$.errorCode", is("500")));
+            .andExpect(jsonPath("$.errorCode", is(500)));
 
         mvc.perform(get("/history/domain/0.2.e.0.1.0.0.2.ip6.arpa"))
             .andExpect(status().isInternalServerError())
             .andExpect(RDAPControllerTesting.isRDAP())
-            .andExpect(jsonPath("$.errorCode", is("500")));
+            .andExpect(jsonPath("$.errorCode", is(500)));
     }
 
     @Test
@@ -90,11 +90,11 @@ public class DomainHistoryRouteControllerTest
         mvc.perform(get("/history/domain/1.2.3.10.in-addr.arpa"))
             .andExpect(status().isNotFound())
             .andExpect(RDAPControllerTesting.isRDAP())
-            .andExpect(jsonPath("$.errorCode", is("404")));
+            .andExpect(jsonPath("$.errorCode", is(404)));
 
         mvc.perform(get("/history/domain/0.2.e.0.1.0.0.2.ip6.arpa"))
             .andExpect(status().isNotFound())
             .andExpect(RDAPControllerTesting.isRDAP())
-            .andExpect(jsonPath("$.errorCode", is("404")));
+            .andExpect(jsonPath("$.errorCode", is(404)));
     }
 }

@@ -120,7 +120,7 @@ public class DomainSearchRouteControllerTest
         mvc.perform(get("/domains?name=*"))
             .andExpect(status().isInternalServerError())
             .andExpect(RDAPControllerTesting.isRDAP())
-            .andExpect(jsonPath("$.errorCode", is("500")));
+            .andExpect(jsonPath("$.errorCode", is(500)));
     }
 
     @Test
