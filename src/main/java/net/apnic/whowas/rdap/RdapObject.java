@@ -1,5 +1,6 @@
 package net.apnic.whowas.rdap;
 
+import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -12,6 +13,7 @@ import java.util.Collections;
 /**
  * Abstraction of an RDAP object
  */
+@JsonFilter("relatedEntitiesFilter")
 public interface RdapObject
 {
     /**

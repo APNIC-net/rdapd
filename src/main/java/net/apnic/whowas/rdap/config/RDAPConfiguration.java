@@ -2,6 +2,7 @@ package net.apnic.whowas.rdap.config;
 
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 
 import java.util.Arrays;
 import java.util.ArrayList;
@@ -13,6 +14,7 @@ import javax.annotation.PostConstruct;
 
 import net.apnic.whowas.rdap.controller.RDAPResponseMaker;
 import net.apnic.whowas.rdap.json.LinkSerializer;
+import net.apnic.whowas.rdap.json.RelatedEntityFilter;
 import net.apnic.whowas.rdap.Link;
 import net.apnic.whowas.rdap.Notice;
 
@@ -52,8 +54,11 @@ public class RDAPConfiguration
     public void init()
     {
         SimpleModule module = new SimpleModule();
+//        module.addSerializer(Entity.class, new EntitySerializer());
         module.addSerializer(Link.class, new LinkSerializer());
         objectMapper.registerModule(module);
+        objectMapper.setFilters(new SimpleFilterProvider()
+            .addFilter("relatedEntitiesFilter", new RelatedEntityFilter()));
     }
 
     /**
