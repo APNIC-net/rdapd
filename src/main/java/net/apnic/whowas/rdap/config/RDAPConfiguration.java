@@ -54,7 +54,6 @@ public class RDAPConfiguration
     public void init()
     {
         SimpleModule module = new SimpleModule();
-//        module.addSerializer(Entity.class, new EntitySerializer());
         module.addSerializer(Link.class, new LinkSerializer());
         objectMapper.registerModule(module);
         objectMapper.setFilters(new SimpleFilterProvider()

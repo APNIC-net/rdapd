@@ -9,6 +9,8 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 public class RelatedEntityFilter
     extends SimpleBeanPropertyFilter
 {
+    private static final int MAX_DEPTH = 1;
+
     private final ThreadLocal<Integer> entityDepthCount;
 
     public RelatedEntityFilter()
@@ -39,7 +41,7 @@ public class RelatedEntityFilter
         SerializerProvider provider, PropertyWriter writer)
         throws Exception
     {
-        if(writer.getName().equals("entities") && entityDepthCount.get().equals(2))
+        if(writer.getName().equals("entities") && entityDepthCount.get().equals(MAX_DEPTH))
         {
             entityDepthCount.set(0);
             return;

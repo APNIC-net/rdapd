@@ -17,7 +17,7 @@ public class RelatedEntity
 
     public RelatedEntity(ObjectKey key)
     {
-        this(key, new HashSet());
+        this(key, new HashSet<Role>());
     }
 
     public RelatedEntity(ObjectKey key, Set<Role> roles)
