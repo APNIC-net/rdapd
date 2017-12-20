@@ -2,6 +2,7 @@ package net.apnic.whowas.rdap.controller;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.function.Supplier;
 import javax.servlet.http.HttpServletRequest;
 
 /**
@@ -10,27 +11,28 @@ import javax.servlet.http.HttpServletRequest;
  */
 public class RequestContext
 {
-    private static ThreadLocal<URL> threadContext;
+    private final Supplier<HttpServletRequest> request;
 
-    static
+    public RequestContext(Supplier<HttpServletRequest> request)
     {
-        threadContext = new ThreadLocal();
+        this.request = request;
     }
 
-    public static void setContext(HttpServletRequest request)
-        throws MalformedURLException
+    public URL getContext()
     {
-        threadContext.set(new URL(request.getRequestURL().toString()));
+        try
+        {
+            return new URL(request.get().getRequestURL().toString());
+        }
+        catch(Exception ex)
+        {
+            throw new RuntimeException(ex);
+        }
     }
 
-    public static URL getContext()
+    public URL getReference()
     {
-        return threadContext.get();
-    }
-
-    public static URL getReference()
-    {
-        URL context = threadContext.get();
+        URL context = getContext();
         try
         {
             return new URL(context.getProtocol(), context.getHost(),
@@ -42,7 +44,7 @@ public class RequestContext
         }
     }
 
-    public static URL getReferenceWithSpec(String spec)
+    public URL getReferenceWithSpec(String spec)
     {
         try
         {

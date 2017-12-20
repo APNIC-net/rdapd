@@ -6,7 +6,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.servlet.http.HttpServletRequest;
 
-import net.apnic.whowas.error.MalformedRequestException;
 import net.apnic.whowas.rdap.Notice;
 import net.apnic.whowas.rdap.TopLevelObject;
 
@@ -32,15 +31,6 @@ public class RDAPResponseMaker
 
     public TopLevelObject makeResponse(Object object, HttpServletRequest request)
     {
-        try
-        {
-            RequestContext.setContext(request);
-        }
-        catch(Exception ex)
-        {
-            throw new MalformedRequestException(ex);
-        }
-
         return TopLevelObject.of(object,
             defaultNotices, defaultPort43);
     }
@@ -48,15 +38,6 @@ public class RDAPResponseMaker
     public TopLevelObject makeTruncatedResponse(Object object,
         HttpServletRequest request)
     {
-        try
-        {
-            RequestContext.setContext(request);
-        }
-        catch(Exception ex)
-        {
-            throw new MalformedRequestException(ex);
-        }
-
         return TopLevelObject.of(object,
             Stream.concat(defaultNotices.stream(), Stream.of(defaultTruncatedNotice))
             .collect(Collectors.toList()),
