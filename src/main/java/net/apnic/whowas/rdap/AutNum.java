@@ -95,10 +95,10 @@ public class AutNum
      */
     public void setEndAutnum(long endAutnum)
     {
-    /*    if(endAutnum < MIN_AUTNUM || endAutnum > MAX_AUTNUM)
+        if(endAutnum < MIN_AUTNUM || endAutnum > MAX_AUTNUM)
         {
             throw new IllegalArgumentException("Invalid autnum");
-        }*/
+        }
         this.endAutnum = endAutnum;
     }
 
