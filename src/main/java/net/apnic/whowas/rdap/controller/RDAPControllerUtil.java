@@ -45,6 +45,15 @@ public class RDAPControllerUtil
             status);
     }
 
+    public ResponseEntity<TopLevelObject> makeGenericResponse(
+        HttpServletRequest request, Object obj)
+    {
+        return new ResponseEntity<TopLevelObject>(
+            responseMaker.makeResponse(obj, request),
+            responseHeaders,
+            HttpStatus.OK);
+    }
+
     public ResponseEntity<TopLevelObject> notImplementedResponseGet(
         HttpServletRequest request)
     {
@@ -119,5 +128,6 @@ public class RDAPControllerUtil
     {
         responseHeaders = new HttpHeaders();
         responseHeaders.setContentType(RdapConstants.RDAP_MEDIA_TYPE);
+        responseHeaders.add("Access-Control-Allow-Origin", "*");
     }
 }

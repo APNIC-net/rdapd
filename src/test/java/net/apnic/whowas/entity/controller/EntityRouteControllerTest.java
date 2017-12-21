@@ -80,7 +80,7 @@ public class EntityRouteControllerTest
         mvc.perform(get("/entity/ABC123"))
             .andExpect(status().isInternalServerError())
             .andExpect(RDAPControllerTesting.isRDAP())
-            .andExpect(jsonPath("$.errorCode", is("500")));
+            .andExpect(jsonPath("$.errorCode", is(500)));
 
         mvc.perform(head("/entity/ABC123"))
             .andExpect(status().isInternalServerError())

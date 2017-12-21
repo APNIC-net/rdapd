@@ -70,7 +70,7 @@ public class EntityHistoryRouteControllerTest
         mvc.perform(get("/history/entity/ABC123"))
             .andExpect(status().isInternalServerError())
             .andExpect(RDAPControllerTesting.isRDAP())
-            .andExpect(jsonPath("$.errorCode", is("500")));
+            .andExpect(jsonPath("$.errorCode", is(500)));
     }
 
     @Test

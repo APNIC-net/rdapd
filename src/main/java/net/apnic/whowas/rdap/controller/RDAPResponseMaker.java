@@ -29,38 +29,17 @@ public class RDAPResponseMaker
         this.defaultTruncatedNotice  = defaultTruncatedNotice;
     }
 
-
-    public TopLevelObject makeResponse(Object object)
-    {
-        return makeResponse(object, "");
-    }
-
-    public TopLevelObject makeResponse(Object object,
-        HttpServletRequest request)
-    {
-        return makeResponse(object, request.getRequestURL().toString());
-    }
-
-    public TopLevelObject makeResponse(Object object, String context)
+    public TopLevelObject makeResponse(Object object, HttpServletRequest request)
     {
         return TopLevelObject.of(object,
-            defaultNotices.stream()
-            .map(notice -> notice.withContext(context))
-            .collect(Collectors.toList()),
-            defaultPort43);
+            defaultNotices, defaultPort43);
     }
 
     public TopLevelObject makeTruncatedResponse(Object object,
         HttpServletRequest request)
     {
-        return makeTruncatedResponse(object, request.getRequestURL().toString());
-    }
-
-    public TopLevelObject makeTruncatedResponse(Object object, String context)
-    {
         return TopLevelObject.of(object,
             Stream.concat(defaultNotices.stream(), Stream.of(defaultTruncatedNotice))
-            .map(notice -> notice.withContext(context))
             .collect(Collectors.toList()),
             defaultPort43);
     }

@@ -1,10 +1,11 @@
 package net.apnic.whowas.rdap;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * Class represents a single RDAP Notice object.
@@ -50,6 +51,7 @@ public class Notice
     /**
      * Returns the notice type
      */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public String getType()
     {
         return type;
@@ -66,15 +68,9 @@ public class Notice
     /**
      * Returns the list of Link objects used in this Notice
      */
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public List<Link> getLinks()
     {
         return links;
-    }
-
-    public Notice withContext(String context)
-    {
-        return new Notice(title, type, description,
-            links.stream().map(link -> link.withValue(context))
-            .collect(Collectors.toList()));
     }
 }

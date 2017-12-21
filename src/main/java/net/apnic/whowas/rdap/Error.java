@@ -3,8 +3,6 @@ package net.apnic.whowas.rdap;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 import net.apnic.whowas.history.ObjectKey;
@@ -12,23 +10,23 @@ import net.apnic.whowas.history.ObjectKey;
 public class Error
     implements RdapObject
 {
-    public static final Error MALFORMED_REQUEST = new Error("400",
+    public static final Error MALFORMED_REQUEST = new Error(400,
         "Malformed Request", Arrays.asList("Unable to understand request"));
 
-    public static final Error NOT_FOUND = new Error("404", "Not Found",
+    public static final Error NOT_FOUND = new Error(404, "Not Found",
         Arrays.asList("The server has not found anything matching the Request-URI."));
 
-    public static final Error NOT_IMPLEMENTED = new Error("501", "Not Implemented",
+    public static final Error NOT_IMPLEMENTED = new Error(501, "Not Implemented",
         Arrays.asList("This type of request is not supported by this server."));
 
-    public static final Error SERVER_EXCEPTION = new Error("500", "Internal Server Error",
+    public static final Error SERVER_EXCEPTION = new Error(500, "Internal Server Error",
         Arrays.asList("Error processing request"));
 
     private List<String> description = null;
-    private String errorCode;
+    private int errorCode;
     private String title;
 
-    public Error(String errorCode, String title, List<String> description)
+    public Error(int errorCode, String title, List<String> description)
     {
         this.description = description;
         this.errorCode = errorCode;
@@ -41,13 +39,7 @@ public class Error
         return description;
     }
 
-    @Override
-    public Collection<ObjectKey> getEntityKeys()
-    {
-        return Collections.emptyList();
-    }
-
-    public String getErrorCode()
+    public int getErrorCode()
     {
         return errorCode;
     }
@@ -62,17 +54,5 @@ public class Error
     public String getTitle()
     {
         return title;
-    }
-
-    @Override
-    public boolean isDeleted()
-    {
-        return false;
-    }
-
-    @Override
-    public RdapObject withEntities(Collection<RdapObject> relatedEntities)
-    {
-        return this;
     }
 }

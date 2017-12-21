@@ -18,7 +18,6 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -212,14 +211,14 @@ public final class History implements Externalizable, ObjectIndex {
     /* Add related objects from the history to the given revision */
     private Revision addRelatedObjects(Revision revision) {
         return new Revision(revision.getValidFrom(), revision.getValidUntil(),
-                revision.getContents().withEntities(
-                        revision.getContents().getEntityKeys().stream()
-                                .map(histories::get)
-                                .filter(Objects::nonNull)
-                                .map(ObjectHistory::mostRecent)
-                                .flatMap(o -> o.map(Stream::of).orElse(Stream.empty()))
-                                .map(Revision::getContents)
-                                .collect(Collectors.toList())));
+            revision.getContents().withRelatedEntities(
+                revision.getContents().getRelatedEntities().stream()
+                    .map(relatedEntity ->
+                        relatedEntity.withObject(
+                            historyForObject(relatedEntity.getObjectKey())
+                            .flatMap(ObjectHistory::mostRecent)
+                            .map(Revision::getContents)))
+                    .collect(Collectors.toList())));
     }
 
     public IntervalTree<IP, ObjectKey, IpInterval> getTree() {

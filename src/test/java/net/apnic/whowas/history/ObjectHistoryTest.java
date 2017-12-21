@@ -30,11 +30,6 @@ public class ObjectHistoryTest {
         public Collection<ObjectKey> getEntityKeys() {
             return Collections.emptyList();
         }
-
-        @Override
-        public RdapObject withEntities(Collection<RdapObject> relatedEntities) {
-            return this;
-        }
     };
 
     @Test

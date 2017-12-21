@@ -1,5 +1,7 @@
 package net.apnic.whowas.rdap;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -71,6 +73,7 @@ public class Domain
      *
      * @return List of NameServers
      */
+    @JsonProperty("nameservers")
     public List<NameServer> getNameServers()
     {
         return nameServers;
@@ -80,9 +83,18 @@ public class Domain
      * {@inheritDocs}
      */
     @Override
-    public String getObjectClassName()
+    public ObjectType getObjectType()
     {
-        return "domain";
+        return ObjectType.DOMAIN;
+    }
+
+    /**
+     * {@inheritDocs}
+     */
+    @Override
+    public String getPathHandle()
+    {
+        return getHandle();
     }
 
     /**

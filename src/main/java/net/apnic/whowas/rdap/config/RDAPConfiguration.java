@@ -1,13 +1,22 @@
 package net.apnic.whowas.rdap.config;
 
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.function.Supplier;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
+import javax.servlet.http.HttpServletRequest;
 
 import net.apnic.whowas.rdap.controller.RDAPResponseMaker;
+import net.apnic.whowas.rdap.json.LinkSerializer;
+import net.apnic.whowas.rdap.json.RelatedEntityFilter;
 import net.apnic.whowas.rdap.Link;
 import net.apnic.whowas.rdap.Notice;
 
@@ -15,6 +24,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 /**
  * General configuration bootstrap class that build and passes information
@@ -31,7 +42,7 @@ public class RDAPConfiguration
         TRUNCATED_NOTICE = new Notice(
             "Data Policy",
             "result set truncated due to unexplainable reasons",
-            Arrays.asList("The list of results does not contain all results for" +
+            Arrays.asList("The list of results does not contain all results for " +
                 "an unexplainable reason."),
             null);
     }
@@ -39,6 +50,21 @@ public class RDAPConfiguration
     private List<ConfigNotice> configNotices = null;
     private List<Notice> defaultNotices = null;
     private String defaultPort43 = null;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @PostConstruct
+    public void init()
+    {
+        SimpleModule module = new SimpleModule();
+        Supplier<HttpServletRequest> requestSupplier = () ->
+            ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+        module.addSerializer(Link.class, new LinkSerializer(requestSupplier));
+        objectMapper.registerModule(module);
+        objectMapper.setFilters(new SimpleFilterProvider()
+            .addFilter("relatedEntitiesFilter", new RelatedEntityFilter()));
+    }
 
     /**
      * Config class represents a link object in this applications configuration
@@ -82,7 +108,7 @@ public class RDAPConfiguration
 
         public Link toLink()
         {
-            return new Link(null, getRel(), getHref(), getType());
+            return new Link(getRel(), getHref(), getType());
         }
     }
 

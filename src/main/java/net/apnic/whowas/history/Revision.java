@@ -40,7 +40,6 @@ public class Revision implements Serializable {
         return new Revision(validFrom, validUntil, contents);
     }
 
-
     public RdapObject getContents() {
         return contents;
     }

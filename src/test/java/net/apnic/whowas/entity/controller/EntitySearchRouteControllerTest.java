@@ -118,7 +118,7 @@ public class EntitySearchRouteControllerTest
         mvc.perform(get("/entities?handle=*"))
             .andExpect(status().isInternalServerError())
             .andExpect(RDAPControllerTesting.isRDAP())
-            .andExpect(jsonPath("$.errorCode", is("500")));
+            .andExpect(jsonPath("$.errorCode", is(500)));
     }
 
     @Test

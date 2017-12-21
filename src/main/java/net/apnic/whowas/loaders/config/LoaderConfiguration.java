@@ -115,7 +115,7 @@ public class LoaderConfiguration
     public void refreshData()
     {
         if (asyncLoader.isDone()) {
-            LOGGER.debug("CRON triggered refresh begun");
+            LOGGER.info("CRON triggered refresh begun");
             asyncLoader = executorService.submit(() -> {
                 try {
                     dbLoader.loadWith((key, revision) ->
