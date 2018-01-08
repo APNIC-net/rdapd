@@ -16,6 +16,7 @@ import java.util.zip.InflaterInputStream;
 import javax.annotation.PostConstruct;
 
 import net.apnic.whowas.history.History;
+import net.apnic.whowas.loaders.health.LoaderHealthIndicator;
 import net.apnic.whowas.loaders.RipeDbLoader;
 import net.apnic.whowas.progress.Bar;
 import net.apnic.whowas.search.SearchEngine;
@@ -49,6 +50,7 @@ public class LoaderConfiguration
     @Autowired
     private ApplicationContext context;
     private RipeDbLoader dbLoader;
+    private LoaderHealthIndicator loaderHealthIndicator = new LoaderHealthIndicator();
 
     @Value("${snapshot.file:#{null}}")
     private String snapshotFile;
@@ -100,6 +102,7 @@ public class LoaderConfiguration
         finally
         {
             searchEngine.commit();
+            loaderHealthIndicator.setFinishedLoading();
         }
         LOGGER.info("IP interval tree construction completed, {} entries", history.getTree().size());
     }
@@ -109,6 +112,12 @@ public class LoaderConfiguration
     {
         dbLoader = new RipeDbLoader(jdbcOperations, -1L);
         executorService.execute(this::buildTree);
+    }
+
+    @Bean
+    public LoaderHealthIndicator loaderHealthIndicator()
+    {
+        return loaderHealthIndicator;
     }
 
     @Scheduled(fixedRate = 15000L)
