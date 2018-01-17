@@ -1,5 +1,6 @@
 package net.apnic.whowas.rdap;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
 import java.util.ArrayList;
@@ -20,10 +21,13 @@ public class TopLevelObject {
     private final Set<String> rdapConformance;
     private final List<Notice> notices;
     private final Object object;
+    private final String port43;
 
-    private TopLevelObject(Set<String> rdapConformance, List<Notice> notices, Object object) {
+    private TopLevelObject(Set<String> rdapConformance, List<Notice> notices,
+                           String port43, Object object) {
         this.rdapConformance = rdapConformance;
         this.notices = notices;
+        this.port43 = port43;
         this.object = object;
     }
 
@@ -40,22 +44,42 @@ public class TopLevelObject {
         return notices;
     }
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public String getPort43()
+    {
+        return port43;
+    }
+
     /**
      * Construct a top level object using server defaults
      *
      * @param object The object to wrap
      * @return A top level object using server defaults
      */
-    public static TopLevelObject of(Object object, Notice notice) {
+    public static TopLevelObject of(Object object, Notice notice, String port43)
+    {
         List<Notice> notices = new ArrayList<>();
 
         if (notice != null) {
             notices.add(notice);
         }
 
+        return of(object, notices, port43);
+    }
+
+    /**
+     * Construct a top level object using server defaults
+     *
+     * @param object The object to wrap
+     * @return A top level object using server defaults
+     */
+    public static TopLevelObject of(Object object, List<Notice> notices,
+                                    String port43)
+    {
         return new TopLevelObject(
                 SERVER_CONFORMANCE,
                 notices,
+                port43,
                 object);
     }
 }

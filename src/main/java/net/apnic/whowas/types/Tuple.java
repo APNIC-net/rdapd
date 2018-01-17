@@ -13,12 +13,12 @@ public class Tuple<S,T> {
         return new Tuple<S, T>(s, t);
     }
 
-    public S fst() { return s; }
-    public T snd() { return t; }
+    public S first() { return s; }
+    public T second() { return t; }
 
     @Override
     public boolean equals(Object o) {
-        return o != null && o instanceof Tuple<?,?> && s.equals(((Tuple)o).fst()) && t.equals(((Tuple)o).snd());
+        return o != null && o instanceof Tuple<?,?> && s.equals(((Tuple)o).first()) && t.equals(((Tuple)o).second());
     }
 
     @Override

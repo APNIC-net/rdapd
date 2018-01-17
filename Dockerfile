@@ -1,22 +1,30 @@
-FROM openjdk:8-jdk-alpine
+FROM maven:3.5-jdk-8-alpine
 
-ENV MAVEN_VERSION=3.3.9 M2_HOME=/m2
+ENV APP_DIR=/app
+ENV BUILD_DIR=/build
+ENV MAVEN_VERSION=3.3.9
+ENV RESOURCE_DIR=$BUILD_DIR/target/classes
 
-RUN cd /tmp && \
-    wget http://www-eu.apache.org/dist/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz && \
-    tar xf apache-maven-$MAVEN_VERSION-bin.tar.gz && \
-    mv apache-maven-$MAVEN_VERSION $M2_HOME && \
-    rm -f apache-maven-$MAVEN_VERSION-bin.tar.gz
-
-COPY pom.xml build/
-# Download a large number of dependencies early, such that source file changes don't require this step to re-run
-RUN cd build && $M2_HOME/bin/mvn verify clean --fail-never
-COPY src/ build/src/
-RUN cd build && $M2_HOME/bin/mvn verify -DskipDocker && \
-    mkdir /app && cp target/*.jar /app && \
-    cd / && rm -rf build ${M2_HOME}
-WORKDIR /app
-RUN adduser -S -H -D history
 EXPOSE 8080
-USER history
-ENTRYPOINT ["java", "-Xmx10G", "-jar", "history-server-1.0.0-SNAPSHOT.jar"]
+EXPOSE 8081
+
+WORKDIR $BUILD_DIR
+COPY pom.xml ./
+# Download a large number of dependencies early, such that source file changes don't require this step to re-run
+RUN mvn package clean --fail-never
+
+COPY src/ ./src/
+RUN mvn package -DskipDocker && \
+    mkdir -p $APP_DIR/config && \
+    cp target/*.jar $APP_DIR && \
+    cp target/docker-extras/entrypoint.sh $APP_DIR && \
+    chmod 0744 $APP_DIR/entrypoint.sh && \
+    cp $RESOURCE_DIR/*.yml $APP_DIR/config && \
+    rm -rf $BUILD_DIR ${M2_HOME}
+
+WORKDIR $APP_DIR
+RUN adduser -S rdapd && \
+    chown -R rdapd /app
+
+USER rdapd
+ENTRYPOINT ["./entrypoint.sh"]

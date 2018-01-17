@@ -22,13 +22,13 @@ public class ObjectHistoryTest {
         }
 
         @Override
-        public Collection<ObjectKey> getEntityKeys() {
-            return Collections.emptyList();
+        public boolean isDeleted() {
+            return false;
         }
 
         @Override
-        public RdapObject withEntities(Collection<RdapObject> relatedEntities) {
-            return this;
+        public Collection<ObjectKey> getEntityKeys() {
+            return Collections.emptyList();
         }
     };
 

@@ -51,6 +51,38 @@ public class AvlTreeTest {
     }
 
     @Test
+    public void testEqualToAndLeastSpecific() throws Exception
+    {
+        AvlTree<Integer, String, IntInterval> tree = new AvlTree<>();
+        tree = tree.insert(new IntInterval(20, 30), "green tree");
+        tree = tree.insert(new IntInterval(33, 45), "corroboree");
+        tree = tree.insert(new IntInterval(30, 42), "rocket");
+        tree = tree.insert(new IntInterval(39, 39), "bleating tree");
+        tree = tree.insert(new IntInterval(20, 39), "tusked");
+        tree = tree.insert(new IntInterval(20, 38), "space");
+        tree = tree.insert(new IntInterval(40, 50), "blue");
+        List<String> frogs = tree.equalToAndLeastSpecific(new IntInterval(38, 40))
+            .map(Tuple::second).collect(Collectors.toList());
+        assertThat("there are two frogs in range", frogs.size(), is(2));
+        assertThat("there exists a corroboree", frogs.contains("corroboree"), is(true));
+        assertThat("there exists a rocket", frogs.contains("rocket"), is(true));
+
+        frogs = tree.equalToAndLeastSpecific(new IntInterval(0, 100))
+            .map(Tuple::second).collect(Collectors.toList());
+        assertThat("there are no frogs in range", frogs.size(), is(0));
+
+        frogs = tree.equalToAndLeastSpecific(new IntInterval(41, 49))
+            .map(Tuple::second).collect(Collectors.toList());
+        assertThat("there is one frog in range", frogs.size(), is(1));
+        assertThat("there exists a blue", frogs.contains("blue"), is(true));
+
+        frogs = tree.equalToAndLeastSpecific(new IntInterval(40, 50))
+            .map(Tuple::second).collect(Collectors.toList());
+        assertThat("there are is one frog in range", frogs.size(), is(1));
+        assertThat("there exists a blue", frogs.contains("blue"), is(true));
+    }
+
+    @Test
     public void rangeTest() throws Exception {
         AvlTree<Integer, String, IntInterval> tree = new AvlTree<>();
         tree = tree.insert(new IntInterval(42, 59), "green tree");
@@ -58,7 +90,7 @@ public class AvlTreeTest {
         tree = tree.insert(new IntInterval(33, 44), "rocket");
         tree = tree.insert(new IntInterval(39, 39), "bleating tree");
         tree = tree.insert(new IntInterval(20, 39), "tusked");
-        List<String> frogs = tree.intersecting(new IntInterval(40, 50)).map(Tuple::snd).collect(Collectors.toList());
+        List<String> frogs = tree.intersecting(new IntInterval(40, 50)).map(Tuple::second).collect(Collectors.toList());
         assertThat("there are three frogs in range", frogs.size(), is(3));
         assertThat("there are no frogs in negative-land", tree.intersecting(new IntInterval(-1, -1)).count(), is(0L));
     }
@@ -89,7 +121,7 @@ public class AvlTreeTest {
 
         IntInterval nearZero = new IntInterval(-1000, 1000);
         assertTrue("the intersecting stream is parallel", tree.intersecting(nearZero).isParallel());
-        List<Integer> theNumbers = tree.intersecting(nearZero).map(Tuple::snd).collect(Collectors.toList());
+        List<Integer> theNumbers = tree.intersecting(nearZero).map(Tuple::second).collect(Collectors.toList());
         assertThat("There's the expected number of, er, numbers", theNumbers.size(), is(expected[0]));
     }
 

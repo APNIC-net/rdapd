@@ -1,0 +1,20 @@
+#!/bin/bash
+set -eo pipefail
+
+host="$(hostname --ip-address || echo '127.0.0.1')"
+user="${MYSQL_USER:-root}"
+export MYSQL_PWD="${MYSQL_PASSWORD:-$MYSQL_ROOT_PASSWORD}"
+
+args=(
+    # force mysql to not use the local "mysqld.sock" (test "external" connectibility)
+    -h"$host"
+    -u"$user"
+    --silent
+)
+
+echo "Doing check"
+if select="$(echo 'SELECT 1' | mysql "${args[@]}")" && [ "$select" = '1' ]
+then
+    exit 0
+fi
+exit 1

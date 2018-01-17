@@ -1,12 +1,14 @@
 package net.apnic.whowas.history;
 
 import com.github.andrewoma.dexx.collection.*;
+
 import net.apnic.whowas.intervaltree.IntervalTree;
 import net.apnic.whowas.intervaltree.avl.AvlTree;
 import net.apnic.whowas.rdap.RdapObject;
 import net.apnic.whowas.types.IP;
 import net.apnic.whowas.types.IpInterval;
 import net.apnic.whowas.types.Parsing;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,7 +18,6 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -28,7 +29,7 @@ import java.util.stream.Stream;
  * a serial number reflecting the version of the registry, and a set of indices
  * for fast interval lookups.
  */
-public final class History implements Externalizable {
+public final class History implements Externalizable, ObjectIndex {
     private static final long serialVersionUID = 5063296486972345480L;
     private static final Logger LOGGER = LoggerFactory.getLogger(History.class);
 
@@ -210,22 +211,30 @@ public final class History implements Externalizable {
     /* Add related objects from the history to the given revision */
     private Revision addRelatedObjects(Revision revision) {
         return new Revision(revision.getValidFrom(), revision.getValidUntil(),
-                revision.getContents().withEntities(
-                        revision.getContents().getEntityKeys().stream()
-                                .map(histories::get)
-                                .filter(Objects::nonNull)
-                                .map(ObjectHistory::mostRecent)
-                                .flatMap(o -> o.map(Stream::of).orElse(Stream.empty()))
-                                .map(Revision::getContents)
-                                .collect(Collectors.toList())));
+            revision.getContents().withRelatedEntities(
+                revision.getContents().getRelatedEntities().stream()
+                    .map(relatedEntity ->
+                        relatedEntity.withObject(
+                            historyForObject(relatedEntity.getObjectKey())
+                            .flatMap(ObjectHistory::mostRecent)
+                            .map(Revision::getContents)))
+                    .collect(Collectors.toList())));
     }
 
     public IntervalTree<IP, ObjectKey, IpInterval> getTree() {
         return tree;
     }
 
-    public Optional<ObjectHistory> getObjectHistory(ObjectKey objectKey) {
+    @Override
+    public Optional<ObjectHistory> historyForObject(ObjectKey objectKey) {
         return Optional.ofNullable(histories.get(objectKey));
+    }
+
+    @Override
+    public Stream<ObjectHistory> historyForObject(Stream<ObjectKey> objectKeys)
+    {
+        return objectKeys.map(histories::get)
+            .filter(x -> x != null);
     }
 
     /* ---------------------------------------------------------------------- */

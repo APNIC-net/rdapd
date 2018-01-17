@@ -1,8 +1,5 @@
 package net.apnic.whowas.history;
 
-import net.apnic.whowas.rdap.RdapObject;
-import org.junit.Test;
-
 import java.io.*;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -10,9 +7,14 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
 
+import static org.hamcrest.Matchers.*;
+
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.hamcrest.Matchers.*;
+import org.junit.Test;
+
+import net.apnic.whowas.rdap.RdapObject;
+import net.apnic.whowas.rdap.RelatedEntity;
 
 public class HistoryTest {
     private static final ObjectKey DNS_KEY = new ObjectKey(ObjectClass.DOMAIN, "1.0.0.127.in-addr.arpa");
@@ -39,7 +41,7 @@ public class HistoryTest {
                 new ByteArrayInputStream(baos.toByteArray())).readObject();
 
         // What went in should come out
-        Optional<ObjectHistory> obj = history.getObjectHistory(DNS_KEY);
+        Optional<ObjectHistory> obj = history.historyForObject(DNS_KEY);
         assertTrue("History contains DNS key", obj.isPresent());
         assertTrue("The history has a revision",
                 obj.flatMap(ObjectHistory::mostRecent).isPresent());
@@ -54,7 +56,7 @@ public class HistoryTest {
         history.addRevision(WHO_KEY, new Revision(
                 ZonedDateTime.of(2016, 12, 10, 10, 10, 10, 0, ZoneId.systemDefault()),
                 null, WHO_OBJECT));
-        obj = history.getObjectHistory(DNS_KEY);
+        obj = history.historyForObject(DNS_KEY);
         assertTrue("History still contains DNS key", obj.isPresent());
         assertThat("There's now two revisions",
                 obj.map(o -> (Iterable<Revision>)o).orElse(Collections.emptyList()),
@@ -91,7 +93,13 @@ class StaticObject implements Serializable, RdapObject {
     }
 
     @Override
-    public RdapObject withEntities(Collection<RdapObject> relatedEntities) {
+    public boolean isDeleted() {
+        return false;
+    }
+
+    @Override
+    public RdapObject withRelatedEntities(
+        Collection<RelatedEntity> relatedEntities) {
         updatedTimes++;
         return this;
     }

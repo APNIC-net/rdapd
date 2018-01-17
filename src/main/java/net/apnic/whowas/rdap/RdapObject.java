@@ -1,6 +1,10 @@
 package net.apnic.whowas.rdap;
 
+import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import net.apnic.whowas.history.ObjectKey;
 
 import java.util.Collection;
@@ -9,7 +13,19 @@ import java.util.Collections;
 /**
  * Abstraction of an RDAP object
  */
-public interface RdapObject {
+@JsonFilter("relatedEntitiesFilter")
+public interface RdapObject
+{
+    /**
+     * The keys of the entities this object references.
+     *
+     * @return the keys of the entities this object references.
+     **/
+    @JsonIgnore
+    default Collection<ObjectKey> getEntityKeys() {
+        return Collections.emptySet();
+    }
+
     /**
      * The key of this RDAP object
      *
@@ -18,14 +34,20 @@ public interface RdapObject {
     @JsonIgnore
     ObjectKey getObjectKey();
 
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    @JsonProperty("entities")
+    default Collection<RelatedEntity> getRelatedEntities()
+    {
+        return Collections.emptyList();
+    }
+
     /**
-     * The keys of the entities this object references.
-     *
-     * @return the keys of the entities this object references.
+     * Whether this object has been considered deleted out of current state.
      */
     @JsonIgnore
-    default Collection<ObjectKey> getEntityKeys() {
-        return Collections.emptySet();
+    default boolean isDeleted()
+    {
+        return false;
     }
 
     /**
@@ -34,7 +56,9 @@ public interface RdapObject {
      * @param relatedEntities the entities to incorporate.
      * @return an RdapObject with the given related entities incorporated.
      */
-    default RdapObject withEntities(Collection<RdapObject> relatedEntities) {
+    default RdapObject withRelatedEntities(
+        Collection<RelatedEntity> relatedEntities)
+    {
         return this;
     }
 }

@@ -1,0 +1,50 @@
+
+{
+    "baseUrl": "http://rdap:8080",
+    "objectClasses": {
+        "autnum": {
+            "supported": true,
+            "exists": ["4617", "4623"],
+            "notExists": ["3333", "1234"]
+        },
+        "domain": {
+            "supported": true,
+            "exists": ["0.75.202.in-addr.arpa",
+                       "2.2.1.0.0.2.1.0.0.2.ip6.arpa",
+                       "196.127.203.in-addr.arpa",
+                       "2.0.1.0.0.2.1.0.0.2.ip6.arpa"],
+            "notExists": ["google.com",
+                          "0.16.183.in-addr.arpa"],
+            "search": {
+                "name": {
+                    "supported": true,
+                    "exists": ["202.in-addr*", "202.in-addr.arpa"],
+                    "notExists": ["1.2.3.202.in-addr*"]
+                }
+            }
+        },
+        "entity": {
+            "supported": true,
+            "exists": ["BWE1-AP",
+                       "TSE2-AP"],
+            "notExists": ["@@@@@@@@"]
+        },
+        "ip": {
+            "supported": true,
+            "exists": ["2001:200:102::/48",
+                       "2001:200:122::/48",
+                       "202.75.0.1",
+                       "202.75.0.0/22",
+                       "203.127.196.5",
+                       "203.127.196.0/24"],
+            "notExists": ["201.3.4.0/24",
+                          "192.168.7.0/24",
+                          "10.0.0.0/8",
+                          "2001:aa:bb::/48",
+                          "fe80::/10"]
+        },
+        "nameserver": {
+            "supported": false
+        }
+    }
+}
