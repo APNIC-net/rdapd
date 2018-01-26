@@ -159,7 +159,7 @@ public final class History implements Externalizable, ObjectIndex {
     private AvlTree<IP, ObjectKey, IpInterval> updateIntervalTree(ObjectKey objectKey, AvlTree<IP, ObjectKey, IpInterval> nextTree) {
         try {
             IpInterval interval = Parsing.parseInterval(objectKey.getObjectName());
-            nextTree = tree.update(interval, objectKey, (a,b) -> {
+            nextTree = nextTree.update(interval, objectKey, (a,b) -> {
                 assert a.equals(b);
                 return a;
             }, o -> o);
