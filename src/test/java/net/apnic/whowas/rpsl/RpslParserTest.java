@@ -45,9 +45,12 @@ public class RpslParserTest {
                 is(expected));
     }
 
-    @Test(expected = ParserException.class)
-    public void newlineRequired() {
+    // Regression test for when the whowas required that all RPSL end with \n
+    // We now require that EOF be found or \n
+    public void newlineOrEofRequired() {
         RpslParser.parseObject("role: Tester\nhandle:TST1-AP");
+        RpslParser.parseObject("handle:TST1-AP");
+        RpslParser.parseObject("handle:TST1-AP\n");
     }
 
     @Test

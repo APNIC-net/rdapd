@@ -23,7 +23,7 @@ class RpslParser {
             .toScanner("RPSL attribute name").source().map(String::toLowerCase);
 
     private static final Parser<String> LINE = Scanners.many(CharPredicates.notChar('\n')).source()
-            .followedBy(Scanners.isChar('\n'));
+            .followedBy(Parsers.or(Scanners.isChar('\n'), Parsers.EOF));
 
     private static final Parser<Void> CONTINUATION_MARKER = Parsers.or(
             Scanners.among(" \t").followedBy(WHITESPACE),
