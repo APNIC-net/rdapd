@@ -7,10 +7,7 @@ import java.io.IOException;
 import java.time.temporal.ChronoUnit;
 import java.time.ZonedDateTime;
 import java.time.ZoneId;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterInputStream;
 import javax.annotation.PostConstruct;
@@ -34,9 +31,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.ApplicationContext;
-import org.springframework.jdbc.core.JdbcOperations;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+import org.springframework.transaction.PlatformTransactionManager;
 
 @Configuration
 @EnableScheduling
@@ -49,6 +48,8 @@ public class LoaderConfiguration
 
     @Autowired
     private ApplicationContext context;
+
+    @Autowired
     private RipeDbLoader dbLoader;
     private LoaderHealthIndicator loaderHealthIndicator = new LoaderHealthIndicator();
 
@@ -59,10 +60,14 @@ public class LoaderConfiguration
     History history;
 
     @Autowired
-    private JdbcOperations jdbcOperations;
-
-    @Autowired
     SearchEngine searchEngine;
+
+    /*
+        This is autowired here to trigger Spring to initialise the transaction manager bean
+        before @PostConstruct is invoked. Without this, the initial data load will hang.
+     */
+    @Autowired
+    PlatformTransactionManager platformTransactionManager;
 
     private void buildTree()
     {
@@ -108,10 +113,19 @@ public class LoaderConfiguration
     }
 
     @PostConstruct
-    public void initialise()
-    {
-        dbLoader = new RipeDbLoader(jdbcOperations, -1L);
-        executorService.execute(this::buildTree);
+    public void initialise() throws ExecutionException, InterruptedException {
+            /*
+          Scoping the initial load of data to @PostConstruct
+          results in the loading completing before the servlet context is started,
+                    preventing requests from being served from partially loaded data.
+        */
+        Future initialDataLoaded = executorService.submit(this::buildTree);
+        initialDataLoaded.get();
+    }
+
+    @Bean
+    TaskScheduler taskScheduler() {
+        return new ThreadPoolTaskScheduler();
     }
 
     @Bean
