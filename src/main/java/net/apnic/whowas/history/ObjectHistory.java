@@ -51,6 +51,10 @@ public final class ObjectHistory implements Serializable, Iterable<Revision> {
         return new ObjectHistory(objectKey, newRevisions.append(revision));
     }
 
+    public boolean isEmpty() {
+        return revisions.size() == 0;
+    }
+
     /**
      * Retieve the most recent and current Revision of the ObjectHistory
      *
