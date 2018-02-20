@@ -1,10 +1,10 @@
-# WHOWAS service
+# rdapd
 
-[![Build Status](https://travis-ci.org/APNIC-net/whowas-service.svg?branch=master)](https://travis-ci.org/APNIC-net/whowas-service)
+[![Build Status](https://travis-ci.org/APNIC-net/rdapd.svg?branch=master)](https://travis-ci.org/APNIC-net/rdapd)
 
-The WHOWAS service takes historical data imported from the RIPE
-database `last` and `history` tables and exposes an RDAP API for
-current state, as well as RDAP-like responses for historical state.
+rdapd takes historical data imported from the RIPE database `last` and
+`history` tables and exposes an RDAP API for current state, as well as
+RDAP-like responses for historical state.
 
 # RDAP Specification
 
@@ -22,7 +22,7 @@ The specification for the historical state responses is:
 
 # Notes
 
-- WHOWAS is only able to load its data from a [RIPE-compatible Whois
+- rdapd is only able to load its data from a [RIPE-compatible Whois
   database](https://github.com/RIPE-NCC/whois).
 
 - The server is very memory-hungry; the docker container by default
@@ -51,4 +51,4 @@ subdirectory:
 
 # Licensing
 
-WHOWAS is licensed under the BSD licence. See the [LICENSE file](LICENSE.txt).
+rdapd is licensed under the BSD licence. See the [LICENSE file](LICENSE.txt).

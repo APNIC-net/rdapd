@@ -3,7 +3,7 @@
 
 ## Introduction
 This scripts in this directory setup an enviornment for which a test snapshot
-file can be exported from a running WHOWAS service.
+file can be exported from a running rdapd service.
 
 ## Requirements
 
@@ -21,12 +21,12 @@ with the location to save the snapshot file.
 Edit:
 
 ```
-SNAPSHOT_DIR_PATH=/tmp/whowas-test
+SNAPSHOT_DIR_PATH=/tmp/rdapd-test
 ```
 
 ## Running
 
-To run the WHOWAS to create the test snapshot file. Use the following Docker
+To run the rdapd to create the test snapshot file. Use the following Docker
 Compose command.
 
 ```

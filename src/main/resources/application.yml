@@ -17,7 +17,7 @@ rdap:
 
 database:
   host: localhost
-  database: whowas
+  database: rdapd
   username: root
   password: null
 
