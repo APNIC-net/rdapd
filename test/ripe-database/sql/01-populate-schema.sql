@@ -1,5 +1,5 @@
 
-INSERT INTO whowas_test.last (object_id, sequence_id, timestamp, object_type,
+INSERT INTO rdapd_test.last (object_id, sequence_id, timestamp, object_type,
                               object, pkey)
 VALUES (1, 1, 1329434477, 2, 'aut-num:        AS4617
 as-name:        EXAMP1AS
@@ -215,7 +215,7 @@ mnt-by:         MAINT-EXAMPLE-2-AP
 changed:        tony.stark@example2.noexist 20101108
 source:         APNIC', 'IRT-EXAMPLE-2-AU');
 
-INSERT INTO whowas_test.serials (thread_id, serial_id, object_id, sequence_id,
+INSERT INTO rdapd_test.serials (thread_id, serial_id, object_id, sequence_id,
                                  atlast, operation)
 VALUES
 (0, 1, 1, 1, 0, 0),

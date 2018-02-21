@@ -1,6 +1,6 @@
 # Building
 
-WHOWAS can be built either from source, or as a Docker container.
+rdapd can be built either from source, or as a Docker container.
 
 ## Requirements
 
@@ -18,14 +18,14 @@ WHOWAS can be built either from source, or as a Docker container.
 ## Obtaining The Source Code
 
 ```
-git clone https://github.com/APNIC-net/whowas-service
+git clone https://github.com/APNIC-net/rdapd
 ```
 
 ## Building & Running From Source
 
 ### Building
 
-WHOWAS is built using Maven. To create a new build of the project,
+rdapd is built using Maven. To create a new build of the project,
 please run the following maven command:
 
 ```
@@ -53,19 +53,19 @@ java -jar target/rdap-ingressd-<version>.jar
 
 Where <version> is the version of the build.
 
-WHOWAS is now listening and available on port 8080.
+rdapd is now listening and available on port 8080.
 
-Please note that WHOWAS may require more memory than what is allowed
+Please note that rdapd may require more memory than what is allowed
 by default (see the JVM -Xms and -Xmx options).
 
 ## Building & Running With Docker
 
 ### Building
 
-Use the following command to build a Docker image of WHOWAS:
+Use the following command to build a Docker image of rdapd:
 
 ```
-docker build . -t apnic/whowas
+docker build . -t apnic/rdapd
 ```
 
 ### Running
@@ -73,10 +73,10 @@ docker build . -t apnic/whowas
 The Docker image can now be executed with the following:
 
 ```
-docker run -p 8080:8080 apnic/whowas
+docker run -p 8080:8080 apnic/rdapd
 ```
 
-WHOWAS is now listening and available on port 8080.
+rdapd is now listening and available on port 8080.
 
 See the [deploy](deploy.md) documentation for more detailed instructions on
 deploying the Docker image.

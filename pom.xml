@@ -2,12 +2,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
       <modelVersion>4.0.0</modelVersion>
 
-    <groupId>net.apnic.whowas</groupId>
-    <artifactId>rdap-history</artifactId>
+    <groupId>net.apnic.rdapd</groupId>
+    <artifactId>rdapd</artifactId>
     <version>1.1.1-SNAPSHOT</version>
     <packaging>jar</packaging>
-    <name>RDAP History server</name>
-    <description>An RDAP server implementing the RDAP history extension</description>
+    <name>rdapd</name>
+    <description>An RDAP server for current-state and historical queries</description>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -16,12 +16,12 @@
     </parent>
 
     <scm>
-      <url>https://github.com/APNIC-net/whowas-service/</url>
+      <url>https://github.com/APNIC-net/rdapd-service/</url>
     </scm>
 
     <properties>
         <!-- Main class -->
-        <start-class>net.apnic.whowas.App</start-class>
+        <start-class>net.apnic.rdapd.App</start-class>
 
         <!-- Encodings -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -303,10 +303,10 @@
                 <artifactId>docker-maven-plugin</artifactId>
                 <version>${docker-maven-plugin.version}</version>
                 <configuration>
-                    <!-- WHOWAS Test Data Image -->
+                    <!-- rdapd Test Data Image -->
                     <images>
                         <image>
-                            <name>apnic/whowas-test-db</name>
+                            <name>apnic/rdapd-test-db</name>
                             <build>
                                 <dockerFileDir>
                                     ${project.basedir}/test/ripe-database
@@ -332,7 +332,7 @@
                             </run>
                         </image>
 
-                        <!-- WHOWAS Image -->
+                        <!-- rdapd Image -->
                         <image>
                             <name>apnic/${project.artifactId}</name>
                             <build>
@@ -379,17 +379,17 @@
 
                             <run>
                                 <dependsOn>
-                                    <container>apnic/whowas-test-db</container>
+                                    <container>apnic/rdapd-test-db</container>
                                 </dependsOn>
                                 <links>
-                                    <link>apnic/whowas-test-db</link>
+                                    <link>apnic/rdapd-test-db</link>
                                 </links>
                                 <env>
                                     <DATABASE_HOST>
-                                        whowas-test-db
+                                        rdapd-test-db
                                     </DATABASE_HOST>
                                     <DATABASE_DATABASE>
-                                        whowas_test
+                                        rdapd_test
                                     </DATABASE_DATABASE>
                                 </env>
                                 <wait>
