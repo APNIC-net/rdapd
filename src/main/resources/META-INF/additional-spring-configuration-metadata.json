@@ -3,7 +3,7 @@
     {
       "name": "snapshot.file",
       "type": "java.lang.String",
-      "sourceType": "net.apnic.whowas.App",
+      "sourceType": "net.apnic.rdapd.App",
       "description": "A snapshot file to read on start-up."
     }
   ]
