@@ -2,12 +2,9 @@ package net.apnic.whowas.autnum.controller;
 
 import javax.servlet.http.HttpServletRequest;
 
+import net.apnic.whowas.autnum.ASN;
+import net.apnic.whowas.autnum.AutNumSearchService;
 import net.apnic.whowas.error.MalformedRequestException;
-import net.apnic.whowas.history.ObjectClass;
-import net.apnic.whowas.history.ObjectHistory;
-import net.apnic.whowas.history.ObjectIndex;
-import net.apnic.whowas.history.ObjectKey;
-import net.apnic.whowas.history.Revision;
 import net.apnic.whowas.rdap.controller.RDAPControllerUtil;
 import net.apnic.whowas.rdap.controller.RDAPResponseMaker;
 import net.apnic.whowas.rdap.TopLevelObject;
@@ -34,14 +31,14 @@ public class AutnumRouteController
 {
     private final static Logger LOGGER = LoggerFactory.getLogger(AutnumRouteController.class);
 
-    private final ObjectIndex objectIndex;
+    private AutNumSearchService autnumSearchService;
     private final RDAPControllerUtil rdapControllerUtil;
 
     @Autowired
-    public AutnumRouteController(ObjectIndex objectIndex,
+    public AutnumRouteController(AutNumSearchService autnumSearchService,
         RDAPResponseMaker rdapResponseMaker)
     {
-        this.objectIndex = objectIndex;
+        this.autnumSearchService = autnumSearchService;
         this.rdapControllerUtil = new RDAPControllerUtil(rdapResponseMaker);
     }
 
@@ -62,16 +59,14 @@ public class AutnumRouteController
         }
 
         return rdapControllerUtil.singleObjectResponse(request,
-            objectIndex.historyForObject(new ObjectKey(ObjectClass.AUT_NUM, handle))
-            .flatMap(ObjectHistory::mostCurrent)
-            .map(Revision::getContents).orElse(null));
+            autnumSearchService.findCurrent(ASN.valueOf(Long.parseLong(handle))).orElse(null));
     }
 
     /**
      * HEAD request handler for autnum path segment.
      */
     @RequestMapping(value="/{handle}", method=RequestMethod.HEAD)
-    public ResponseEntity<TopLevelObject>  autnumPathHead(
+    public ResponseEntity<TopLevelObject> autnumPathHead(
         HttpServletRequest request,
         @PathVariable("handle") String handle)
     {
@@ -84,8 +79,6 @@ public class AutnumRouteController
         }
 
         return rdapControllerUtil.singleObjectResponse(request,
-            objectIndex.historyForObject(new ObjectKey(ObjectClass.AUT_NUM, handle))
-            .flatMap(ObjectHistory::mostCurrent)
-            .map(Revision::getContents).orElse(null));
+            autnumSearchService.findCurrent(ASN.valueOf(Long.parseLong(handle))).orElse(null));
     }
 }

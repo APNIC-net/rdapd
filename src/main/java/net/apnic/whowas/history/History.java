@@ -237,7 +237,11 @@ public final class History implements Externalizable, ObjectIndex {
                     .collect(Collectors.toList())));
     }
 
-    public IntervalTree<IP, ObjectKey, IpInterval> getTree() {
+    public IntervalTree<ASN, ObjectKey, ASNInterval> getAutNumTree() {
+        return autnumTree;
+    }
+
+    public IntervalTree<IP, ObjectKey, IpInterval> getIPNetworkTree() {
         return ipNetworkTree;
     }
 

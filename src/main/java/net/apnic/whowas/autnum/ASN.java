@@ -1,11 +1,14 @@
 
 package net.apnic.whowas.autnum;
 
+import java.io.Serializable;
+
 public class ASN
-    implements Comparable<ASN>
+    implements Comparable<ASN>, Serializable
 {
-    private static final long MAX_ASN = 0xFFFFFFFFL;
-    private static final long MIN_ASN = 0x1L;
+    public static final long MAX_ASN = 0xFFFFFFFFL;
+    public static final long MIN_ASN = 0x1L;
+
     private long asn = 0;
 
     public ASN(long asn)
@@ -42,5 +45,9 @@ public class ASN
     @Override
     public int hashCode() {
         return Long.valueOf(getASN()).hashCode();
+    }
+
+    public static ASN valueOf(long asn) {
+        return new ASN(asn);
     }
 }

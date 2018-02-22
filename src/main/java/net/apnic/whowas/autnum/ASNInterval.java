@@ -3,8 +3,10 @@ package net.apnic.whowas.autnum;
 
 import net.apnic.whowas.intervaltree.Interval;
 
+import java.io.Serializable;
+
 public class ASNInterval
-    implements Interval<ASN>
+    implements Interval<ASN>, Serializable
 {
     private final ASN high;
     private final ASN low;

@@ -2,12 +2,11 @@ package net.apnic.whowas.autnum.controller;
 
 import javax.servlet.http.HttpServletRequest;
 
+import net.apnic.whowas.autnum.ASN;
+import net.apnic.whowas.autnum.AutNumSearchService;
 import net.apnic.whowas.error.MalformedRequestException;
 import net.apnic.whowas.rdap.controller.RDAPControllerUtil;
 import net.apnic.whowas.rdap.controller.RDAPResponseMaker;
-import net.apnic.whowas.history.ObjectClass;
-import net.apnic.whowas.history.ObjectIndex;
-import net.apnic.whowas.history.ObjectKey;
 import net.apnic.whowas.rdap.TopLevelObject;
 import net.apnic.whowas.types.Parsing;
 
@@ -32,14 +31,14 @@ public class AutnumHistoryRouteController
 {
     private final static Logger LOGGER = LoggerFactory.getLogger(AutnumHistoryRouteController.class);
 
-    private final ObjectIndex objectIndex;
+    private final AutNumSearchService autnumSearchService;
     private final RDAPControllerUtil rdapControllerUtil;
 
     @Autowired
-    public AutnumHistoryRouteController(ObjectIndex objectIndex,
+    public AutnumHistoryRouteController(AutNumSearchService autnumSearchService,
         RDAPResponseMaker rdapResponseMaker)
     {
-        this.objectIndex = objectIndex;
+        this.autnumSearchService = autnumSearchService;
         this.rdapControllerUtil = new RDAPControllerUtil(rdapResponseMaker);
     }
 
@@ -60,7 +59,6 @@ public class AutnumHistoryRouteController
         }
 
         return rdapControllerUtil.historyResponse(request,
-            objectIndex.historyForObject(
-                new ObjectKey(ObjectClass.AUT_NUM, handle)).orElse(null));
+            autnumSearchService.findHistory(ASN.valueOf(Long.parseLong(handle))).orElse(null));
     }
 }

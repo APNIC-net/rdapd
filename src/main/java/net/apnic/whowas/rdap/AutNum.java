@@ -11,7 +11,7 @@ import net.apnic.whowas.history.ObjectKey;
 public class AutNum
     extends GenericObject
 {
-    public ASNInterval asnInterval = null;
+    private ASNInterval asnInterval = null;
     private String handle = null;
 
     /**

@@ -10,6 +10,7 @@ import net.apnic.whowas.history.ObjectClass;
 import net.apnic.whowas.history.ObjectHistory;
 import net.apnic.whowas.history.ObjectKey;
 import net.apnic.whowas.history.Revision;
+import net.apnic.whowas.rdap.AutNum;
 import net.apnic.whowas.rdap.RdapObject;
 import net.apnic.whowas.rpsl.rdap.RpslToRdap;
 
@@ -23,6 +24,13 @@ import static org.hamcrest.Matchers.not;
 
 public class RDAPControllerTesting
 {
+    public static AutNum testAutNumObject() {
+        ObjectKey objectKey = new ObjectKey(ObjectClass.AUT_NUM, "AS1234");
+        AutNum rval = new AutNum(objectKey);
+        rval.setASNInterval("1234", "1234");
+        return rval;
+    }
+
     public static ObjectHistory testObjectHistory() {
         ObjectKey objectKey = new ObjectKey(ObjectClass.ENTITY, "example");
         RdapObject rdapObject = new RpslToRdap()

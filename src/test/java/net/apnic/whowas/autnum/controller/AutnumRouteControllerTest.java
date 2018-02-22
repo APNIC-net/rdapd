@@ -4,10 +4,9 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import net.apnic.whowas.autnum.ASN;
+import net.apnic.whowas.autnum.AutNumSearchService;
 import net.apnic.whowas.history.ObjectClass;
-import net.apnic.whowas.history.ObjectHistory;
-import net.apnic.whowas.history.ObjectIndex;
-import net.apnic.whowas.history.ObjectKey;
 import net.apnic.whowas.rdap.controller.RDAPControllerTesting;
 import net.apnic.whowas.rdap.controller.RDAPResponseMaker;
 
@@ -41,7 +40,7 @@ public class AutnumRouteControllerTest
     static class TestRDAPControllerConfiguration {}
 
     @MockBean
-    ObjectIndex objectIndex;
+    AutNumSearchService autnumSearchService;
 
     @Autowired
     private MockMvc mvc;
@@ -50,8 +49,8 @@ public class AutnumRouteControllerTest
     public void indexLookupHasResults()
         throws Exception
     {
-        given(objectIndex.historyForObject(any(ObjectKey.class))).willReturn(
-            Optional.of(RDAPControllerTesting.testObjectHistory()));
+        given(autnumSearchService.findCurrent(any(ASN.class))).willReturn(
+            Optional.of(RDAPControllerTesting.testAutNumObject()));
 
         mvc.perform(get("/autnum/1234"))
             .andExpect(status().isOk())
@@ -80,8 +79,8 @@ public class AutnumRouteControllerTest
     public void indexLookupDoesNotSupportASPrefix()
         throws Exception
     {
-        given(objectIndex.historyForObject(any(ObjectKey.class))).willReturn(
-            Optional.of(RDAPControllerTesting.testObjectHistory()));
+        given(autnumSearchService.findCurrent(any(ASN.class))).willReturn(
+            Optional.of(RDAPControllerTesting.testAutNumObject()));
 
         mvc.perform(get("/autnum/AS1234"))
             .andExpect(status().isBadRequest())
@@ -96,8 +95,8 @@ public class AutnumRouteControllerTest
     public void indexLookupDoesNotSupportASRanges()
         throws Exception
     {
-        given(objectIndex.historyForObject(any(ObjectKey.class))).willReturn(
-            Optional.of(RDAPControllerTesting.testObjectHistory()));
+        given(autnumSearchService.findCurrent(any(ASN.class))).willReturn(
+            Optional.of(RDAPControllerTesting.testAutNumObject()));
 
         mvc.perform(get("/autnum/123-1234"))
             .andExpect(status().isBadRequest())
@@ -116,7 +115,7 @@ public class AutnumRouteControllerTest
     public void malformedRequest()
         throws Exception
     {
-        given(objectIndex.historyForObject(any(ObjectKey.class))).willReturn(
+        given(autnumSearchService.findCurrent(any(ASN.class))).willReturn(
             Optional.empty());
 
         mvc.perform(get("/autnum/notanint"))
@@ -157,7 +156,7 @@ public class AutnumRouteControllerTest
     public void noSearchResultsIsNotFoundRDAPResponse()
         throws Exception
     {
-        given(objectIndex.historyForObject(any(ObjectKey.class))).willReturn(
+        given(autnumSearchService.findCurrent(any(ASN.class))).willReturn(
             Optional.empty());
 
         mvc.perform(get("/autnum/1234"))
@@ -173,7 +172,7 @@ public class AutnumRouteControllerTest
     public void runtimeExceptionIs500()
         throws Exception
     {
-        given(objectIndex.historyForObject(any(ObjectKey.class))).willThrow(
+        given(autnumSearchService.findCurrent(any(ASN.class))).willThrow(
             new RuntimeException("Test exception"));
 
         mvc.perform(get("/autnum/1234"))
