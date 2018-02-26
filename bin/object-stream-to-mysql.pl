@@ -104,9 +104,9 @@ sub whois_object_to_pkey
 }
 
 print <<EOF;
-DROP TABLE last;
-DROP TABLE history;
-DROP TABLE serials;
+DROP TABLE IF EXISTS last;
+DROP TABLE IF EXISTS history;
+DROP TABLE IF EXISTS serials;
 
 CREATE TABLE `history` (
   `thread_id` int(11) NOT NULL DEFAULT '0',
