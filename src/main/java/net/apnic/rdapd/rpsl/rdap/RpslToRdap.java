@@ -19,22 +19,23 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import net.apnic.rdapd.history.ObjectClass;
-import net.apnic.rdapd.history.ObjectKey;
-import net.apnic.rdapd.rdap.AutNum;
-import net.apnic.rdapd.rdap.Domain;
-import net.apnic.rdapd.rdap.Entity;
-import net.apnic.rdapd.rdap.Event;
-import net.apnic.rdapd.rdap.GenericObject;
-import net.apnic.rdapd.rdap.IpNetwork;
-import net.apnic.rdapd.rdap.RdapObject;
-import net.apnic.rdapd.rdap.RelatedEntity;
-import net.apnic.rdapd.rdap.Role;
-import net.apnic.rdapd.rdap.VCard;
-import net.apnic.rdapd.rdap.VCardAttribute;
-import net.apnic.rdapd.rpsl.RpslObject;
-import net.apnic.rdapd.types.IpInterval;
-import net.apnic.rdapd.types.Parsing;
+import net.apnic.whowas.history.ObjectClass;
+import net.apnic.whowas.history.ObjectKey;
+import net.apnic.whowas.rdap.AutNum;
+import net.apnic.whowas.rdap.Domain;
+import net.apnic.whowas.rdap.Entity;
+import net.apnic.whowas.rdap.Event;
+import net.apnic.whowas.rdap.GenericObject;
+import net.apnic.whowas.rdap.IpNetwork;
+import net.apnic.whowas.rdap.RdapObject;
+import net.apnic.whowas.rdap.RelatedEntity;
+import net.apnic.whowas.rdap.Role;
+import net.apnic.whowas.rdap.VCard;
+import net.apnic.whowas.rdap.VCardAttribute;
+import net.apnic.whowas.rpsl.RpslObject;
+import net.apnic.whowas.types.IpInterval;
+import net.apnic.whowas.types.Parsing;
+import net.apnic.whowas.types.Tuple;
 
 /**
  * Utility class for converting raw RPSL data into RDAP objects.
@@ -42,6 +43,8 @@ import net.apnic.rdapd.types.Parsing;
 public class RpslToRdap
     implements BiFunction<ObjectKey, byte[], RdapObject>
 {
+    private static final String AUTNUM_RANGE_SEP = "-";
+
     static final ArrayNode DELETED_REMARKS;
     static {
         ObjectNode notice = new ObjectNode(JsonNodeFactory.instance);
@@ -162,11 +165,10 @@ public class RpslToRdap
             return setDeletedState(rval);
         }
 
-        String autnum = parseAutnum(key);
+        Tuple<String, String> autnumSE = parseAutnumRange(key);
         RpslObject rpslObject = new RpslObject(rpsl);
         rval.setRelatedEntities(getRelatedEntities(rpslObject));
-        rval.setStartAutnum(autnum);
-        rval.setEndAutnum(autnum);
+        rval.setASNInterval(autnumSE.first(), autnumSE.second());
         rpslObject.getAttributeFirstValue("aut-num")
             .ifPresent(s -> rval.setHandle(s));
         rpslObject.getAttributeFirstValue("as-name")
@@ -318,16 +320,32 @@ public class RpslToRdap
         return rval;
     }
 
-    private static String parseAutnum(ObjectKey objectKey)
+    private static String parseAutnum(String autnum)
     {
-        int dotIndex = objectKey.getObjectName().indexOf(".");
+        int dotIndex = autnum.indexOf(".");
         if (dotIndex > 0) {
             return Long.toString(
-                (Long.parseLong(objectKey.getObjectName().substring(0, dotIndex)) << 16) +
-                Long.parseLong(objectKey.getObjectName().substring(dotIndex + 1))).toString();
+                (Long.parseLong(autnum.substring(0, dotIndex)) << 16) +
+                Long.parseLong(autnum.substring(dotIndex + 1))).toString();
         } else {
-            return objectKey.getObjectName();
+            return autnum;
         }
+    }
+
+    private static Tuple<String, String> parseAutnumRange(ObjectKey objectKey)
+    {
+        String asName = objectKey.getObjectName();
+        String startAS = asName;
+        String endAS = asName;
+
+        int asRangeIndex = asName.indexOf(AUTNUM_RANGE_SEP);
+        if(asRangeIndex > 0)
+        {
+            startAS = asName.substring(0, asRangeIndex).trim();
+            endAS = asName.substring(asRangeIndex + 1).trim();
+        }
+
+        return new Tuple<String, String>(parseAutnum(startAS), parseAutnum(endAS));
     }
 
     /**

@@ -6,12 +6,13 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.time.ZonedDateTime;
 
-import net.apnic.rdapd.history.ObjectClass;
-import net.apnic.rdapd.history.ObjectHistory;
-import net.apnic.rdapd.history.ObjectKey;
-import net.apnic.rdapd.history.Revision;
-import net.apnic.rdapd.rdap.RdapObject;
-import net.apnic.rdapd.rpsl.rdap.RpslToRdap;
+import net.apnic.whowas.history.ObjectClass;
+import net.apnic.whowas.history.ObjectHistory;
+import net.apnic.whowas.history.ObjectKey;
+import net.apnic.whowas.history.Revision;
+import net.apnic.whowas.rdap.AutNum;
+import net.apnic.whowas.rdap.RdapObject;
+import net.apnic.whowas.rpsl.rdap.RpslToRdap;
 
 import org.springframework.mock.web.MockHttpServletResponse;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -23,6 +24,13 @@ import static org.hamcrest.Matchers.not;
 
 public class RDAPControllerTesting
 {
+    public static AutNum testAutNumObject() {
+        ObjectKey objectKey = new ObjectKey(ObjectClass.AUT_NUM, "AS1234");
+        AutNum rval = new AutNum(objectKey);
+        rval.setASNInterval("1234", "1234");
+        return rval;
+    }
+
     public static ObjectHistory testObjectHistory() {
         ObjectKey objectKey = new ObjectKey(ObjectClass.ENTITY, "example");
         RdapObject rdapObject = new RpslToRdap()

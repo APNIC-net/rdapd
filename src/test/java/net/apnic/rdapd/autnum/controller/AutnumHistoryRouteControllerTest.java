@@ -4,12 +4,11 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import net.apnic.rdapd.history.ObjectClass;
-import net.apnic.rdapd.history.ObjectHistory;
-import net.apnic.rdapd.history.ObjectIndex;
-import net.apnic.rdapd.history.ObjectKey;
-import net.apnic.rdapd.rdap.controller.RDAPControllerTesting;
-import net.apnic.rdapd.rdap.controller.RDAPResponseMaker;
+import net.apnic.whowas.autnum.ASN;
+import net.apnic.whowas.autnum.AutNumSearchService;
+import net.apnic.whowas.history.ObjectClass;
+import net.apnic.whowas.rdap.controller.RDAPControllerTesting;
+import net.apnic.whowas.rdap.controller.RDAPResponseMaker;
 
 import static org.hamcrest.Matchers.is;
 
@@ -41,7 +40,7 @@ public class AutnumHistoryRouteControllerTest
     static class TestRDAPControllerConfiguration {}
 
     @MockBean
-    ObjectIndex objectIndex;
+    AutNumSearchService autnumSearchService;
 
     @Autowired
     private MockMvc mvc;
@@ -50,7 +49,7 @@ public class AutnumHistoryRouteControllerTest
     public void indexLookupHasResults()
         throws Exception
     {
-        given(objectIndex.historyForObject(any(ObjectKey.class))).willReturn(
+        given(autnumSearchService.findHistory(any(ASN.class))).willReturn(
             Optional.of(RDAPControllerTesting.testObjectHistory()));
 
         mvc.perform(get("/history/autnum/1234"))
@@ -72,7 +71,7 @@ public class AutnumHistoryRouteControllerTest
     public void indexLookupDoesNotSupportASPrefix()
         throws Exception
     {
-        given(objectIndex.historyForObject(any(ObjectKey.class))).willReturn(
+        given(autnumSearchService.findHistory(any(ASN.class))).willReturn(
             Optional.of(RDAPControllerTesting.testObjectHistory()));
 
         mvc.perform(get("/history/autnum/AS1234"))
@@ -84,7 +83,7 @@ public class AutnumHistoryRouteControllerTest
     public void malformedRequest()
         throws Exception
     {
-        given(objectIndex.historyForObject(any(ObjectKey.class))).willReturn(
+        given(autnumSearchService.findHistory(any(ASN.class))).willReturn(
             Optional.empty());
 
         mvc.perform(get("/history/autnum/notanint"))
@@ -109,7 +108,7 @@ public class AutnumHistoryRouteControllerTest
     public void noSearchResultsIsNotFoundRDAPResponse()
         throws Exception
     {
-        given(objectIndex.historyForObject(any(ObjectKey.class))).willReturn(
+        given(autnumSearchService.findHistory(any(ASN.class))).willReturn(
             Optional.empty());
 
         mvc.perform(get("/history/autnum/1234"))
@@ -121,7 +120,7 @@ public class AutnumHistoryRouteControllerTest
     public void runtimeExceptionIs500()
         throws Exception
     {
-        given(objectIndex.historyForObject(any(ObjectKey.class))).willThrow(
+        given(autnumSearchService.findHistory(any(ASN.class))).willThrow(
             new RuntimeException("Test exception"));
 
         mvc.perform(get("/history/autnum/1234"))

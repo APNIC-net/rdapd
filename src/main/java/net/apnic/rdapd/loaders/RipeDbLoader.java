@@ -38,7 +38,7 @@ public class RipeDbLoader implements Loader {
     {
         if(type == ObjectClass.AUT_NUM)
         {
-            return new ObjectKey(type, pkey.matches("^[aA][sS].*") ? pkey.substring(2) : pkey);
+            return new ObjectKey(type, pkey.replaceAll("[aA][sS]", ""));
         }
         else
         {
@@ -123,6 +123,7 @@ public class RipeDbLoader implements Loader {
 
     // Presence in the map serves as a proxy for relevance to this application
     private static final Map<Integer, ObjectClass> OBJECT_CLASSES = Stream.of(
+            new Tuple<>(0, ObjectClass.AUT_NUM),
             new Tuple<>(2, ObjectClass.AUT_NUM),
             new Tuple<>(3, ObjectClass.DOMAIN),
             new Tuple<>(5, ObjectClass.IP_NETWORK),

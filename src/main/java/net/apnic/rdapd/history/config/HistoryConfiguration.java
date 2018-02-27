@@ -6,17 +6,21 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import net.apnic.rdapd.history.History;
-import net.apnic.rdapd.history.ObjectHistory;
-import net.apnic.rdapd.history.ObjectIndex;
-import net.apnic.rdapd.history.Revision;
-import net.apnic.rdapd.intervaltree.Interval;
-import net.apnic.rdapd.intervaltree.IntervalTree;
-import net.apnic.rdapd.ip.IpService;
-import net.apnic.rdapd.rdap.IpNetwork;
-import net.apnic.rdapd.types.IP;
-import net.apnic.rdapd.types.IpInterval;
-import net.apnic.rdapd.types.Tuple;
+import net.apnic.whowas.autnum.ASN;
+import net.apnic.whowas.autnum.ASNInterval;
+import net.apnic.whowas.autnum.AutNumSearchService;
+import net.apnic.whowas.history.History;
+import net.apnic.whowas.history.ObjectHistory;
+import net.apnic.whowas.history.ObjectIndex;
+import net.apnic.whowas.history.Revision;
+import net.apnic.whowas.intervaltree.Interval;
+import net.apnic.whowas.intervaltree.IntervalTree;
+import net.apnic.whowas.ip.IpService;
+import net.apnic.whowas.rdap.AutNum;
+import net.apnic.whowas.rdap.IpNetwork;
+import net.apnic.whowas.types.IP;
+import net.apnic.whowas.types.IpInterval;
+import net.apnic.whowas.types.Tuple;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -33,9 +37,43 @@ public class HistoryConfiguration
 
     @Autowired
     @Bean
+    public AutNumSearchService autnumSearchService(History history) {
+        final IntervalTree<ASN, ObjectHistory, ASNInterval> tree = lazyMap(
+            history::getAutNumTree,
+            objectKey -> history.historyForObject(objectKey).orElse(null)
+        );
+
+        final BinaryOperator<Tuple<ASNInterval, ObjectHistory>> mostSpecific =
+                (a, b) -> a.first().compareTo(b.first()) <= 0 ? b : a;
+
+        return new AutNumSearchService()
+        {
+            @Override
+            public Optional<AutNum> findCurrent(ASN asn)
+            {
+                return tree.equalToAndLeastSpecific(new ASNInterval(asn, asn))
+                    .filter(t -> t.second().mostCurrent().isPresent())
+                    .reduce(mostSpecific)
+                    .flatMap(t -> t.second().mostCurrent())
+                    .map(Revision::getContents)
+                    .map(rdapObject -> (AutNum)rdapObject);
+            }
+
+            @Override
+            public Optional<ObjectHistory> findHistory(ASN asn)
+            {
+                return tree.equalToAndLeastSpecific(new ASNInterval(asn, asn))
+                    .reduce(mostSpecific)
+                    .flatMap(t -> Optional.ofNullable(t.second()));
+            }
+        };
+    }
+
+    @Autowired
+    @Bean
     public IntervalTree<IP, ObjectHistory, IpInterval> ipListIntervalTree(History history)
     {
-        return lazyMap(history::getTree, objectKey -> history().historyForObject(objectKey).orElse(null));
+        return lazyMap(history::getIPNetworkTree, objectKey -> history().historyForObject(objectKey).orElse(null));
     }
 
     @Autowired
@@ -45,12 +83,11 @@ public class HistoryConfiguration
         return history;
     }
 
-
     @Autowired
     @Bean
     public IpService ipService(History history) {
         final IntervalTree<IP, ObjectHistory, IpInterval> tree = lazyMap(
-                history::getTree,
+                history::getIPNetworkTree,
                 objectKey -> history.historyForObject(objectKey).orElse(null)
         );
 
