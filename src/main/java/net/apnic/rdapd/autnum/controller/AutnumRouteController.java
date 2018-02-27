@@ -2,13 +2,13 @@ package net.apnic.rdapd.autnum.controller;
 
 import javax.servlet.http.HttpServletRequest;
 
-import net.apnic.whowas.autnum.ASN;
-import net.apnic.whowas.autnum.AutNumSearchService;
-import net.apnic.whowas.error.MalformedRequestException;
-import net.apnic.whowas.rdap.controller.RDAPControllerUtil;
-import net.apnic.whowas.rdap.controller.RDAPResponseMaker;
-import net.apnic.whowas.rdap.TopLevelObject;
-import net.apnic.whowas.types.Parsing;
+import net.apnic.rdapd.autnum.ASN;
+import net.apnic.rdapd.autnum.AutNumSearchService;
+import net.apnic.rdapd.error.MalformedRequestException;
+import net.apnic.rdapd.rdap.controller.RDAPControllerUtil;
+import net.apnic.rdapd.rdap.controller.RDAPResponseMaker;
+import net.apnic.rdapd.rdap.TopLevelObject;
+import net.apnic.rdapd.types.Parsing;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

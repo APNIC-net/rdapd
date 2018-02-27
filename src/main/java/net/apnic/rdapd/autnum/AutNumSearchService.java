@@ -1,7 +1,7 @@
-package net.apnic.whowas.autnum;
+package net.apnic.rdapd.autnum;
 
-import net.apnic.whowas.history.ObjectHistory;
-import net.apnic.whowas.rdap.AutNum;
+import net.apnic.rdapd.history.ObjectHistory;
+import net.apnic.rdapd.rdap.AutNum;
 
 import java.util.Optional;
 

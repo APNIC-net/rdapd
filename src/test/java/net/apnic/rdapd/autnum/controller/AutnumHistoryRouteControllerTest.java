@@ -4,11 +4,11 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import net.apnic.whowas.autnum.ASN;
-import net.apnic.whowas.autnum.AutNumSearchService;
-import net.apnic.whowas.history.ObjectClass;
-import net.apnic.whowas.rdap.controller.RDAPControllerTesting;
-import net.apnic.whowas.rdap.controller.RDAPResponseMaker;
+import net.apnic.rdapd.autnum.ASN;
+import net.apnic.rdapd.autnum.AutNumSearchService;
+import net.apnic.rdapd.history.ObjectClass;
+import net.apnic.rdapd.rdap.controller.RDAPControllerTesting;
+import net.apnic.rdapd.rdap.controller.RDAPResponseMaker;
 
 import static org.hamcrest.Matchers.is;
 

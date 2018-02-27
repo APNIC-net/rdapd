@@ -1,7 +1,7 @@
 
-package net.apnic.whowas.autnum;
+package net.apnic.rdapd.autnum;
 
-import net.apnic.whowas.intervaltree.Interval;
+import net.apnic.rdapd.intervaltree.Interval;
 
 import java.io.Serializable;
 

@@ -1,4 +1,4 @@
-package net.apnic.whowas.autnum;
+package net.apnic.rdapd.autnum;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;

@@ -6,13 +6,13 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.time.ZonedDateTime;
 
-import net.apnic.whowas.history.ObjectClass;
-import net.apnic.whowas.history.ObjectHistory;
-import net.apnic.whowas.history.ObjectKey;
-import net.apnic.whowas.history.Revision;
-import net.apnic.whowas.rdap.AutNum;
-import net.apnic.whowas.rdap.RdapObject;
-import net.apnic.whowas.rpsl.rdap.RpslToRdap;
+import net.apnic.rdapd.history.ObjectClass;
+import net.apnic.rdapd.history.ObjectHistory;
+import net.apnic.rdapd.history.ObjectKey;
+import net.apnic.rdapd.history.Revision;
+import net.apnic.rdapd.rdap.AutNum;
+import net.apnic.rdapd.rdap.RdapObject;
+import net.apnic.rdapd.rpsl.rdap.RpslToRdap;
 
 import org.springframework.mock.web.MockHttpServletResponse;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;

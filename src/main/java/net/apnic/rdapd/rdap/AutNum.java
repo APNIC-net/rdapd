@@ -2,8 +2,8 @@ package net.apnic.rdapd.rdap;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import net.apnic.whowas.autnum.ASNInterval;
-import net.apnic.whowas.history.ObjectKey;
+import net.apnic.rdapd.autnum.ASNInterval;
+import net.apnic.rdapd.history.ObjectKey;
 
 /**
  * AutNum RDAP object.

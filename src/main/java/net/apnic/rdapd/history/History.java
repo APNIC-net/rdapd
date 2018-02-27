@@ -2,16 +2,16 @@ package net.apnic.rdapd.history;
 
 import com.github.andrewoma.dexx.collection.*;
 
-import net.apnic.whowas.autnum.ASN;
-import net.apnic.whowas.autnum.ASNInterval;
-import net.apnic.whowas.intervaltree.Interval;
-import net.apnic.whowas.intervaltree.IntervalTree;
-import net.apnic.whowas.intervaltree.avl.AvlTree;
-import net.apnic.whowas.rdap.AutNum;
-import net.apnic.whowas.rdap.RdapObject;
-import net.apnic.whowas.rdap.IpNetwork;
-import net.apnic.whowas.types.IP;
-import net.apnic.whowas.types.IpInterval;
+import net.apnic.rdapd.autnum.ASN;
+import net.apnic.rdapd.autnum.ASNInterval;
+import net.apnic.rdapd.intervaltree.Interval;
+import net.apnic.rdapd.intervaltree.IntervalTree;
+import net.apnic.rdapd.intervaltree.avl.AvlTree;
+import net.apnic.rdapd.rdap.AutNum;
+import net.apnic.rdapd.rdap.RdapObject;
+import net.apnic.rdapd.rdap.IpNetwork;
+import net.apnic.rdapd.types.IP;
+import net.apnic.rdapd.types.IpInterval;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

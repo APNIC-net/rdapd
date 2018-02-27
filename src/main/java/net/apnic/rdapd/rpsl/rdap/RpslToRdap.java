@@ -19,23 +19,23 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import net.apnic.whowas.history.ObjectClass;
-import net.apnic.whowas.history.ObjectKey;
-import net.apnic.whowas.rdap.AutNum;
-import net.apnic.whowas.rdap.Domain;
-import net.apnic.whowas.rdap.Entity;
-import net.apnic.whowas.rdap.Event;
-import net.apnic.whowas.rdap.GenericObject;
-import net.apnic.whowas.rdap.IpNetwork;
-import net.apnic.whowas.rdap.RdapObject;
-import net.apnic.whowas.rdap.RelatedEntity;
-import net.apnic.whowas.rdap.Role;
-import net.apnic.whowas.rdap.VCard;
-import net.apnic.whowas.rdap.VCardAttribute;
-import net.apnic.whowas.rpsl.RpslObject;
-import net.apnic.whowas.types.IpInterval;
-import net.apnic.whowas.types.Parsing;
-import net.apnic.whowas.types.Tuple;
+import net.apnic.rdapd.history.ObjectClass;
+import net.apnic.rdapd.history.ObjectKey;
+import net.apnic.rdapd.rdap.AutNum;
+import net.apnic.rdapd.rdap.Domain;
+import net.apnic.rdapd.rdap.Entity;
+import net.apnic.rdapd.rdap.Event;
+import net.apnic.rdapd.rdap.GenericObject;
+import net.apnic.rdapd.rdap.IpNetwork;
+import net.apnic.rdapd.rdap.RdapObject;
+import net.apnic.rdapd.rdap.RelatedEntity;
+import net.apnic.rdapd.rdap.Role;
+import net.apnic.rdapd.rdap.VCard;
+import net.apnic.rdapd.rdap.VCardAttribute;
+import net.apnic.rdapd.rpsl.RpslObject;
+import net.apnic.rdapd.types.IpInterval;
+import net.apnic.rdapd.types.Parsing;
+import net.apnic.rdapd.types.Tuple;
 
 /**
  * Utility class for converting raw RPSL data into RDAP objects.

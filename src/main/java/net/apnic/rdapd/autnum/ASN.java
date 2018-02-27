@@ -1,5 +1,5 @@
 
-package net.apnic.whowas.autnum;
+package net.apnic.rdapd.autnum;
 
 import java.io.Serializable;
 
