@@ -1,5 +1,5 @@
 
-image: maven:3.5-jdk-8
+image: acr2.tst.apnic.net/software-cicd/maven:3.5-jdk-8
 
 variables:
 # This will supress any download for dependencies and plugins or upload messages which would clutter the console log.
