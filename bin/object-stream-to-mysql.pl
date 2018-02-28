@@ -154,12 +154,15 @@ EOF
 $/ = "\n\n";
 while (my $record = <>) {
     chomp $record;
+    if ($record =~ /^#/) {
+        next;
+    }
     $record =~ s/"/\\"/g;
     my $object = arrayify($record);
     my $object_type = $object->[0]->[0];
     my $object_type_id = $OBJECT_TYPE_TO_ID{$object_type};
     my $pkey = whois_object_to_pkey($object);
-    print qq{INSERT INTO last (thread_id, object_id, sequence_id, timestamp, object_type, object, pkey, serial, prev_serial) VALUES (0, NULL, 1, NOW(), $object_type_id, "$record", "$pkey", 0, 0);};
+    print qq{INSERT INTO last (thread_id, object_id, sequence_id, timestamp, object_type, object, pkey, serial, prev_serial) VALUES (0, NULL, 1, 0, $object_type_id, "$record", "$pkey", 0, 0);};
     print "\n";
     print qq{INSERT INTO serials (thread_id, serial_id, object_id, sequence_id, atlast, operation) VALUES (0, NULL, LAST_INSERT_ID(), 1, 0, 0);};
     print "\n";
