@@ -15,6 +15,9 @@ stages:
   - test
   - package
 
+services:
+  - acr2.tst.apnic.net/base/docker:18.02-dind
+
 cache:
   paths:
     - .m2/repository
