@@ -303,6 +303,7 @@
                 <artifactId>docker-maven-plugin</artifactId>
                 <version>${docker-maven-plugin.version}</version>
                 <configuration>
+                    <skip>true</skip>
                     <!-- rdapd Test Data Image -->
                     <images>
                         <image>
