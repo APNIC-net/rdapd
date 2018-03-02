@@ -28,3 +28,11 @@ verify:
   stage: test
   script:
     - 'mvn $MAVEN_CLI_OPTS verify'
+
+package-jar:
+  stage: package
+  script:
+    - 'mvn $MAVEN_CLI_OPTS package'
+  artifacts:
+    paths:
+      - target/*.jar
