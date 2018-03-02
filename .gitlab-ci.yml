@@ -23,3 +23,8 @@ compile:
   stage: build
   script:
     - 'mvn $MAVEN_CLI_OPTS test-compile'
+
+verify:
+  stage: test
+  script:
+    - 'mvn $MAVEN_CLI_OPTS verify'
