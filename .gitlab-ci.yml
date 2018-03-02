@@ -1,5 +1,5 @@
 
-image: acr2.tst.apnic.net/software-cicd/maven:3.5-jdk-8
+image: acr2.tst.apnic.net/base/maven:3.5-jdk-8
 
 variables:
 # This will supress any download for dependencies and plugins or upload messages which would clutter the console log.
@@ -9,6 +9,11 @@ variables:
 # when running from the command line.
 # `installAtEnd` and `deployAtEnd`are only effective with recent version of the corresponding plugins.
   MAVEN_CLI_OPTS: "--batch-mode --errors --fail-at-end --show-version -DinstallAtEnd=true -DdeployAtEnd=true"
+
+stages:
+  - build
+  - test
+  - package
 
 cache:
   paths:
