@@ -104,7 +104,6 @@ public class LoaderConfiguration
             searchEngine.commit();
             loaderHealthIndicator.setFinishedLoading();
         }
-        LOGGER.info("IP interval tree construction completed, {} entries", history.getTree().size());
     }
 
     @PostConstruct
