@@ -9,7 +9,7 @@ public class ASN
     public static final long MAX_ASN = 0xFFFFFFFFL;
     public static final long MIN_ASN = 0x1L;
 
-    private long asn = 0;
+    private final long asn;
 
     public ASN(long asn)
     {
