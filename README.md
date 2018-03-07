@@ -1,6 +1,6 @@
 # rdapd
 
-[![Build Status](https://travis-ci.org/APNIC-net/rdapd.svg?branch=master)](https://travis-ci.org/APNIC-net/rdapd)
+[![Build Status](https://travis-ci.org/APNIC-net/rdapd.svg)](https://travis-ci.org/APNIC-net/rdapd)
 
 rdapd takes historical data imported from the RIPE database `last` and
 `history` tables and exposes an RDAP API for current state, as well as
