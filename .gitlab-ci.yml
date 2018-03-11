@@ -15,9 +15,6 @@ stages:
   - test
   - package
 
-services:
-  - acr2.tst.apnic.net/base/docker:18.02-dind
-
 cache:
   paths:
     - .m2/repository
@@ -39,3 +36,13 @@ package-jar:
   artifacts:
     paths:
       - target/*.jar
+
+docker-image:
+  image: acr2.tst.apnic.net/base/docker:18.02
+  stage: package
+  variables:
+    DOCKER_HOST: "tcp://localhost:2375"
+  services:
+    - acr2.tst.apnic.net/base/docker:18.02-dind
+  script:
+    - 'docker build .'
