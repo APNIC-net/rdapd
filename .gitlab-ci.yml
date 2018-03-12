@@ -19,6 +19,9 @@ cache:
   paths:
     - .m2/repository
 
+before_script:
+  - echo $CI_COMMIT_REF_SLUG
+
 compile:
   stage: build
   script:
