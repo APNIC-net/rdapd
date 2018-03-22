@@ -1,0 +1,49 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-rdapd
+  labels:
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    app: {{ template "fullname" . }}
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+data:
+  application.yml: |2
+
+    # Settings to specifically control the RDAP protocol used by this application.
+    rdap:
+
+      # A list of default notices that get appended to each RDAP response from this
+      # server. Notice objects take the following structure.
+      # title: # Title of the notice
+      # description: # List of string describing the notice
+      # links: # List of link objects in the folloing form.
+      #   - href: # href value as per RDAP spec
+      #     rel: #ref value as per RDAP spec
+      #     type: #type of link
+      notices:
+        - title: Source
+          description:
+            - Objects returned came from source
+            - APNIC
+        - title: Terms and Conditions
+          description:
+            - This is the APNIC WHOIS Database query service. The objects are in RDAP format.
+          links:
+            - href: "http://www.apnic.net/db/dbcopyright.html"
+              rel: "terms-of-service"
+              type: "text/html"
+
+      # Port43 value for RDAP responses
+      port43: whois.apnic.net
+
+    spring:
+      application:
+
+      datasource:
+        url: "jdbc:mysql://${RDAPD_DB_HOST}:3306/${RDAPD_DB_NAME}?useunicode=true&characterencoding=utf8&charactersetresults=utf8&useSSL=false"
+        username: "${RDAPD_DB_USERNAME}"
+        password: "${RDAPD_DB_PASSWORD}"
+
+    management:
+      port: 8081

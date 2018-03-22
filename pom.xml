@@ -4,7 +4,7 @@
 
     <groupId>net.apnic.rdapd</groupId>
     <artifactId>rdapd</artifactId>
-    <version>1.1.1-SNAPSHOT</version>
+    <version>1.2.0</version>
     <packaging>jar</packaging>
     <name>rdapd</name>
     <description>An RDAP server for current-state and historical queries</description>

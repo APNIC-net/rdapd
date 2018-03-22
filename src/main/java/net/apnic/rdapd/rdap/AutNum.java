@@ -1,5 +1,8 @@
 package net.apnic.rdapd.rdap;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import net.apnic.rdapd.autnum.ASNInterval;
 import net.apnic.rdapd.history.ObjectKey;
 
 /**
@@ -8,12 +11,8 @@ import net.apnic.rdapd.history.ObjectKey;
 public class AutNum
     extends GenericObject
 {
-    private static final long MAX_AUTNUM = 0xFFFFFFFFL;
-    private static final long MIN_AUTNUM = 0x1L;
-
-    private long endAutnum = 0L;
+    private ASNInterval asnInterval = null;
     private String handle = null;
-    private long startAutnum = 0L;
 
     /**
      * Constructs a new autnum object with the given key.
@@ -25,6 +24,12 @@ public class AutNum
         super(objectKey);
     }
 
+    @JsonIgnore
+    public ASNInterval getASNInterval()
+    {
+        return asnInterval;
+    }
+
     /**
      * Provides the end autnum parameter used in constructing JSON response
      *
@@ -32,7 +37,7 @@ public class AutNum
      */
     public long getEndAutnum()
     {
-        return endAutnum;
+        return asnInterval.high().getASN();
     }
 
     /**
@@ -75,31 +80,17 @@ public class AutNum
      */
     public long getStartAutnum()
     {
-        return startAutnum;
+        return asnInterval.low().getASN();
     }
 
-    /**
-     * Sets the end autnum parameter for this object.
-     *
-     * @param endAutnum End autnum parameter
-     */
-    public void setEndAutnum(String endAutnum)
+    public void setASNInterval(String startAutnum, String endAutnum)
     {
-        setEndAutnum(Long.parseLong(endAutnum));
+        setASNInterval(Long.parseLong(startAutnum), Long.parseLong(endAutnum));
     }
 
-    /**
-     * Sets the end autnum parameter for this object.
-     *
-     * @param endAutnum End autnum parameter
-     */
-    public void setEndAutnum(long endAutnum)
+    public void setASNInterval(long startAutnum, long endAutnum)
     {
-        if(endAutnum < MIN_AUTNUM || endAutnum > MAX_AUTNUM)
-        {
-            throw new IllegalArgumentException("Invalid autnum");
-        }
-        this.endAutnum = endAutnum;
+        asnInterval = new ASNInterval(startAutnum, endAutnum);
     }
 
     /**
@@ -112,38 +103,6 @@ public class AutNum
     public void setHandle(String handle)
     {
         this.handle = handle;
-    }
-
-    /**
-     * Sets the start autnum parameter for this object.
-     *
-     * @param startAutnum Start autnum parameter
-     */
-    public void setStartAutnum(String startAutnum)
-    {
-        try
-        {
-            setStartAutnum(Long.parseLong(startAutnum));
-        }
-        catch(Exception ex)
-        {
-            System.out.println("error " + startAutnum);
-            throw new RuntimeException(ex);
-        }
-    }
-
-    /**
-     * Sets the start autnum parameter for this object.
-     *
-     * @param startAutnum Start autnum parameter
-     */
-    public void setStartAutnum(long startAutnum)
-    {
-        if(startAutnum < MIN_AUTNUM || startAutnum > MAX_AUTNUM)
-        {
-            throw new IllegalArgumentException("Invalid autnum");
-        }
-        this.startAutnum = startAutnum;
     }
 
     /**

@@ -2,12 +2,16 @@ package net.apnic.rdapd.history;
 
 import com.github.andrewoma.dexx.collection.*;
 
+import net.apnic.rdapd.autnum.ASN;
+import net.apnic.rdapd.autnum.ASNInterval;
+import net.apnic.rdapd.intervaltree.Interval;
 import net.apnic.rdapd.intervaltree.IntervalTree;
 import net.apnic.rdapd.intervaltree.avl.AvlTree;
+import net.apnic.rdapd.rdap.AutNum;
 import net.apnic.rdapd.rdap.RdapObject;
+import net.apnic.rdapd.rdap.IpNetwork;
 import net.apnic.rdapd.types.IP;
 import net.apnic.rdapd.types.IpInterval;
-import net.apnic.rdapd.types.Parsing;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,11 +37,13 @@ public final class History implements Externalizable, ObjectIndex {
     private static final long serialVersionUID = 5063296486972345480L;
     private static final Logger LOGGER = LoggerFactory.getLogger(History.class);
 
+    private volatile AvlTree<ASN, ObjectKey, ASNInterval> autnumTree;
+
     /* The history of every object */
     private volatile Map<ObjectKey, ObjectHistory> histories;
 
     /* IP interval index */
-    private volatile AvlTree<IP, ObjectKey, IpInterval> tree;
+    private volatile AvlTree<IP, ObjectKey, IpInterval> ipNetworkTree;
 
     /* Related object index */
     private volatile Map<ObjectKey, Set<ObjectKey>> relatedIndex;
@@ -46,8 +52,9 @@ public final class History implements Externalizable, ObjectIndex {
      * Construct a new History in which nothing has ever happened.
      */
     public History() {
+        autnumTree = new AvlTree<ASN, ObjectKey, ASNInterval>();
         histories = HashMap.empty();
-        tree = new AvlTree<>();
+        ipNetworkTree = new AvlTree<IP, ObjectKey, IpInterval>();
         relatedIndex = HashMap.empty();
     }
 
@@ -60,7 +67,7 @@ public final class History implements Externalizable, ObjectIndex {
      */
     public synchronized void deserialize(History history) {
         this.histories = history.histories;
-        this.tree = history.tree;
+        this.ipNetworkTree = history.ipNetworkTree;
         this.relatedIndex = history.relatedIndex;
     }
 
@@ -86,15 +93,26 @@ public final class History implements Externalizable, ObjectIndex {
         // The trick is to do this operation without messing with in-progress
         // queries, without incurring the cost of @synchronised locking
         // everywhere, and without quadratic performance during initial loads.
-        AvlTree<IP, ObjectKey, IpInterval> nextTree = tree;
+        AvlTree<IP, ObjectKey, IpInterval> nextIPNetworkTree = ipNetworkTree;
+        AvlTree<ASN, ObjectKey, ASNInterval> nextAutNumTree = autnumTree;
 
         // Obtain a new object history with this revision included
-        ObjectHistory objectHistory = histories.get(objectKey);
-        if (objectHistory == null) {
-            objectHistory = new ObjectHistory(objectKey);
-            if (objectKey.getObjectClass() == ObjectClass.IP_NETWORK) {
-                nextTree = updateIntervalTree(objectKey, nextTree);
+        ObjectHistory objectHistory = Optional.ofNullable(histories.get(objectKey))
+            .orElse(new ObjectHistory(objectKey));
+        boolean isNewHistory = objectHistory.isEmpty();
+
+        try {
+            if(objectKey.getObjectClass() == ObjectClass.IP_NETWORK && isNewHistory) {
+                nextIPNetworkTree = updateIntervalTree(objectKey, ((IpNetwork)revision.getContents()).getIpInterval(), nextIPNetworkTree);
             }
+            else if(objectKey.getObjectClass() == ObjectClass.AUT_NUM && isNewHistory)
+            {
+                nextAutNumTree = updateIntervalTree(objectKey, ((AutNum)revision.getContents()).getASNInterval(), nextAutNumTree);
+            }
+
+        } catch(Exception ex) {
+            LOGGER.warn("Object {} no added to tree: parse exception {}", objectKey, ex.getMessage());
+            LOGGER.debug("Full exception", ex);
         }
 
         // Handy information about this object's history and latest revision
@@ -131,7 +149,8 @@ public final class History implements Externalizable, ObjectIndex {
 
         // Now that the new history is in place, the tree index may be safely
         // updated if a new object was created.
-        tree = nextTree;
+        autnumTree = nextAutNumTree;
+        ipNetworkTree = nextIPNetworkTree;
     }
 
     /* Find any objects which relate to this object, and add a new revision */
@@ -155,20 +174,17 @@ public final class History implements Externalizable, ObjectIndex {
         }
     }
 
-    /* Update the interval tree to reflect a new IP network object revision */
-    private AvlTree<IP, ObjectKey, IpInterval> updateIntervalTree(ObjectKey objectKey, AvlTree<IP, ObjectKey, IpInterval> nextTree) {
-        try {
-            IpInterval interval = Parsing.parseInterval(objectKey.getObjectName());
-            nextTree = tree.update(interval, objectKey, (a,b) -> {
+    private <K extends Comparable<K>, I extends Interval<K>> AvlTree<K, ObjectKey, I>
+        updateIntervalTree(ObjectKey objectKey, I interval, AvlTree<K, ObjectKey, I> tree)
+        throws Exception
+    {
+        return tree.update(interval, objectKey,
+            (a,b) ->
+            {
                 assert a.equals(b);
                 return a;
-            }, o -> o);
-        } catch (Exception ex) {
-            LOGGER.warn("Object {} not added to IP tree: parse exception {}", objectKey, ex.getMessage());
-            LOGGER.debug("Full exception", ex);
-            // absorb and move on
-        }
-        return nextTree;
+            },
+            o -> o);
     }
 
     /* Maintain the index of related objects */
@@ -221,8 +237,12 @@ public final class History implements Externalizable, ObjectIndex {
                     .collect(Collectors.toList())));
     }
 
-    public IntervalTree<IP, ObjectKey, IpInterval> getTree() {
-        return tree;
+    public IntervalTree<ASN, ObjectKey, ASNInterval> getAutNumTree() {
+        return autnumTree;
+    }
+
+    public IntervalTree<IP, ObjectKey, IpInterval> getIPNetworkTree() {
+        return ipNetworkTree;
     }
 
     @Override
@@ -260,7 +280,7 @@ public final class History implements Externalizable, ObjectIndex {
             out.writeObject(p.component1());
             out.writeObject(p.component2().toArray(keys));
         }
-        out.writeObject(tree);
+        out.writeObject(ipNetworkTree);
     }
 
     @Override
@@ -280,6 +300,6 @@ public final class History implements Externalizable, ObjectIndex {
                     Sets.copyOf((ObjectKey[])in.readObject())));
         }
         relatedIndex = rBuilder.build();
-        tree = (AvlTree<IP, ObjectKey, IpInterval>)in.readObject();
+        ipNetworkTree = (AvlTree<IP, ObjectKey, IpInterval>)in.readObject();
     }
 }
