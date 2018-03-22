@@ -54,7 +54,7 @@ spec:
               name: rdapd-config
               subPath: application.yml
 
-    volumes:
-      - name: rdapd-config
-        configMap:
-          name: {{ .Release.Name }}-rdapd
+      volumes:
+        - name: rdapd-config
+          configMap:
+            name: {{ .Release.Name }}-rdapd
