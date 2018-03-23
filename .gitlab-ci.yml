@@ -457,7 +457,7 @@ production:
 
   function install_tiller() {
     echo "Checking Tiller..."
-    helm init --upgrade
+    helm init --upgrade --tiller-image acr2.tst.apnic.net/asdf/kubernetes-helm/tiller:v2.8.0
     kubectl rollout status -n "$TILLER_NAMESPACE" -w "deployment/tiller-deploy"
     if ! helm version --debug; then
       echo "Failed to init Tiller."
