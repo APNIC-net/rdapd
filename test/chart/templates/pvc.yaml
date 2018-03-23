@@ -1,0 +1,24 @@
+{{- if and .Values.database.persistence.enabled (not .Values.database.persistence.existingClaim) }}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{ template "rdapd-test-dependencies.fullname" . }}-data
+  labels:
+    app: {{ template "rdapd-test-dependencies.fullname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+spec:
+  accessModes:
+    - {{ .Values.database.persistence.accessMode | required "A persistence volume accessMode is required." | quote }}
+  resources:
+    requests:
+      storage: {{ .Values.database.persistence.size | required "A persistence volume size is required." | quote }}
+{{- if .Values.database.persistence.storageClass }}
+{{- if (eq "-" .Values.database.persistence.storageClass) }}
+  storageClassName: ""
+{{- else }}
+  storageClassName: "{{ .Values.database.persistence.storageClass }}"
+{{- end }}
+{{- end }}
+{{- end }}

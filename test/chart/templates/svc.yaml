@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Service
+metadata:
+  # Because we cannot provide a dynamic value to the application chart
+  # override-values, we have to use a static service name.
+  # This should only be an issue if you try to
+  # install two test charts to the same namespace
+  name: {{ .Values.rdapd.whoisDB.host | required "A service host name is required." }}
+  labels:
+    app: {{ template "rdapd-test-dependencies.fullname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+spec:
+  type: {{ .Values.database.service.type }}
+  ports:
+  - name: mysql
+    port: {{ .Values.database.service.port }}
+    targetPort: mysql
+    {{- if .Values.database.service.nodePort }}
+    nodePort: {{ .Values.database.service.nodePort }}
+    {{- end }}
+  selector:
+    app: {{ template "rdapd-test-dependencies.fullname" . }}

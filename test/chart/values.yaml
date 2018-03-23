@@ -1,0 +1,87 @@
+# Default values for rdapd-test-dependencies.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# These are the values used to override the main application chart
+# to configure it for the test deployment.
+# TODO: discuss use of override-values for both application + test
+rdapd:
+  whoisDB:
+    # Because we are using a domain/namespace agnostic service the host
+    # is not fully qualified. We rely on Kubernetes DNS search path.
+    host: rdapd-test-whoisdb
+    db: whoisdb
+    username: whois-user
+    password: whois-password
+
+
+# Database setup
+database:
+  ## Database image to use
+  ## The liveness and readiness probes use the mysqladmin utility, so
+  ## you are restricted to images with that tool (eg, "mysql" and "mariadb")
+  ## note: chart should be compatible with the mariadb image, but not tested!
+  image: "mysql"
+  imageTag: "5.5"
+
+  ## Specify password for root user
+  ##
+  ## Default: An empty string, as it's not required for testing
+  # rootPassword: testing
+
+  ## Specify an imagePullPolicy (Required)
+  ## It's recommended to change this to 'Always' if the image tag is 'latest'
+  ## ref: http://kubernetes.io/docs/user-guide/images/#updating-images
+  ##
+  imagePullPolicy: IfNotPresent
+
+  ## Configure resource requests and limits
+  ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
+  ##
+  resources:
+    requests:
+      memory: 128Mi
+      cpu: 100m
+
+  livenessProbe:
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    successThreshold: 1
+    failureThreshold: 3
+
+  readinessProbe:
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 1
+    successThreshold: 1
+    failureThreshold: 3
+
+  ## Persist data to a persistent volume
+  persistence:
+    ## When disabled an emptyDir is used for persistence
+    enabled: false
+
+    ## Set if you want to use an existing persistent volume claim
+    ## Doing so will not use the persistence values below to create a new claim
+    # existingClaim:
+
+    ## database data Persistent Volume Storage Class
+    ## If defined, storageClassName: <storageClass>
+    ## If set to "-", storageClassName: "", which disables dynamic provisioning
+    ## If undefined (the default) or set to null, no storageClassName spec is
+    ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+    ##   GKE, AWS & OpenStack)
+    ##
+    # storageClass: "-"
+    accessMode: ReadWriteOnce
+    size: 1Gi
+
+  ## Configure the service
+  ## ref: http://kubernetes.io/docs/user-guide/services/
+  service:
+    ## Specify a service type
+    ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services---service-types
+    type: ClusterIP
+    port: 3306
+    # nodePort: 32000
