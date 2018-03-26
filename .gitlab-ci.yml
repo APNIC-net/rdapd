@@ -456,12 +456,18 @@ production:
   }
 
   function install_tiller() {
+
     kubectl create -n "$TILLER_NAMESPACE"
 
-    echo "Creating Tiller Service Account"
+    echo "Creating Tiller Service Account for namespace ${TILLER_NAMESPACE}"
+    cat | kubectl apply -n "$TILLER_NAMESPACE" -f - << EOF
+    apiVersion: v1
+    kind: ServiceAccount
+    metadata:
+      name: tiller
+  EOF
 
-    kubectl create serviceaccount tiller -n "$TILLER_NAMESPACE"
-
+    echo "Creating Tiller Role for namespace ${TILLER_NAMESPACE}
     cat | kubectl apply -n "$TILLER_NAMESPACE" -f - << EOF
     kind: Role
     apiVersion: rbac.authorization.k8s.io/v1beta1
@@ -472,6 +478,8 @@ production:
         resources: ["*"]
         verbs: ["*"]
   EOF
+
+    echo "Creating Tiller RoleBinding for namespace ${TILLER_NAMESPACE}
     cat | kubectl apply -n "$TILLER_NAMESPACE" -f - << EOF
     kind: RoleBinding
     apiVersion: rbac.authorization.k8s.io/v1beta1
@@ -488,7 +496,7 @@ production:
 
 
     echo "Checking Tiller..."
-    helm init --upgrade --tiller-namespace "$TILLER_NAMESPACE" --tiller-image acr2.tst.apnic.net/asdf/kubernetes-helm/tiller:v2.8.0
+    helm init --upgrade --service-account "tiller" --tiller-namespace "$TILLER_NAMESPACE" --tiller-image acr2.tst.apnic.net/asdf/kubernetes-helm/tiller:v2.8.0
     kubectl rollout status -n "$TILLER_NAMESPACE" -w "deployment/tiller-deploy"
     if ! helm version --debug; then
       echo "Failed to init Tiller."
