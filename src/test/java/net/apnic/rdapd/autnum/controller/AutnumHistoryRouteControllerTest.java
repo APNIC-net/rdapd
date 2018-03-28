@@ -54,11 +54,13 @@ public class AutnumHistoryRouteControllerTest
 
         mvc.perform(get("/history/autnum/1234"))
             .andExpect(status().isOk())
-            .andExpect(RDAPControllerTesting.isRDAP());
+            .andExpect(RDAPControllerTesting.isRDAP())
+            .andExpect(RDAPControllerTesting.isRDAPHistoryResult());
 
         mvc.perform(get("/history/autnum/123456789"))
             .andExpect(status().isOk())
-            .andExpect(RDAPControllerTesting.isRDAP());
+            .andExpect(RDAPControllerTesting.isRDAP())
+            .andExpect(RDAPControllerTesting.isRDAPHistoryResult());
     }
 
     /**
