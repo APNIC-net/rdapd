@@ -57,7 +57,8 @@ public class EntityHistoryRouteControllerTest
 
         mvc.perform(get("/history/entity/ABC123"))
             .andExpect(status().isOk())
-            .andExpect(RDAPControllerTesting.isRDAP());
+            .andExpect(RDAPControllerTesting.isRDAP())
+            .andExpect(RDAPControllerTesting.isRDAPHistoryResult());
     }
 
     @Test
