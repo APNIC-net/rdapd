@@ -12,6 +12,7 @@ import net.apnic.rdapd.history.ObjectKey;
 import net.apnic.rdapd.history.Revision;
 import net.apnic.rdapd.rdap.AutNum;
 import net.apnic.rdapd.rdap.RdapObject;
+import static net.apnic.rdapd.rdap.RDAPTestingMatches.isRDAPDateTimeString;
 import net.apnic.rdapd.rpsl.rdap.RpslToRdap;
 
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -20,6 +21,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import org.springframework.test.web.servlet.ResultMatcher;
 
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.not;
 
 public class RDAPControllerTesting
@@ -47,6 +49,19 @@ public class RDAPControllerTesting
         return compositeResultMatcher(
                 header().string("Content-Type", "application/rdap+json"),
                 jsonPath("$.rdapConformance", not(empty()))
+        );
+    }
+
+    public static ResultMatcher isRDAPHistoryResult() {
+        return compositeResultMatcher(
+            isValidHistoryDates()
+        );
+    }
+
+    public static ResultMatcher isValidHistoryDates() {
+        return compositeResultMatcher(
+            jsonPath("$.records[*].applicableFrom", everyItem(isRDAPDateTimeString())),
+            jsonPath("$.records[*].applicableUntil", everyItem(isRDAPDateTimeString()))
         );
     }
 
