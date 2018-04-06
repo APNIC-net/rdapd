@@ -1,6 +1,7 @@
 package net.apnic.rdapd.rdap.json;
 
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonStreamContext;
 import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
@@ -9,21 +10,8 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 public class RelatedEntityFilter
     extends SimpleBeanPropertyFilter
 {
-    private static final int MAX_DEPTH = 1;
+    public RelatedEntityFilter() {}
 
-    private final ThreadLocal<Integer> entityDepthCount;
-
-    public RelatedEntityFilter()
-    {
-        entityDepthCount = new ThreadLocal<Integer>()
-        {
-            @Override
-            protected Integer initialValue()
-            {
-                return 0;
-            }
-        };
-    }
     @Override
     protected boolean include(BeanPropertyWriter writer)
     {
@@ -36,20 +24,34 @@ public class RelatedEntityFilter
         return true;
     }
 
+    private String getGrandparentContextName(JsonGenerator jgen)
+    {
+        JsonStreamContext jsonStreamContext = jgen.getOutputContext();
+        JsonStreamContext parentContext = jsonStreamContext.getParent();
+        if (parentContext == null) {
+            return null;
+        }
+        JsonStreamContext grandparentContext = parentContext.getParent();
+        if (grandparentContext == null) {
+            return null;
+        }
+        return grandparentContext.getCurrentName();
+    }
+
     @Override
     public void serializeAsField(Object pojo, JsonGenerator jgen,
         SerializerProvider provider, PropertyWriter writer)
         throws Exception
     {
-        if(writer.getName().equals("entities") && entityDepthCount.get().equals(MAX_DEPTH))
-        {
-            entityDepthCount.set(0);
-            return;
+        /* Do not include nested entities in responses. */
+        if (writer.getName().equals("entities")) {
+            String grandparentContextName = getGrandparentContextName(jgen);
+            if (grandparentContextName != null
+                    && grandparentContextName.equals("entities")) {
+                return;
+            }
         }
-        else if(writer.getName().equals("entities"))
-        {
-            entityDepthCount.set(entityDepthCount.get().intValue() + 1);
-        }
+
         writer.serializeAsField(pojo, jgen, provider);
     }
 }
