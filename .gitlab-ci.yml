@@ -54,11 +54,10 @@ build:
   stage: build
   image: docker:git
   services:
-  # APNIC Change to allow for insecure reg
-  #- docker:dind
-  - lordgaav/dind-options:latest
-  variables:
-    DOCKER_OPTS: "--insecure-registry=acr2.tst.apnic.net"
+  - name: docker:dind
+    command:
+    - '--insecure-registry=acr2.tst.apnic.net'
+    alias: docker
   script:
     - setup_docker
     - build
