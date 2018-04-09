@@ -1,7 +1,7 @@
 FROM maven:3.5-jdk-8-alpine
 
-ARG MAVEN_MIRROR_OF  '-'
-ARG MAVEN_MIRROR_URL ''
+ARG MAVEN_MIRROR_OF="-"
+ARG MAVEN_MIRROR_URL=""
 
 COPY maven_settings.xml /root/.m2/settings.xml
 
