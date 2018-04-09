@@ -1,6 +1,9 @@
 FROM maven:3.5-jdk-8-alpine
 
-ARG MAVEN_OPTS
+ARG MAVEN_MIRROR_OF  '-'
+ARG MAVEN_MIRROR_URL ''
+
+COPY maven_settings.xml /root/.m2/settings.xml
 
 ENV APP_DIR=/app
 ENV BUILD_DIR=/build

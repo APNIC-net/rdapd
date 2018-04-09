@@ -1,0 +1,10 @@
+<settings>
+    <mirrors>
+        <mirror>
+            <id>mirrorOverride</id>
+            <name>Override Mirror Settings For Portability</name>
+            <mirrorOf>${env.MAVEN_MIRROR_OF}</mirrorOf>
+            <url>${env.MAVEN_MIRROR_URL}</url>
+        </mirror>
+    </mirrors>
+</settings>
