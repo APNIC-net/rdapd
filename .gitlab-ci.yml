@@ -56,6 +56,7 @@ build:
   services:
   - name: docker:dind
     command:
+    - '--registry-mirror=acr2.tst.apnic.net'
     - '--insecure-registry=acr2.tst.apnic.net'
     alias: docker
   script:
