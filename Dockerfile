@@ -1,5 +1,7 @@
 FROM maven:3.5-jdk-8-alpine
 
+ARG MAVEN_OPTS
+
 ENV APP_DIR=/app
 ENV BUILD_DIR=/build
 ENV MAVEN_VERSION=3.3.9
