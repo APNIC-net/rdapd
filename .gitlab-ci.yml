@@ -298,7 +298,7 @@ production:
       echo ""
     fi
 
-    docker pull "codeclimate/codeclimate:${CODECLIMATE_VERSION}"
+    #docker pull "codeclimate/codeclimate:${CODECLIMATE_VERSION}"
     docker run ${cc_opts} "codeclimate/codeclimate:${CODECLIMATE_VERSION}" init
     docker run ${cc_opts} "codeclimate/codeclimate:${CODECLIMATE_VERSION}" analyze -f json > codeclimate.json
   }
