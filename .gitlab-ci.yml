@@ -292,17 +292,17 @@ production:
              --volume /var/run/docker.sock:/var/run/docker.sock \
              --volume /tmp/cc:/tmp/cc"
 
-    if [[ -n "$CI_REGISTRY_USER" ]]; then
-      echo "Logging to GitLab Container Registry with CI credentials..."
-      docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
-      echo ""
-    fi
+#    if [[ -n "$CI_REGISTRY_USER" ]]; then
+#      echo "Logging to GitLab Container Registry with CI credentials..."
+#      docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+#      echo ""
+#    fi
 
-    echo "Will try to pull ${CI_REGISTRY}/codeclimate/codeclimate:${CODECLIMATE_VERSION}"
-    docker pull "${CI_REGISTRY}/codeclimate/codeclimate:${CODECLIMATE_VERSION}"
-    echo "BP1!"
-    #docker pull "codeclimate:${CODECLIMATE_VERSION}"
-    echo "BP2!"
+#    echo "Will try to pull ${CI_REGISTRY}/codeclimate/codeclimate:${CODECLIMATE_VERSION}"
+#    docker pull "${CI_REGISTRY}/codeclimate/codeclimate:${CODECLIMATE_VERSION}"
+#    echo "BP1!"
+#    #docker pull "codeclimate:${CODECLIMATE_VERSION}"
+#    echo "BP2!"
     docker run ${cc_opts} "codeclimate/codeclimate:${CODECLIMATE_VERSION}" init
     docker run ${cc_opts} "codeclimate/codeclimate:${CODECLIMATE_VERSION}" analyze -f json > codeclimate.json
   }
