@@ -298,7 +298,8 @@ production:
       echo ""
     fi
 
-    #docker pull "codeclimate/codeclimate:${CODECLIMATE_VERSION}"
+    echo "Will try to pull ${CI_REGISTRY_IMAGE}/codeclimate/codeclimate:${CODECLIMATE_VERSION}"
+    docker pull "${CI_REGISTRY_IMAGE}/codeclimate/codeclimate:${CODECLIMATE_VERSION}"
     echo "BP1!"
     #docker pull "codeclimate:${CODECLIMATE_VERSION}"
     echo "BP2!"
