@@ -86,7 +86,11 @@ codequality:
     DOCKER_DRIVER: overlay2
   allow_failure: true
   services:
-    - docker:dind
+  - name: docker:dind
+    command:
+    - '--registry-mirror=https://acr2.tst.apnic.net'
+    - '--insecure-registry=acr2.tst.apnic.net'
+    alias: docker
   script:
     - setup_docker
     - codeclimate
