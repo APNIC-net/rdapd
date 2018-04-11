@@ -404,18 +404,18 @@ production:
       auto_chart_name="chart"
     fi
 
-    set
-    echo "test -> $auto_chart"
-
     helm init --client-only
     helm repo add gitlab https://charts.gitlab.io
     if [[ ! -d "$auto_chart" ]]; then
+      echo "BP3"
       helm fetch ${auto_chart} --untar
     fi
     if [ "$auto_chart_name" != "chart" ]; then
+      echo "BP4"
       mv ${auto_chart_name} chart
     fi
 
+    echo "BP5"
     helm dependency update chart/
     helm dependency build chart/
   }
