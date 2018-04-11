@@ -404,17 +404,8 @@ production:
       auto_chart_name="chart"
     fi
 
-
-    if [[ ! -d "$auto_chart" ]]; then
-      echo "BP3"
-    fi
-    if [ "$auto_chart_name" != "chart" ]; then
-      echo "BP4"
-    fi
-
-
     helm init --client-only
-    helm repo add gitlab https://charts.gitlab.io
+    # helm repo add gitlab https://charts.gitlab.io
     if [[ ! -d "$auto_chart" ]]; then
       helm fetch ${auto_chart} --untar
     fi
