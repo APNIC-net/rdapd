@@ -394,29 +394,23 @@ production:
 
   function download_chart() {
     if [[ ! -d chart ]]; then
-      echo "BP1"
       auto_chart=${AUTO_DEVOPS_CHART:-gitlab/auto-deploy-app}
       auto_chart_name=$(basename $auto_chart)
       auto_chart_name=${auto_chart_name%.tgz}
     else
-      echo "BP2"
       auto_chart="chart"
       auto_chart_name="chart"
     fi
 
-    echo "BP2.5"
     helm init --client-only --skip-refresh
     # helm repo add gitlab https://charts.gitlab.io
     if [[ ! -d "$auto_chart" ]]; then
-      echo "BP3"
       helm fetch ${auto_chart} --untar
     fi
     if [ "$auto_chart_name" != "chart" ]; then
-      echo "BP4"
       mv ${auto_chart_name} chart
     fi
 
-    echo "BP5"
     helm dependency update chart/
     helm dependency build chart/
   }
@@ -468,7 +462,8 @@ production:
 
   function install_tiller() {
 
-    kubectl create -n "$TILLER_NAMESPACE"
+    #kubectl create -n "$TILLER_NAMESPACE"
+    kubectl create namespace "$TILLER_NAMESPACE"
 
     echo "Creating Tiller Service Account for namespace ${TILLER_NAMESPACE}"
     cat | kubectl apply -n "$TILLER_NAMESPACE" -f - << EOF
