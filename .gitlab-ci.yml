@@ -405,7 +405,7 @@ production:
     fi
 
     echo "BP2.5"
-    helm init --client-only
+    helm init --client-only --skip-refresh
     # helm repo add gitlab https://charts.gitlab.io
     if [[ ! -d "$auto_chart" ]]; then
       echo "BP3"
