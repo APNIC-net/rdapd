@@ -77,9 +77,9 @@ test:
   script:
     - setup_test_db
     - cp -R . /tmp/app
-    - source /tmp/stdlib.sh
+    - source /tmp/stdlib.sh && /bin/herokuish buildpack test
     #- /bin/herokuish buildpack install
-    - /bin/herokuish buildpack test
+    #- /bin/herokuish buildpack test
   only:
     - branches
 
