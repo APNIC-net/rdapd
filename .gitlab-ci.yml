@@ -141,7 +141,7 @@ sast:container:
 
 review:
   stage: review
-  image: alpine-kubectl-helm:latest
+  image: alpine-kubectl-helm:1.0.0
   script:
     - check_kube_domain
     #- install_dependencies
