@@ -72,10 +72,12 @@ test:
     POSTGRES_DB: test
   stage: test
   #image: gliderlabs/herokuish:v0.3.35
-  image: gliderlabs/herokuish:latest
+  #image: gliderlabs/herokuish:latest
+  image: herokuish:apnic-1.0.0
   script:
     - setup_test_db
     - cp -R . /tmp/app
+    - source /tmp/stdlib.sh
     #- /bin/herokuish buildpack install
     - /bin/herokuish buildpack test
   only:
