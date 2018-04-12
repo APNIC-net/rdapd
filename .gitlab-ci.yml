@@ -71,11 +71,12 @@ test:
   variables:
     POSTGRES_DB: test
   stage: test
-  image: gliderlabs/herokuish:v0.3.35
+  #image: gliderlabs/herokuish:v0.3.35
+  image: gliderlabs/herokuish:latest
   script:
     - setup_test_db
     - cp -R . /tmp/app
-    - /bin/herokuish buildpack install
+    #- /bin/herokuish buildpack install
     - /bin/herokuish buildpack test
   only:
     - branches
