@@ -5,8 +5,6 @@ import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 
 import java.io.IOException;
-import java.util.function.Supplier;
-import javax.servlet.http.HttpServletRequest;
 
 import net.apnic.rdapd.rdap.controller.RequestContext;
 import net.apnic.rdapd.rdap.Link;
@@ -17,12 +15,9 @@ public class LinkSerializer
 {
     private static final long serialVersionUID = -12L;
 
-    private transient final RequestContext context;
-
-    public LinkSerializer(Supplier<HttpServletRequest> request)
+    public LinkSerializer()
     {
         super(Link.class);
-        this.context = new RequestContext(request);
     }
 
     @Override
@@ -31,11 +26,11 @@ public class LinkSerializer
         throws IOException
     {
         gen.writeStartObject();
-        gen.writeStringField("value", context.getContext().toString());
+        gen.writeStringField("value", RequestContext.getContext());
         gen.writeStringField("rel", value.getRel());
         gen.writeStringField("href",
             value instanceof RelativeLink ?
-                context.getReferenceWithSpec(value.getHref()).toString() :
+                RequestContext.getReferenceWithSpec(value.getHref()) :
                 value.getHref());
         gen.writeStringField("type", value.getType());
         gen.writeEndObject();
