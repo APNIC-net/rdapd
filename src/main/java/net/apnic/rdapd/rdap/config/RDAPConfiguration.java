@@ -7,12 +7,10 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.function.Supplier;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
-import javax.servlet.http.HttpServletRequest;
 
 import net.apnic.rdapd.rdap.controller.RDAPResponseMaker;
 import net.apnic.rdapd.rdap.json.LinkSerializer;
@@ -24,8 +22,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
 /**
  * General configuration bootstrap class that build and passes information
@@ -58,9 +54,7 @@ public class RDAPConfiguration
     public void init()
     {
         SimpleModule module = new SimpleModule();
-        Supplier<HttpServletRequest> requestSupplier = () ->
-            ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
-        module.addSerializer(Link.class, new LinkSerializer(requestSupplier));
+        module.addSerializer(Link.class, new LinkSerializer());
         objectMapper.registerModule(module);
         objectMapper.setFilters(new SimpleFilterProvider()
             .addFilter("relatedEntitiesFilter", new RelatedEntityFilter()));

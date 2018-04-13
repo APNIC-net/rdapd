@@ -1,9 +1,6 @@
 package net.apnic.rdapd.rdap.controller;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.function.Supplier;
-import javax.servlet.http.HttpServletRequest;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 /**
  * Utility class for RDAP endpoint to set the current thread local context for
@@ -11,18 +8,13 @@ import javax.servlet.http.HttpServletRequest;
  */
 public class RequestContext
 {
-    private final Supplier<HttpServletRequest> request;
-
-    public RequestContext(Supplier<HttpServletRequest> request)
+    public static String getContext()
     {
-        this.request = request;
-    }
+        ServletUriComponentsBuilder builder = ServletUriComponentsBuilder.fromCurrentRequest();
 
-    public URL getContext()
-    {
         try
         {
-            return new URL(request.get().getRequestURL().toString());
+            return builder.build().toString();
         }
         catch(Exception ex)
         {
@@ -30,27 +22,15 @@ public class RequestContext
         }
     }
 
-    public URL getReference()
+    public static String getReferenceWithSpec(String spec)
     {
-        URL context = getContext();
-        try
-        {
-            return new URL(context.getProtocol(), context.getHost(),
-                context.getPort(), "");
-        }
-        catch(MalformedURLException ex)
-        {
-            throw new RuntimeException(ex);
-        }
-    }
+        ServletUriComponentsBuilder builder = ServletUriComponentsBuilder.fromCurrentRequest();
 
-    public URL getReferenceWithSpec(String spec)
-    {
         try
         {
-            return new URL(getReference(), spec);
+            return builder.replacePath(spec).replaceQuery("").build().toString();
         }
-        catch(MalformedURLException ex)
+        catch(Exception ex)
         {
             throw new RuntimeException(ex);
         }
