@@ -73,7 +73,7 @@ test:
   stage: test
   #image: gliderlabs/herokuish:v0.3.35
   #image: gliderlabs/herokuish:latest
-  image: herokuish:apnic-1.0.1
+  image: herokuish:apnic-1.0.2
   script:
     - setup_test_db
     - cp -R . /tmp/app
