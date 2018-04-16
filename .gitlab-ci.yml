@@ -359,7 +359,7 @@ production:
       --namespace="$KUBE_NAMESPACE" \
       --version="$CI_PIPELINE_ID-$CI_JOB_ID" \
       "$name" \
-      chart/
+      test/chart/
   }
 
   function install_dependencies() {
