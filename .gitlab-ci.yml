@@ -386,6 +386,8 @@ production:
   }
 
   function setup_test() {
+    pwd
+    echo 'Test'
     ls
   }
 
