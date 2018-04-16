@@ -388,8 +388,9 @@ production:
 
   function setup_test() {
     pwd
+    whoami
     echo 'Test'
-    ls
+    cp maven_settings.xml /root/.m2/settings.xml
   }
 
   # TODO: remove?
