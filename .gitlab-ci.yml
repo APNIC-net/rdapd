@@ -390,6 +390,8 @@ production:
     pwd
     whoami
     echo 'Test'
+    export MAVEN_MIRROR_OF="external:*"
+    export MAVEN_MIRROR_URL="http://nexus.apnic.net:8081/nexus/content/groups/public"
     cp maven_settings.xml /root/.m2/settings.xml
   }
 
