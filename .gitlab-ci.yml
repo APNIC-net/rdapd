@@ -66,22 +66,17 @@ build:
     - branches
 
 test:
-  services:
-    - postgres:latest
-  variables:
-    POSTGRES_DB: test
   stage: test
   #image: gliderlabs/herokuish:v0.3.35
   #image: gliderlabs/herokuish:latest
-  image: herokuish:apnic-1.0.2
+  #image: herokuish:apnic-1.0.2
+  image: maven:3.5-jdk-8-alpine
   script:
-    - setup_test_db
-    - cp -R . /tmp/app
+    - setup_test
     #- source /tmp/stdlib.sh && /bin/herokuish buildpack test
     #- echo source /tmp/stdlib.sh >> ~/.bashrc
     #- bash
     #- export_env
-    - /bin/herokuish buildpack test
     #- /bin/herokuish buildpack install
     #- /bin/herokuish buildpack test
   only:
@@ -390,6 +385,11 @@ production:
     fi
   }
 
+  function setup_test() {
+    ls
+  }
+
+  # TODO: remove?
   function setup_test_db() {
     if [ -z ${KUBERNETES_PORT+x} ]; then
       DB_HOST=postgres
