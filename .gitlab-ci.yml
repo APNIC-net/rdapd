@@ -358,7 +358,6 @@ production:
       --set postgresql.postgresDatabase="$POSTGRES_DB" \
       --namespace="$KUBE_NAMESPACE" \
       --version="$CI_PIPELINE_ID-$CI_JOB_ID" \
-      # "$name-tests-support" \
       "rdapd-tests-dependencies" \
       test/chart/
 
