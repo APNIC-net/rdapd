@@ -344,7 +344,7 @@ production:
     helm del --purge rdad-test-dependencies
     helm list -a --namespace="$KUBE_NAMESPACE"
 
-    echo "about to install
+    echo "about to install..."
 
     helm upgrade --install \
       --wait \
