@@ -340,6 +340,9 @@ production:
       replicas="$new_replicas"
     fi
 
+    echo "Trying to purge"
+    helm del --purge rdad-test-dependencies
+
     helm upgrade --install \
       --wait \
       --namespace="$KUBE_NAMESPACE" \
