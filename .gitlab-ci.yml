@@ -41,6 +41,7 @@ variables:
 
 stages:
   - build
+  - test
   - review
   - staging
   - canary
@@ -357,7 +358,7 @@ production:
       --set postgresql.postgresDatabase="$POSTGRES_DB" \
       --namespace="$KUBE_NAMESPACE" \
       --version="$CI_PIPELINE_ID-$CI_JOB_ID" \
-      "rdapd-tests-dependencies" \
+      rdapd-tests-dependencies \
       test/chart/
 
     helm upgrade --install \
