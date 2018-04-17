@@ -65,7 +65,7 @@ build:
   only:
     - branches
 
-test:
+.test:
   stage: test
   #image: gliderlabs/herokuish:v0.3.35
   #image: gliderlabs/herokuish:latest
@@ -83,7 +83,7 @@ test:
   only:
     - branches
 
-codequality:
+.codequality:
   image: docker:latest
   variables:
     DOCKER_DRIVER: overlay2
@@ -119,7 +119,7 @@ performance:
       - branches
     kubernetes: active
 
-sast:
+.sast:
   image: gitlab-org/gl-sast:latest
   variables:
     POSTGRES_DB: "false"
@@ -129,7 +129,7 @@ sast:
   artifacts:
     paths: [gl-sast-report.json]
 
-sast:container:
+.sast:container:
   image: docker:latest
   variables:
     DOCKER_DRIVER: overlay2
