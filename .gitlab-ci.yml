@@ -41,7 +41,6 @@ variables:
 
 stages:
   - build
-  #- test
   - review
   - staging
   - canary
