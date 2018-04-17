@@ -4,6 +4,3 @@
 # TODO: discuss saving dep charts in repo (no, tar, unpacked ???)
 
 dependencies:
-  - name: rdapd
-    version: 1.1.1
-    repository: http://example.com/charts
