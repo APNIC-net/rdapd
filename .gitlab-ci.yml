@@ -341,7 +341,7 @@ production:
     fi
 
     echo "Trying to purge"
-    helm del --purge rdad-test-dependencies
+    #helm del --purge rdad-test-dependencies
     helm list -a --namespace="$KUBE_NAMESPACE"
 
     echo "about to install..."
