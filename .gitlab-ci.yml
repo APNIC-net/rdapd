@@ -341,6 +341,7 @@ production:
     fi
 
     helm upgrade --install \
+      --debug \
       --wait \
       --namespace="$KUBE_NAMESPACE" \
       --version="$CI_PIPELINE_ID-$CI_JOB_ID" \
