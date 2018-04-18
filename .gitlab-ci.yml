@@ -343,6 +343,8 @@ production:
     echo "Trying to purge"
     #helm del --purge rdad-test-dependencies
     helm list -a --namespace="$KUBE_NAMESPACE"
+    helm del --purge review-feature-gi-eqbjta-tests-support
+    helm del --purge rdapd-tests-dependencies
 
     echo "about to install..."
 
@@ -401,9 +403,6 @@ production:
   }
 
   function setup_test() {
-    pwd
-    whoami
-    echo 'Test'
     export MAVEN_MIRROR_OF="external:*"
     export MAVEN_MIRROR_URL="http://nexus.apnic.net:8081/nexus/content/groups/public"
     cp maven_settings.xml /root/.m2/settings.xml
