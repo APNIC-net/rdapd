@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
       - name: database
-        image: "library/{{ .Values.database.image }}:{{ .Values.database.imageTag }}"
+        image: "acr2.tst.apnic.net/library/{{ .Values.database.image }}:{{ .Values.database.imageTag }}"
         imagePullPolicy: {{ .Values.database.imagePullPolicy | quote }}
         resources:
 {{ toYaml .Values.database.resources | indent 10 }}
