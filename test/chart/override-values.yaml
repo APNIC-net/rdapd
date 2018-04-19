@@ -12,5 +12,6 @@ rdapd:
     password: whois-password
 
 service:
-  type: NodePort
+  #type: NodePort
+  type: ClusterIP
   port: 8080

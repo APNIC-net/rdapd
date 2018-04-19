@@ -14,7 +14,7 @@ jvm:
   maxMemory: "10G"
 
 service:
-  type: NodePort
+  type: ClusterIP
   port: 8080
 
 rdapd:
