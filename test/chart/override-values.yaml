@@ -6,12 +6,12 @@ rdapd:
   whoisDB:
     # Because we are using a domain/namespace agnostic service the host
     # is not fully qualified. We rely on Kubernetes DNS search path.
-    host: rdapd-test-whoisdb
+    host: rdapd-test-whoisdb:3306
     db: whoisdb
     username: whois-user
     password: whois-password
 
 service:
   #type: NodePort
-  type: ClusterIP
+  type: NodePort
   port: 8080
