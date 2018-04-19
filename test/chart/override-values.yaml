@@ -10,3 +10,7 @@ rdapd:
     db: whoisdb
     username: whois-user
     password: whois-password
+
+service:
+  type: NodePort
+  port: 8080
