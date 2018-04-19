@@ -16,3 +16,4 @@ spec:
       protocol: TCP
       port: 8080
       targetPort: http-rdap
+  type: {{ .Values.service.type }}
