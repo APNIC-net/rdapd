@@ -26,10 +26,9 @@ spring:
     name: @project.artifactId@
 
   datasource:
-    #url: "jdbc:mysql://${database.host}:3306/${database.database}?useunicode=true&characterencoding=utf8&charactersetresults=utf8&useSSL=false"
-    url: "jdbc:mysql://rdapd-test-whoisdb:3306/whoisdb?useunicode=true&characterencoding=utf8&charactersetresults=utf8&useSSL=false"
-    username: "whois-user"
-    password: "whois-password"
+    url: "jdbc:mysql://${database.host}:3306/${database.database}?useunicode=true&characterencoding=utf8&charactersetresults=utf8&useSSL=false"
+    username: "${database.username}"
+    password: "${database.password}"
 
 management:
   port: 8081
