@@ -65,25 +65,16 @@ build:
   only:
     - branches
 
-.test:
+test:
   stage: test
-  #image: gliderlabs/herokuish:v0.3.35
-  #image: gliderlabs/herokuish:latest
-  #image: herokuish:apnic-1.0.2
   image: maven:3.5-jdk-8-alpine
   script:
     - setup_test
     - mvn test
-    #- source /tmp/stdlib.sh && /bin/herokuish buildpack test
-    #- echo source /tmp/stdlib.sh >> ~/.bashrc
-    #- bash
-    #- export_env
-    #- /bin/herokuish buildpack install
-    #- /bin/herokuish buildpack test
   only:
     - branches
 
-.codequality:
+codequality:
   image: docker:latest
   variables:
     DOCKER_DRIVER: overlay2
@@ -119,7 +110,7 @@ build:
       - branches
     kubernetes: active
 
-.sast:
+sast:
   image: gitlab-org/gl-sast:latest
   variables:
     POSTGRES_DB: "false"
@@ -147,7 +138,6 @@ review:
   image: alpine-kubectl-helm:1.0.0
   script:
     - check_kube_domain
-    #- install_dependencies
     - download_chart
     - ensure_namespace
     - install_tiller
