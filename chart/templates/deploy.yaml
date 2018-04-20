@@ -50,7 +50,7 @@ spec:
               containerPort: 8080
               protocol: TCP
           volumeMounts:
-            - mountPath: /app/config/applications.yml
+            - mountPath: /app/config/application.yml
               name: rdapd-config
               subPath: application.yml
 
