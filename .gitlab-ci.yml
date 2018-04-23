@@ -80,7 +80,7 @@ codequality:
     DOCKER_DRIVER: overlay2
   allow_failure: true
   services:
-    <<: *docker:dind
+    <<: *docker-dind
   script:
     - setup_docker
     - codeclimate
