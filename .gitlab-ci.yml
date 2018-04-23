@@ -264,6 +264,7 @@ production:
   export CI_APPLICATION_TAG=$CI_COMMIT_SHA
   export CI_CONTAINER_NAME=ci_job_build_${CI_JOB_ID}
   export TILLER_NAMESPACE=$KUBE_NAMESPACE
+  env
 
   function sast_container() {
     docker run -d --name db arminc/clair-db:latest
