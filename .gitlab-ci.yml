@@ -263,6 +263,7 @@ production:
   export CI_APPLICATION_REPOSITORY=$CI_REGISTRY_IMAGE/$CI_COMMIT_REF_SLUG
   export CI_APPLICATION_TAG=$CI_COMMIT_SHA
   export CI_CONTAINER_NAME=ci_job_build_${CI_JOB_ID}
+  export KUBE_NAMESPACE=${CI_PROJECT_NAME}-${CI_BUILD_REF_SLUG}
   export TILLER_NAMESPACE=$KUBE_NAMESPACE
 
   function sast_container() {
@@ -480,7 +481,7 @@ production:
       name: tiller
   EOF
 
-    echo "Creating Tiller Role for namespace ${TILLER_NAMESPACE}
+    echo "Creating Tiller Role for namespace ${TILLER_NAMESPACE}"
     cat | kubectl apply -n "$TILLER_NAMESPACE" -f - << EOF
     kind: Role
     apiVersion: rbac.authorization.k8s.io/v1beta1
@@ -492,7 +493,7 @@ production:
         verbs: ["*"]
   EOF
 
-    echo "Creating Tiller RoleBinding for namespace ${TILLER_NAMESPACE}
+    echo "Creating Tiller RoleBinding for namespace ${TILLER_NAMESPACE}"
     cat | kubectl apply -n "$TILLER_NAMESPACE" -f - << EOF
     kind: RoleBinding
     apiVersion: rbac.authorization.k8s.io/v1beta1
