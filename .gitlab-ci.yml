@@ -493,7 +493,7 @@ production:
         verbs: ["*"]
   EOF
 
-    echo "Creating Tiller RoleBinding for namespace ${TILLER_NAMESPACE}
+    echo "Creating Tiller RoleBinding for namespace ${TILLER_NAMESPACE}"
     cat | kubectl apply -n "$TILLER_NAMESPACE" -f - << EOF
     kind: RoleBinding
     apiVersion: rbac.authorization.k8s.io/v1beta1
