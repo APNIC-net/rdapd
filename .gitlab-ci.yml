@@ -53,7 +53,7 @@ build:
   # APNIC Change removed overlay docker driver variable
   stage: build
   image: docker:git
-  services: &docker-dind
+  services: &dockerdind
   - name: docker:dind
     command:
     - '--registry-mirror=https://acr2.tst.apnic.net'
@@ -80,7 +80,7 @@ codequality:
     DOCKER_DRIVER: overlay2
   allow_failure: true
   services:
-    <<: *docker-dind
+    <<: *dockerdind
   script:
     - setup_docker
     - codeclimate
