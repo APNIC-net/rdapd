@@ -1,8 +1,12 @@
 FROM maven:3.5-jdk-8-alpine
 
+ARG MAVEN_MIRROR_OF="-"
+ARG MAVEN_MIRROR_URL=""
+
+COPY maven_settings.xml /root/.m2/settings.xml
+
 ENV APP_DIR=/app
 ENV BUILD_DIR=/build
-ENV MAVEN_VERSION=3.3.9
 ENV RESOURCE_DIR=$BUILD_DIR/target/classes
 
 EXPOSE 8080
@@ -14,7 +18,7 @@ COPY pom.xml ./
 RUN mvn package clean --fail-never
 
 COPY src/ ./src/
-RUN mvn package -DskipDocker && \
+RUN mvn package -DskipDocker -Dmaven.test.skip=true && \
     mkdir -p $APP_DIR/config && \
     cp target/*.jar $APP_DIR && \
     cp target/docker-extras/entrypoint.sh $APP_DIR && \

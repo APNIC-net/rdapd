@@ -1,8 +1,8 @@
 
-DROP TABLE IF EXISTS whowas_test.serials;
+DROP TABLE IF EXISTS rdapd_test.serials;
 
-DROP TABLE IF EXISTS whowas_test.last;
+DROP TABLE IF EXISTS rdapd_test.last;
 
-DROP TABLE IF EXISTS whowas_test.history;
+DROP TABLE IF EXISTS rdapd_test.history;
 
-DROP DATABASE IF EXISTS whowas_test;
+DROP DATABASE IF EXISTS rdapd_test;

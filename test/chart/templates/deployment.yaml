@@ -1,0 +1,101 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "rdapd-test-dependencies.fullname" . }}
+  labels:
+    app: {{ template "rdapd-test-dependencies.fullname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+spec:
+  selector:
+    matchLabels:
+      app: {{ template "rdapd-test-dependencies.fullname" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "rdapd-test-dependencies.fullname" . }}
+    spec:
+      containers:
+      - name: database
+        image: "acr2.tst.apnic.net/library/{{ .Values.database.image }}:{{ .Values.database.imageTag }}"
+        imagePullPolicy: {{ .Values.database.imagePullPolicy | quote }}
+        resources:
+{{ toYaml .Values.database.resources | indent 10 }}
+        env:
+        {{- if empty .Values.database.rootPassword }}
+        - name: MYSQL_ALLOW_EMPTY_PASSWORD
+          value: "true"
+        {{- else }}
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "rdapd-test-dependencies.fullname" . }}-database
+              key: database-root-password
+        {{- end }}
+        - name: MYSQL_DATABASE
+          value: {{ .Values.rdapd.whoisDB.db | quote }}
+        - name: MYSQL_USER
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "rdapd-test-dependencies.fullname" . }}-database
+              key: database-username
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "rdapd-test-dependencies.fullname" . }}-database
+              key: database-password
+        ports:
+        - name: mysql
+          containerPort: 3306
+        livenessProbe:
+          exec:
+            command:
+            {{- if empty .Values.database.rootPassword }}
+            - mysqladmin
+            - ping
+            {{- else }}
+            - sh
+            - -c
+            - "mysqladmin ping -u root -p${MYSQL_ROOT_PASSWORD}"
+            {{- end }}
+          initialDelaySeconds: {{ .Values.database.livenessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.database.livenessProbe.periodSeconds }}
+          timeoutSeconds: {{ .Values.database.livenessProbe.timeoutSeconds }}
+          successThreshold: {{ .Values.database.livenessProbe.successThreshold }}
+          failureThreshold: {{ .Values.database.livenessProbe.failureThreshold }}
+        readinessProbe:
+          exec:
+            command:
+            {{- if empty .Values.database.rootPassword }}
+            - mysqladmin
+            - ping
+            {{- else }}
+            - sh
+            - -c
+            - "mysqladmin ping -u root -p${MYSQL_ROOT_PASSWORD}"
+            {{- end }}
+          initialDelaySeconds: {{ .Values.database.readinessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.database.readinessProbe.periodSeconds }}
+          timeoutSeconds: {{ .Values.database.readinessProbe.timeoutSeconds }}
+          successThreshold: {{ .Values.database.readinessProbe.successThreshold }}
+          failureThreshold: {{ .Values.database.readinessProbe.failureThreshold }}
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/mysql
+          {{- if .Values.database.persistence.subPath }}
+          subPath: {{ .Values.database.persistence.subPath }}
+          {{- end }}
+        - name: init-scripts
+          mountPath: /docker-entrypoint-initdb.d
+      volumes:
+      - name: init-scripts
+        configMap:
+          name: {{ template "rdapd-test-dependencies.fullname" . }}-init
+      - name: data
+        {{- if .Values.database.persistence.enabled }}
+        persistentVolumeClaim:
+          claimName: {{ .Values.database.persistence.existingClaim | default (printf "%s-data" (include "rdapd-test-dependencies.fullname" .)) }}
+        {{- else }}
+        emptyDir: {}
+        {{- end -}}

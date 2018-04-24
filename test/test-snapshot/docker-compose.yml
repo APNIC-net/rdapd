@@ -8,7 +8,7 @@ services:
         environment:
             - MYSQL_USER=root
             - MYSQL_ALLOW_EMPTY_PASSWORD=yes
-    whowas:
+    rdapd:
         build:
             context: ../..
         depends_on:
@@ -17,12 +17,12 @@ services:
             - "8080:8080"
             - "8081:8081"
         volumes:
-            - ${SNAPSHOT_DIR_PATH}:/whowas-snapshot
+            - ${SNAPSHOT_DIR_PATH}:/rdapd-snapshot
         environment:
             - DATABASE_HOST=ripe-test-db
-            - DATABASE_DATABASE=whowas_test
+            - DATABASE_DATABASE=rdapd_test
             - SPRING_DATASOURCE_USERNAME=root
-            - SNAPSHOT_FILE=/whowas-snapshot/snapshot
+            - SNAPSHOT_FILE=/rdapd-snapshot/snapshot
 
 volumes:
-    whowas:
+    rdapd:

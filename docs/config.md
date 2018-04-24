@@ -2,7 +2,7 @@
 
 ## Configuration File
 
-WHOWAS is configured through a YAML file by the name of
+rdapd is configured through a YAML file by the name of
 *application.yml*.  The static path of the file is
 ```src/main/resource/application.yml```.  Its syntax is like so:
 
@@ -25,7 +25,7 @@ rdap:
 # Database infomation for a database that matches the RIPE schema.
 database:
   host: localhost
-  database: whowas
+  database: rdapd
   username: root
   password: null
 
@@ -39,6 +39,6 @@ management:
   port: 8081
 ```
 
-To configure WHOWAS at runtime, it's necessary to create a
+To configure rdapd at runtime, it's necessary to create a
 configuration file that can be given to the application. See
 the [deploy](deploy.md) documentation.

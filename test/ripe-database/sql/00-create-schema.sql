@@ -1,7 +1,7 @@
 
-CREATE DATABASE IF NOT EXISTS whowas_test;
+CREATE DATABASE IF NOT EXISTS rdapd_test;
 
-CREATE TABLE IF NOT EXISTS whowas_test.last (
+CREATE TABLE IF NOT EXISTS rdapd_test.last (
     object_id           INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
     sequence_id         INT(10) UNSIGNED NOT NULL,
     timestamp           INT(10) UNSIGNED NOT NULL,
@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS whowas_test.last (
     PRIMARY KEY (object_id, sequence_id) 
 );
 
-CREATE TABLE IF NOT EXISTS whowas_test.history (
+CREATE TABLE IF NOT EXISTS rdapd_test.history (
     object_id           INT(10) UNSIGNED NOT NULL,
     sequence_id         INT(10) UNSIGNED NOT NULL,
     timestamp           INT(10) UNSIGNED NOT NULL,
@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS whowas_test.history (
     PRIMARY KEY (object_id, sequence_id)
 );
 
-CREATE TABLE IF NOT EXISTS whowas_test.serials (
+CREATE TABLE IF NOT EXISTS rdapd_test.serials (
     thread_id           INT(10) UNSIGNED NOT NULL,
     serial_id           INT(11) NOT NULL,
     object_id           INT(8) UNSIGNED NOT NULL,

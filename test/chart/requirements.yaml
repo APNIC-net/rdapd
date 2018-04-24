@@ -1,0 +1,6 @@
+# Remember to update local subcharts after modifying this file
+# eg, helm dependency update .
+
+# TODO: discuss saving dep charts in repo (no, tar, unpacked ???)
+
+dependencies:

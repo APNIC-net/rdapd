@@ -1,0 +1,4 @@
+# TODO - add notes
+
+# - notes could be used to produce the override-values.yaml file for the application helm chart
+#   - maybe not, how would you capture the output and filter other helm stdout/etc
