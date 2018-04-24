@@ -571,6 +571,8 @@ production:
       helm delete "$name"
       helm delete "$(test_dep_name $name)"
     fi
+
+    kubectl delete namespace "$KUBE_NAMESPACE"
   }
 
 before_script:
