@@ -40,7 +40,7 @@ variables:
   CODECLIMATE_VERSION: 0.69.0
 
 stages:
-  - build
+  - package
   - test
   - review
   - staging
@@ -49,9 +49,9 @@ stages:
   - performance
   - cleanup
 
-build:
+package:
   # APNIC Change removed overlay docker driver variable
-  stage: build
+  stage: package
   image: docker:git
   services:
   - &dockerdind
