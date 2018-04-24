@@ -569,6 +569,7 @@ production:
 
     if [[ -n "$(helm ls -q "^$name$")" ]]; then
       helm delete "$name"
+      helm delete "$(test_dep_name $name)"
     fi
   }
 
