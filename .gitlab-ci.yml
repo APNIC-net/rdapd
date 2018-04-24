@@ -361,7 +361,7 @@ production:
   }
 
   function test_dep_name() {
-    local name = $1
+    local name=$1
     echo "test-dependencies-$name"
   }
 
