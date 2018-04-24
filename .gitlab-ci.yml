@@ -333,7 +333,7 @@ production:
       --wait \
       --namespace="$KUBE_NAMESPACE" \
       --version="$CI_PIPELINE_ID-$CI_JOB_ID" \
-      (test_dep_name $name) \
+      $(test_dep_name $name) \
       test/chart/
 
     helm upgrade --install \
