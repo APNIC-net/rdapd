@@ -144,7 +144,7 @@ review:
   environment:
     name: review/$CI_COMMIT_REF_NAME
     url: http://$CI_PROJECT_PATH_SLUG-$CI_ENVIRONMENT_SLUG.$AUTO_DEVOPS_DOMAIN
-    on_stop: stop_review
+    on_stop: cleanup
   artifacts:
     paths: [environment_url.txt]
   only:
@@ -154,7 +154,7 @@ review:
   except:
     - master
 
-stop_review:
+cleanup:
   stage: cleanup
   image: alpine-kubectl-helm:1.0.0
   variables:
