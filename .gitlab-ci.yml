@@ -40,7 +40,7 @@ variables:
   CODECLIMATE_VERSION: 0.69.0
 
 stages:
-  - build
+  - package
   - test
   - review
   - staging
@@ -49,9 +49,9 @@ stages:
   - performance
   - cleanup
 
-build:
+package:
   # APNIC Change removed overlay docker driver variable
-  stage: build
+  stage: package
   image: docker:git
   services:
   - &dockerdind
@@ -144,7 +144,7 @@ review:
   environment:
     name: review/$CI_COMMIT_REF_NAME
     url: http://$CI_PROJECT_PATH_SLUG-$CI_ENVIRONMENT_SLUG.$AUTO_DEVOPS_DOMAIN
-    on_stop: stop_review
+    on_stop: cleanup
   artifacts:
     paths: [environment_url.txt]
   only:
@@ -154,12 +154,12 @@ review:
   except:
     - master
 
-stop_review:
+cleanup:
   stage: cleanup
+  image: alpine-kubectl-helm:1.0.0
   variables:
     GIT_STRATEGY: none
   script:
-    - install_dependencies
     - delete
   environment:
     name: review/$CI_COMMIT_REF_NAME
@@ -263,6 +263,7 @@ production:
   export CI_APPLICATION_REPOSITORY=$CI_REGISTRY_IMAGE/$CI_COMMIT_REF_SLUG
   export CI_APPLICATION_TAG=$CI_COMMIT_SHA
   export CI_CONTAINER_NAME=ci_job_build_${CI_JOB_ID}
+  export KUBE_NAMESPACE=${CI_PROJECT_NAME}-${CI_BUILD_REF_SLUG}
   export TILLER_NAMESPACE=$KUBE_NAMESPACE
 
   function sast_container() {
@@ -332,7 +333,7 @@ production:
       --wait \
       --namespace="$KUBE_NAMESPACE" \
       --version="$CI_PIPELINE_ID-$CI_JOB_ID" \
-      "tests-dependencies-$name" \
+      $(test_dep_name $name) \
       test/chart/
 
     helm upgrade --install \
@@ -357,6 +358,11 @@ production:
       --values=test/chart/override-values.yaml \
       "$name" \
       chart/
+  }
+
+  function test_dep_name() {
+    local name=$1
+    echo "test-dependencies-$name"
   }
 
   function install_dependencies() {
@@ -480,7 +486,7 @@ production:
       name: tiller
   EOF
 
-    echo "Creating Tiller Role for namespace ${TILLER_NAMESPACE}
+    echo "Creating Tiller Role for namespace ${TILLER_NAMESPACE}"
     cat | kubectl apply -n "$TILLER_NAMESPACE" -f - << EOF
     kind: Role
     apiVersion: rbac.authorization.k8s.io/v1beta1
@@ -492,7 +498,7 @@ production:
         verbs: ["*"]
   EOF
 
-    echo "Creating Tiller RoleBinding for namespace ${TILLER_NAMESPACE}
+    echo "Creating Tiller RoleBinding for namespace ${TILLER_NAMESPACE}"
     cat | kubectl apply -n "$TILLER_NAMESPACE" -f - << EOF
     kind: RoleBinding
     apiVersion: rbac.authorization.k8s.io/v1beta1
@@ -563,7 +569,10 @@ production:
 
     if [[ -n "$(helm ls -q "^$name$")" ]]; then
       helm delete "$name"
+      helm delete "$(test_dep_name $name)"
     fi
+
+    kubectl delete namespace "$KUBE_NAMESPACE"
   }
 
 before_script:
