@@ -304,7 +304,7 @@ production:
     echo "starting export:"
     export
     echo "export ended"
-    ls ~/root
+    ls ~
   }
 
   function deploy() {
