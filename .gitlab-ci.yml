@@ -307,7 +307,7 @@ production:
     export
     echo "export ended"
     ls ~
-    kubectl get namespaces
+    kubectl --server="https://10.2.1.211:6443" get namespaces
     kubectl version
     kubectl get pods
     cat /builds/rdap/rdapd.tmp/KUBECONFIG
