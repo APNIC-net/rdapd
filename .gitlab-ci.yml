@@ -35,8 +35,8 @@ variables:
   POSTGRES_ENABLED: "true"
   POSTGRES_DB: $CI_ENVIRONMENT_SLUG
 
-  KUBERNETES_VERSION: 1.8.6
-  HELM_VERSION: 2.6.1
+  KUBERNETES_VERSION: 1.9.1
+  HELM_VERSION: 2.8.2
   CODECLIMATE_VERSION: 0.69.0
 
 stages:
@@ -135,7 +135,7 @@ review:
   image: alpine-kubectl-helm:1.0.0
   script:
     - check_kube_domain
-    - download_chart
+    - initialise_helm
     - ensure_namespace
     - install_tiller
     - create_secret
@@ -189,7 +189,7 @@ cleanup:
   script:
     - check_kube_domain
     - install_dependencies
-    - download_chart
+    - initialise_helm
     - ensure_namespace
     - install_tiller
     - create_secret
@@ -211,7 +211,7 @@ cleanup:
   script:
     - check_kube_domain
     - install_dependencies
-    - download_chart
+    - initialise_helm
     - ensure_namespace
     - install_tiller
     - create_secret
@@ -235,7 +235,7 @@ production:
   script:
     - check_kube_domain
     - install_dependencies
-    - download_chart
+    - initialise_helm
     - ensure_namespace
     - install_tiller
     - create_secret
@@ -405,7 +405,7 @@ production:
     export DATABASE_URL="postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${DB_HOST}:5432/${POSTGRES_DB}"
   }
 
-  function download_chart() {
+  function initialise_helm() {
     chart_dir=helm/chart
     helm init --client-only --skip-refresh
     helm dependency update "$chart_dir/"
