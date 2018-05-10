@@ -310,6 +310,7 @@ production:
     kubectl get namespaces
     kubectl version
     kubectl get pods
+    cat /builds/rdap/rdapd.tmp/KUBECONFIG
   }
 
   function deploy() {
