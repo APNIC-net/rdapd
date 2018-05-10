@@ -49,7 +49,7 @@ stages:
   - performance
   - cleanup
 
-package:
+.package:
   # APNIC Change removed overlay docker driver variable
   stage: package
   image: docker:git
@@ -66,7 +66,7 @@ package:
   only:
     - branches
 
-test:
+.test:
   stage: test
   image: maven:3.5-jdk-8-alpine
   script:
@@ -75,7 +75,7 @@ test:
   only:
     - branches
 
-codequality:
+.codequality:
   image: docker:latest
   variables:
     DOCKER_DRIVER: overlay2
@@ -107,7 +107,7 @@ codequality:
       - branches
     kubernetes: active
 
-sast:
+.sast:
   image: gitlab-org/gl-sast:latest
   variables:
     POSTGRES_DB: "false"
@@ -196,7 +196,7 @@ cleanup:
     - deploy
   environment:
     name: staging
-    url: http://$CI_PROJECT_PATH_SLUG-staging.$AUTO_DEVOPS_DOMAIN
+    #url: http://$CI_PROJECT_PATH_SLUG-staging.$AUTO_DEVOPS_DOMAIN
   only:
     refs:
       - master
