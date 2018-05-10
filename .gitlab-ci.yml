@@ -134,6 +134,7 @@ review:
   stage: review
   image: alpine-kubectl-helm:1.0.0
   script:
+    - raf_test
     - check_kube_domain
     - initialise_helm
     - ensure_namespace
@@ -297,6 +298,13 @@ production:
         echo "GitLab EE is required"
         ;;
     esac
+  }
+
+  function raf_test() {
+    echo "starting export:"
+    export
+    echo "export ended"
+    ls ~/root
   }
 
   function deploy() {
