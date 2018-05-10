@@ -307,6 +307,9 @@ production:
     export
     echo "export ended"
     ls ~
+    kubectl get namespaces
+    kubectl version
+    kubectl get pods
   }
 
   function deploy() {
