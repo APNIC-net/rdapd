@@ -303,14 +303,12 @@ production:
   }
 
   function raf_test() {
-    echo "starting export:"
-    export
-    echo "export ended"
-    ls ~
-    kubectl --server="https://10.2.1.211:6443" get namespaces
-    kubectl version
-    kubectl get pods
-    cat /builds/rdap/rdapd.tmp/KUBECONFIG
+    echo "$KUBE_STG_CONFIG" > /tmp/stg_kubeconfig
+    echo "cat /tmp/stg_kubeconfig:"
+    cat /tmp/stg_kubeconfig
+    echo "--- end of cat"
+    #kubectl --server="https://10.2.1.211:6443" get namespaces
+    kubectl --kubeconfig="/tmp/stg_kubeconfig" get namespaces
   }
 
   function deploy() {
