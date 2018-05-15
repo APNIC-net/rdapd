@@ -188,6 +188,7 @@ stages:
 
 staging:
   stage: staging
+  image: alpine-kubectl-helm:1.0.0
   script:
     - switch_to_stg_cluster
     - check_kube_domain
