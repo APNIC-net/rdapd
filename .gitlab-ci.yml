@@ -66,6 +66,7 @@ package:
   only:
     - branches
 
+# TODO: re-enable
 .test:
   stage: test
   image: maven:3.5-jdk-8-alpine
@@ -75,6 +76,7 @@ package:
   only:
     - branches
 
+# TODO: re-enable
 .codequality:
   image: docker:latest
   variables:
@@ -107,6 +109,7 @@ package:
       - branches
     kubernetes: active
 
+# TODO: re-enable
 .sast:
   image: gitlab-org/gl-sast:latest
   variables:
@@ -130,6 +133,7 @@ package:
   artifacts:
     paths: [gl-sast-container-report.json]
 
+# TODO: re-enable
 .review:
   stage: review
   image: alpine-kubectl-helm:1.0.0
@@ -156,6 +160,7 @@ package:
   except:
     - master
 
+# TODO: re-enable
 .cleanup:
   stage: cleanup
   image: alpine-kubectl-helm:1.0.0
@@ -200,10 +205,10 @@ staging:
   environment:
     name: staging
     #url: http://$CI_PROJECT_PATH_SLUG-staging.$AUTO_DEVOPS_DOMAIN
-  #only:
-    #refs:
-      #- master
-    #kubernetes: active
+  only:
+    refs:
+      - master
+    kubernetes: active
 
 # Canaries are disabled by default, but if you want them,
 # and know what the downsides are, enable this job by removing the dot (.),
@@ -452,7 +457,6 @@ staging:
   }
 
   function build() {
-
     if [[ -n "$CI_REGISTRY_USER" ]]; then
       echo "Logging to GitLab Container Registry with CI credentials..."
       docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
