@@ -1,0 +1,16 @@
+# This file overrides values from the application chart
+# (<project-root>/chart/values.yaml) for the purpose of
+# setting up a testing instance.
+
+rdapd:
+  whoisDB:
+    # Because we are using a domain/namespace agnostic service the host
+    # is not fully qualified. We rely on Kubernetes DNS search path.
+    host: rdapd-test-whoisdb
+    db: whoisdb
+    username: whois-user
+    password: whois-password
+
+service:
+  type: NodePort
+  port: 8080

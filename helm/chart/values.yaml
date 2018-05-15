@@ -5,8 +5,8 @@
 replicaCount: 1
 
 image:
-  repository: apnic/rdapd
-  tag: v1.2.0
+  repository: rdap/rdapd/master
+  #tag: v1.2.0
   pullPolicy: IfNotPresent
 
 jvm:

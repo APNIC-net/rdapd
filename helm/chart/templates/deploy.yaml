@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}-rdapd
+  name: {{ template "allocmgr.fullname" . }}
   labels:
     chart: {{ .Chart.Name }}-{{ .Chart.Version }}
     app: {{ template "fullname" . }}
