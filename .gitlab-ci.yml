@@ -49,7 +49,7 @@ stages:
   - performance
   - cleanup
 
-.package:
+package:
   # APNIC Change removed overlay docker driver variable
   stage: package
   image: docker:git
