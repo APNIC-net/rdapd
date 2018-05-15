@@ -369,6 +369,7 @@ staging:
     echo "$KUBE_STG_CONFIG" > "$CONFIG_FILE"
     export KUBECONFIG="$CONFIG_FILE"
     export KUBE_NAMESPACE="applications"
+    export TILLER_NAMESPACE=$KUBE_NAMESPACE
   }
 
   function deploy_to_stg() {
