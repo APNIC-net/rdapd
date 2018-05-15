@@ -134,7 +134,7 @@ review:
   stage: review
   image: alpine-kubectl-helm:1.0.0
   script:
-    - raf_test
+    - deploy_to_stg
     - check_kube_domain
     - initialise_helm
     - ensure_namespace
@@ -302,15 +302,6 @@ production:
     esac
   }
 
-  function raf_test() {
-    echo "$KUBE_STG_CONFIG" > /tmp/stg_kubeconfig
-    echo "cat /tmp/stg_kubeconfig:"
-    cat /tmp/stg_kubeconfig
-    echo "--- end of cat"
-    #kubectl --server="https://10.2.1.211:6443" get namespaces
-    kubectl --kubeconfig="/tmp/stg_kubeconfig" get namespaces
-  }
-
   function deploy() {
     track="${1-stable}"
     name="$CI_ENVIRONMENT_SLUG"
@@ -370,6 +361,20 @@ production:
       --values=helm/test-env-values.yaml \
       "$name" \
       helm/chart/
+  }
+
+  function deploy_to_stg() {
+    CONFIG_FILE="/tmp/stg_kubeconfig"
+    echo "$KUBE_STG_CONFIG" > "$CONFIG_FILE"
+    export KUBECONFIG="$CONFIG_FILE"
+
+    kubectl get namespaces
+    #kubectl --kubeconfig="/tmp/stg_kubeconfig" get namespaces
+    ## TODO : helm doesn't support --kubeconfig flag to specify the kubeconfig file. So it seems we will have to
+    ## overwrite the KUBECONFIG envvar to point to the stg kubeconfig, and then run helm init again
+
+    exit 1;
+
   }
 
   function test_dep_name() {
