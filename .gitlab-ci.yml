@@ -378,7 +378,6 @@ staging:
       --force \
       --wait \
       --set service.enabled="$service_enabled" \
-      --set releaseOverride="$CI_ENVIRONMENT_SLUG" \
       --set image.repository="$CI_APPLICATION_REPOSITORY" \
       --set image.tag="$CI_APPLICATION_TAG" \
       --set image.pullPolicy=IfNotPresent \
@@ -393,7 +392,7 @@ staging:
       --set postgresql.postgresDatabase="$POSTGRES_DB" \
       --namespace="$KUBE_NAMESPACE" \
       --version="$CI_PIPELINE_ID-$CI_JOB_ID" \
-      --values=helm/test-env-values.yaml \
+      --values=helm/staging-env-values.yaml \
       "$name" \
       helm/chart/
   }
