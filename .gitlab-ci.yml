@@ -373,7 +373,7 @@ staging:
   }
 
   function deploy_to_stg() {
-    name="$CI_ENVIRONMENT_SLUG"
+    name="$CI_PROJECT_NAME"
     helm upgrade --install \
       --force \
       --wait \
