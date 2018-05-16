@@ -193,7 +193,7 @@ package:
 
 staging:
   stage: staging
-  image: alpine-kubectl-helm:1.0.0
+  image: ci/alpine-kubectl-helm:1.0.1
   script:
     - switch_to_stg_cluster
     - check_kube_domain
@@ -201,6 +201,7 @@ staging:
     - ensure_namespace
     - install_tiller
     - create_secret
+    - push_stg_chart
     - deploy_to_stg
   environment:
     name: staging
@@ -377,16 +378,34 @@ staging:
     export TILLER_NAMESPACE=$KUBE_NAMESPACE
   }
 
+  function push_chart_to_stg() {
+    # Using yq until helm package supports --set
+    # https://github.com/kubernetes/helm/issues/3141
+    yq write -i helm/chart/values.yaml image.repository "$CI_APPLICATION_REPOSITORY"
+    yq write -i helm/chart/values.yaml image.tag "$CI_APPLICATION_TAG"
+    # Workaround for package requiring chart and folder names to match
+    # https://github.com/kubernetes/helm/issues/1979
+    export CHART_NAME="$(yq read helm/chart/Chart.yaml name)"
+    ln -sf chart "helm/$CHART_NAME"
+    helm package --version $CI_BUILD_ID "helm/$CHART_NAME"
+    export AWS_ACCESS_KEY_ID=$CI_CHART_REPO_USER
+    export AWS_SECRET_ACCESS_KEY=$CI_CHART_REPO_PASSWORD
+    export AWS_DEFAULT_REGION=us-east-1
+    export AWS_ENDPOINT=10.2.1.221:9000
+    export AWS_DISABLE_SSL=true
+    helm repo add staging s3://staging-charts/
+    helm s3 push "./$CHART_NAME-$CI_BUILD_ID.tgz" staging
+  }
+
   function deploy_to_stg() {
-    name="$CI_PROJECT_NAME"
     helm upgrade --install \
       --force \
       --wait \
       --namespace="$KUBE_NAMESPACE" \
-      --version="$CI_PIPELINE_ID-$CI_JOB_ID" \
+      --version="$CI_BUILD_ID" \
       --values=helm/staging-env-values.yaml \
-      "$name" \
-      helm/chart/
+      "$CHART_NAME" \
+      "staging/$CHART_NAME"
   }
 
   function test_dep_name() {

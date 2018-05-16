@@ -6,7 +6,7 @@ replicaCount: 1
 
 image:
   repository: rdap/rdapd/master
-  #tag: v1.2.0
+  tag: 0
   pullPolicy: IfNotPresent
 
 jvm:
