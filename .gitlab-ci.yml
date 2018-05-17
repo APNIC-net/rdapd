@@ -378,7 +378,7 @@ staging:
     export TILLER_NAMESPACE=$KUBE_NAMESPACE
   }
 
-  function push_chart_to_stg() {
+  function push_stg_chart() {
     # Using yq until helm package supports --set
     # https://github.com/kubernetes/helm/issues/3141
     yq write -i helm/chart/values.yaml image.repository "$CI_APPLICATION_REPOSITORY"
