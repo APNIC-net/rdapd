@@ -393,9 +393,7 @@ staging:
     export AWS_DEFAULT_REGION=us-east-1
     export AWS_ENDPOINT=10.2.1.221:9000
     export AWS_DISABLE_SSL=true
-    echo BP1
     helm repo add staging s3://staging-charts/
-    echo BP2
     helm s3 push "./$CHART_NAME-$CI_BUILD_ID.tgz" staging
   }
 

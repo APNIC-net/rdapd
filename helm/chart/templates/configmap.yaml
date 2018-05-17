@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Release.Name }}-rdapd
+  name: {{ template "fullname" . }}
   labels:
     chart: {{ .Chart.Name }}-{{ .Chart.Version }}
     app: {{ template "fullname" . }}
