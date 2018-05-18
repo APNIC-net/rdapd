@@ -6,7 +6,7 @@ rdapd:
   whoisDB:
     # Because we are using a domain/namespace agnostic service the host
     # is not fully qualified. We rely on Kubernetes DNS search path.
-    host: db.tst.apnic.net.
+    host: whois4.tst.apnic.net.
     db: apnicdb
     username: software
     password: test1234
