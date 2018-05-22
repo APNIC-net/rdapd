@@ -66,8 +66,7 @@ package:
   only:
     - branches
 
-# TODO: re-enable
-.test:
+test:
   stage: test
   image: maven:3.5-jdk-8-alpine
   script:
@@ -76,8 +75,7 @@ package:
   only:
     - branches
 
-# TODO: re-enable
-.codequality:
+codequality:
   image: docker:latest
   variables:
     DOCKER_DRIVER: overlay2
@@ -109,8 +107,7 @@ package:
       - branches
     kubernetes: active
 
-# TODO: re-enable
-.sast:
+sast:
   image: gitlab-org/gl-sast:latest
   variables:
     POSTGRES_DB: "false"
@@ -133,8 +130,7 @@ package:
   artifacts:
     paths: [gl-sast-container-report.json]
 
-# TODO: re-enable
-.review:
+review:
   stage: review
   image: alpine-kubectl-helm:1.0.0
   script:
@@ -160,8 +156,7 @@ package:
   except:
     - master
 
-# TODO: re-enable
-.cleanup:
+cleanup:
   stage: cleanup
   image: alpine-kubectl-helm:1.0.0
   variables:
@@ -441,16 +436,6 @@ staging:
     export MAVEN_MIRROR_OF="external:*"
     export MAVEN_MIRROR_URL="http://nexus.apnic.net:8081/nexus/content/groups/public"
     cp maven_settings.xml /root/.m2/settings.xml
-  }
-
-  # TODO: remove?
-  function setup_test_db() {
-    if [ -z ${KUBERNETES_PORT+x} ]; then
-      DB_HOST=postgres
-    else
-      DB_HOST=localhost
-    fi
-    export DATABASE_URL="postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${DB_HOST}:5432/${POSTGRES_DB}"
   }
 
   function initialise_helm() {
