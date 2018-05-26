@@ -9,4 +9,4 @@ run `rdapd` using that database:
     $ mysql -h127.0.0.1 -uroot -ppassword -e "CREATE DATABASE rpsl_rdap"
     $ mysql -h127.0.0.1 -uroot -ppassword -e "GRANT ALL ON *.* TO 'root'@'%'"
     $ mysql -h127.0.0.1 -uroot -ppassword rpsl_rdap < sql-data
-    $ java -Ddatabase.database=rpsl_rdap -Ddatabase.passsord=password -jar target/rdapd-{version}.jar &
+    $ java -Ddatabase.database=rpsl_rdap -Ddatabase.password=password -jar target/rdapd-{version}.jar &
