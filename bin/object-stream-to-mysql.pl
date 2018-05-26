@@ -157,6 +157,8 @@ while (my $record = <>) {
     if ($record =~ /^#/) {
         next;
     }
+    $record =~ s/^\s*//g;
+    $record =~ s/\s*$//g;
     $record =~ s/"/\\"/g;
     my $object = arrayify($record);
     my $object_type = $object->[0]->[0];
