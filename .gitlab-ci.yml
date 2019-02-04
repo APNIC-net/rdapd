@@ -49,24 +49,17 @@ stages:
   - performance
   - cleanup
 
-package:
-  # APNIC Change removed overlay docker driver variable
+.build_docker_image:
   stage: package
-  image: docker:git
-  services:
-  - &dockerdind
-    name: docker:dind
-    command:
-    - '--registry-mirror=https://acr2.tst.apnic.net'
-    - '--insecure-registry=acr2.tst.apnic.net'
-    alias: docker
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
   script:
-    - setup_docker
     - build
   only:
     - branches
 
-test:
+.unit_tests:
   stage: test
   image: maven:3.5-jdk-8-alpine
   script:
@@ -75,39 +68,61 @@ test:
   only:
     - branches
 
-codequality:
-  image: docker:latest
-  variables:
-    DOCKER_DRIVER: overlay2
-  allow_failure: true
-  services:
-    - *dockerdind
+publish_to_prod:
+  stage: production
+  image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
   script:
-    - setup_docker
-    - codeclimate
-  artifacts:
-    paths: [codeclimate.json]
+    - publish_chart tst
+  when: manual
 
-.performance:
-  stage: performance
-  image: docker:latest
-  variables:
-    DOCKER_DRIVER: overlay2
+.codequality:
+  image: registry.gitlab.com/gitlab-org/security-products/codequality:latest
   allow_failure: true
-  services:
-    - docker:dind
   script:
-    - setup_docker
-    - performance
+    - codequality
   artifacts:
-    paths:
-    - performance.json
+      reports:
+        codequality: gl-code-quality-report.json]
+
+.deploy_to_test:
+  stage: test
+  image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
+  script:
+    - configure_cluster
+    - check_kube_domain
+    - initialise_helm
+    - ensure_namespace
+    - install_tiller
+    - create_secret
+    - push_stg_chart
+    - deploy_to_stg
+  environment:
+    name: test
+    #url: http://$CI_PROJECT_PATH_SLUG-staging.$AUTO_DEVOPS_DOMAIN
   only:
-    refs:
-      - branches
-    kubernetes: active
+     - branches
 
-sast:
+#performance:
+#  stage: performance
+#  image: docker:latest
+#  variables:
+#    DOCKER_DRIVER: overlay2
+#  allow_failure: true
+#  services:
+#    - docker:dind
+#  script:
+#    - setup_docker
+#    - performance
+#  artifacts:
+#    paths:
+#    - performance.json
+#  only:
+#    refs:
+#      - branches
+#    kubernetes: active
+#
+
+.sast:
   image: gitlab-org/gl-sast:latest
   variables:
     POSTGRES_DB: "false"
@@ -116,45 +131,45 @@ sast:
     - sast .
   artifacts:
     paths: [gl-sast-report.json]
+#
+#.sast:container:
+#  image: docker:latest
+#  variables:
+#    DOCKER_DRIVER: overlay2
+#  allow_failure: true
+#  services:
+#    - docker:dind
+#  script:
+#    - setup_docker
+#    - sast_container
+#  artifacts:
+#    paths: [gl-sast-container-report.json]
 
-.sast:container:
-  image: docker:latest
-  variables:
-    DOCKER_DRIVER: overlay2
-  allow_failure: true
-  services:
-    - docker:dind
-  script:
-    - setup_docker
-    - sast_container
-  artifacts:
-    paths: [gl-sast-container-report.json]
-
-review:
-  stage: review
-  image: alpine-kubectl-helm:1.0.0
-  script:
-    - check_kube_domain
-    - initialise_helm
-    - ensure_namespace
-    - install_tiller
-    - create_secret
-    - deploy
-    - persist_environment_url
-  variables:
-    KUBE_URL: master01.node.stg.consul:6443
-  environment:
-    name: review/$CI_COMMIT_REF_NAME
-    url: http://$CI_PROJECT_PATH_SLUG-$CI_ENVIRONMENT_SLUG.$AUTO_DEVOPS_DOMAIN
-    on_stop: cleanup
-  artifacts:
-    paths: [environment_url.txt]
-  only:
-    refs:
-      - branches
-    kubernetes: active
-  except:
-    - master
+#review:
+#  stage: review
+#  image: $CI_REGISTRY/library/alpine-kubectl-helm:latest
+#  script:
+#    - check_kube_domain
+#    - initialise_helm
+#    - ensure_namespace
+#    - install_tiller
+#    - create_secret
+#    - deploy
+#    - persist_environment_url
+#  variables:
+#    KUBE_URL: kube-apiserver.service.tst.consul:6443
+#  environment:
+#    name: review/$CI_COMMIT_REF_NAME
+#    url: http://$CI_PROJECT_PATH_SLUG-$CI_ENVIRONMENT_SLUG.$AUTO_DEVOPS_DOMAIN
+#    on_stop: cleanup
+#  artifacts:
+#    paths: [environment_url.txt]
+#  only:
+#    refs:
+#      - branches
+#    kubernetes: active
+#  except:
+#    - master
 
 cleanup:
   stage: cleanup
@@ -186,7 +201,7 @@ cleanup:
 # only manually promote to production, enable this job by removing the dot (.),
 # and uncomment the `when: manual` line in the `production` job.
 
-staging:
+.staging:
   stage: staging
   image: ci/alpine-kubectl-helm:1.0.1
   script:
@@ -270,6 +285,8 @@ staging:
   export KUBE_NAMESPACE=${CI_PROJECT_NAME}-${CI_BUILD_REF_SLUG}
   export TILLER_NAMESPACE=$KUBE_NAMESPACE
 
+  export SOURCE_CODE=$PWD
+
   function sast_container() {
     docker run -d --name db arminc/clair-db:latest
     docker run -p 6060:6060 --link db:postgres -d --name clair arminc/clair-local-scan:v2.0.1
@@ -282,15 +299,19 @@ staging:
     ./clair-scanner -c http://docker:6060 --ip $(hostname -i) -r gl-sast-container-report.json -l clair.log -w clair-whitelist.yml ${CI_APPLICATION_REPOSITORY}:${CI_APPLICATION_TAG} || true
   }
 
-  function codeclimate() {
-    cc_opts="--env CODECLIMATE_CODE="$PWD" \
-             --volume "$PWD":/code \
-             --volume /var/run/docker.sock:/var/run/docker.sock \
-             --volume /tmp/cc:/tmp/cc"
-
-    docker run ${cc_opts} "codeclimate/codeclimate:${CODECLIMATE_VERSION}" init
-    docker run ${cc_opts} "codeclimate/codeclimate:${CODECLIMATE_VERSION}" analyze -f json > codeclimate.json
+  function codequality() {
+    /run.sh .
   }
+
+    function codeclimate() {
+      cc_opts="--env CODECLIMATE_CODE="$PWD" \
+               --volume "$PWD":/code \
+               --volume /var/run/docker.sock:/var/run/docker.sock \
+               --volume /tmp/cc:/tmp/cc"
+
+      docker run ${cc_opts} "codeclimate/codeclimate:${CODECLIMATE_VERSION}" init
+      docker run ${cc_opts} "codeclimate/codeclimate:${CODECLIMATE_VERSION}" analyze -f json > codeclimate.json
+    }
 
   function sast() {
     case "$CI_SERVER_VERSION" in
@@ -361,7 +382,7 @@ staging:
       --version="$CI_PIPELINE_ID-$CI_JOB_ID" \
       --values=helm/test-env-values.yaml \
       "$name" \
-      helm/chart/
+      helm/rdapd/
   }
 
   function switch_to_stg_cluster() {
@@ -373,14 +394,24 @@ staging:
     export TILLER_NAMESPACE=$KUBE_NAMESPACE
   }
 
+  function configure_cluster() {
+    echo "Configuring cluster"
+    echo $TEST_CLUSTER_CA_BUNDLE > ca.pem
+    kubectl config set-cluster test_cluster --certificate-authority=ca.pem --embed-certs=true --server=${TEST_CLUSTER_SERVER}
+    kubectl config set-credentials ci --client-certificate=ca.pem
+    kubectl config set-context gitlab-testing-deploy --namespace=${KUBE_NAMESPACE} --cluster=test_cluster --user=admin
+    kubectl config use-context gitlab-testing-deploy
+    kubectl config view
+  }
+
   function push_stg_chart() {
     # Using yq until helm package supports --set
     # https://github.com/kubernetes/helm/issues/3141
-    yq write -i helm/chart/values.yaml image.repository "$CI_APPLICATION_REPOSITORY"
-    yq write -i helm/chart/values.yaml image.tag "$CI_APPLICATION_TAG"
+    yq write -i helm/rdapd/values.yaml image.repository "$CI_APPLICATION_REPOSITORY"
+    yq write -i helm/rdapd/values.yaml image.tag "$CI_APPLICATION_TAG"
     # Workaround for package requiring chart and folder names to match
     # https://github.com/kubernetes/helm/issues/1979
-    export CHART_NAME="$(yq read helm/chart/Chart.yaml name)"
+    export CHART_NAME="$(yq read helm/rdapd/Chart.yaml name)"
     ln -sf chart "helm/$CHART_NAME"
     helm package --version $CI_BUILD_ID "helm/$CHART_NAME"
     export AWS_ACCESS_KEY_ID=$CI_CHART_REPO_USER
@@ -433,19 +464,22 @@ staging:
   }
 
   function setup_test() {
-    export MAVEN_MIRROR_OF="external:*"
-    export MAVEN_MIRROR_URL="http://nexus.apnic.net:8081/nexus/content/groups/public"
+    export MAVEN_MIRROR_OF=$MAVEN_MIRROR_OF
+    export MAVEN_MIRROR_URL=$MAVEN_MIRROR_URL
+    mkdir /root/.m2/
     cp maven_settings.xml /root/.m2/settings.xml
   }
 
   function initialise_helm() {
-    chart_dir=helm/chart
+    chart_dir=helm/rdapd
     helm init --client-only --skip-refresh
     helm dependency update "$chart_dir/"
     helm dependency build "$chart_dir/"
   }
 
   function ensure_namespace() {
+    kubectl config view
+    echo "##################"
     kubectl describe namespace "$KUBE_NAMESPACE" || kubectl create namespace "$KUBE_NAMESPACE"
   }
 
@@ -461,32 +495,19 @@ staging:
   }
 
   function build() {
-    if [[ -n "$CI_REGISTRY_USER" ]]; then
-      echo "Logging to GitLab Container Registry with CI credentials..."
-      docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
-      echo ""
-    fi
 
-    if [[ -f Dockerfile ]]; then
-      echo "Building Dockerfile-based application..."
-      docker build --build-arg MAVEN_MIRROR_OF="external:*" --build-arg MAVEN_MIRROR_URL="http://nexus.apnic.net:8081/nexus/content/groups/public" -t "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG" .
-    else
-      echo "Building Heroku-based application using gliderlabs/herokuish docker image..."
-      docker run -i --name="$CI_CONTAINER_NAME" -v "$(pwd):/tmp/app:ro" gliderlabs/herokuish /bin/herokuish buildpack build
-      docker commit "$CI_CONTAINER_NAME" "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG"
-      docker rm "$CI_CONTAINER_NAME" >/dev/null
-      echo ""
+    echo "Building Dockerfile-based application..."
+    echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+    cat registry.crt  >> /kaniko/ssl/certs/ca-certificates.crt
+    /kaniko/executor --context $CI_PROJECT_DIR --build-arg MAVEN_MIRROR_OF=$MAVEN_MIRROR_OF --build-arg MAVEN_MIRROR_URL=$MAVEN_MIRROR_URL --build-arg HTTP_PROXY=$HTTP_PROXY --build-arg HTTPS_PROXY=$HTTPS_PROXY --build-arg NO_PROXY=$NO_PROXY --dockerfile $CI_PROJECT_DIR/Dockerfile --destination $CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG
+  }
 
-      echo "Configuring $CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG docker image..."
-      docker create --expose 5000 --env PORT=5000 --name="$CI_CONTAINER_NAME" "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG" /bin/herokuish procfile start web
-      docker commit "$CI_CONTAINER_NAME" "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG"
-      docker rm "$CI_CONTAINER_NAME" >/dev/null
-      echo ""
-    fi
-
-    echo "Pushing to GitLab Container Registry..."
-    docker push "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG"
-    echo ""
+  function publish_chart() {
+    mkdir /root/helm_package/
+    helm package -d /root/helm_package/ helm/rdapd
+    cd /root/helm_package
+    echo "curl -s --data-binary \"@$(ls -A1 /root/helm_package/)\" $CHART_API_URI/api/$1/charts"
+    curl -s --data-binary "@$(ls -A1 /root/helm_package/)" $CHART_API_URI/api/$1/charts
   }
 
   function install_tiller() {
