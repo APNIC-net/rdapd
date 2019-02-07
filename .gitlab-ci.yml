@@ -93,7 +93,7 @@ stages:
     reports:
       codequality: gl-code-quality-report.json
 
-deploy_to_test:
+.deploy_to_test:
   stage: test
   image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
   script:
@@ -208,7 +208,7 @@ cleanup:
 # only manually promote to production, enable this job by removing the dot (.),
 # and uncomment the `when: manual` line in the `production` job.
 
-.staging:
+staging:
   stage: staging
   image: ci/alpine-kubectl-helm:1.0.1
   script:
@@ -224,9 +224,7 @@ cleanup:
     name: staging
     #url: http://$CI_PROJECT_PATH_SLUG-staging.$AUTO_DEVOPS_DOMAIN
   only:
-    refs:
-      - master
-    kubernetes: active
+    - branches
 
 # Canaries are disabled by default, but if you want them,
 # and know what the downsides are, enable this job by removing the dot (.),
@@ -291,8 +289,6 @@ cleanup:
   export CI_CONTAINER_NAME=ci_job_build_${CI_JOB_ID}
   export KUBE_NAMESPACE=${CI_PROJECT_NAME}-${CI_BUILD_REF_SLUG}
   export TILLER_NAMESPACE=$KUBE_NAMESPACE
-
-  export SOURCE_CODE=$PWD
 
   function sast_container() {
     docker run -d --name db arminc/clair-db:latest
