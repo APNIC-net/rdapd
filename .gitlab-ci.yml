@@ -98,6 +98,11 @@ deploy_to_test:
   image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
   script:
     - configure_cluster
+    - initialise_helm
+    - ensure_namespace
+#    - install_tiller
+    - create_secret
+#    - deploy
   environment:
     name: test
     #url: http://$CI_PROJECT_PATH_SLUG-staging.$AUTO_DEVOPS_DOMAIN
@@ -399,6 +404,8 @@ cleanup:
   function configure_cluster() {
     echo "Configuring cluster"
     echo $TEST_CLUSTER_CA_BUNDLE > ca.pem
+    kubectl config set-context gitlab-testing-deploy --namespace=${KUBE_NAMESPACE} --cluster=gitlab-deploy --user=admin
+    kubectl config use-context gitlab-testing-deploy
     kubectl config view
   }
 
@@ -476,8 +483,6 @@ cleanup:
   }
 
   function ensure_namespace() {
-    kubectl config view
-    echo "##################"
     kubectl describe namespace "$KUBE_NAMESPACE" || kubectl create namespace "$KUBE_NAMESPACE"
   }
 
