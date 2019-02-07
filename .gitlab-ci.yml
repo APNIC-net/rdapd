@@ -394,6 +394,7 @@ staging:
     export KUBECONFIG="$CONFIG_FILE"
     export KUBE_NAMESPACE="applications"
     export TILLER_NAMESPACE=$KUBE_NAMESPACE
+    echo $KUBE_NAMESPACE
   }
 
   function configure_cluster() {
