@@ -28,8 +28,7 @@ image: alpine:latest
 
 variables:
   # AUTO_DEVOPS_DOMAIN is the application deployment domain and should be set as a variable at the group or project level.
-   AUTO_DEVOPS_DOMAIN: rdapd.tst.apnic.net
-
+  AUTO_DEVOPS_DOMAIN: rdapd.tst.apnic.net
   POSTGRES_USER: user
   POSTGRES_PASSWORD: testing-password
   POSTGRES_ENABLED: "true"
