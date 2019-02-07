@@ -407,6 +407,7 @@ cleanup:
     kubectl config set-context gitlab-testing-deploy --namespace=${KUBE_NAMESPACE} --cluster=gitlab-deploy --user=admin
     kubectl config use-context gitlab-testing-deploy
     kubectl config view
+    echo $KUBE_NAMESPACE
   }
 
   function push_stg_chart() {
