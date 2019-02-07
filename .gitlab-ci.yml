@@ -210,7 +210,7 @@ cleanup:
 
 staging:
   stage: staging
-  image: ci/alpine-kubectl-helm:1.0.1
+  image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
   script:
     - switch_to_stg_cluster
     - check_kube_domain
