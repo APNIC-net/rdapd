@@ -49,7 +49,7 @@ stages:
   - performance
   - cleanup
 
-.build_docker_image:
+build_docker_image:
   stage: package
   image:
     name: gcr.io/kaniko-project/executor:debug
@@ -59,7 +59,7 @@ stages:
   only:
     - branches
 
-.unit_tests:
+unit_tests:
   stage: test
   image: maven:3.5-jdk-8-alpine
   script:
@@ -72,7 +72,7 @@ publish_to_prod:
   stage: production
   image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
   script:
-    - publish_chart tst
+    - publish_chart
   when: manual
 
 .codequality:
