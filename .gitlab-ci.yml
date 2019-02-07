@@ -75,7 +75,7 @@ stages:
     - publish_chart
   when: manual
 
-code_quality:
+.code_quality:
   image: docker:stable
   variables:
     DOCKER_DRIVER: overlay2
@@ -93,18 +93,18 @@ code_quality:
     reports:
       codequality: gl-code-quality-report.json
 
-.deploy_to_test:
+deploy_to_test:
   stage: test
   image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
   script:
     - configure_cluster
-    - check_kube_domain
-    - initialise_helm
-    - ensure_namespace
-    - install_tiller
-    - create_secret
-    - push_stg_chart
-    - deploy_to_stg
+#    - check_kube_domain
+#    - initialise_helm
+#    - ensure_namespace
+#    - install_tiller
+#    - create_secret
+#    - push_stg_chart
+#    - deploy_to_stg
   environment:
     name: test
     #url: http://$CI_PROJECT_PATH_SLUG-staging.$AUTO_DEVOPS_DOMAIN
@@ -406,10 +406,10 @@ cleanup:
   function configure_cluster() {
     echo "Configuring cluster"
     echo $TEST_CLUSTER_CA_BUNDLE > ca.pem
-    kubectl config set-cluster test_cluster --certificate-authority=ca.pem --embed-certs=true --server=${TEST_CLUSTER_SERVER}
-    kubectl config set-credentials ci --client-certificate=ca.pem
-    kubectl config set-context gitlab-testing-deploy --namespace=${KUBE_NAMESPACE} --cluster=test_cluster --user=admin
-    kubectl config use-context gitlab-testing-deploy
+#    kubectl config set-cluster test_cluster --certificate-authority=ca.pem --embed-certs=true --server=${TEST_CLUSTER_SERVER}
+#    kubectl config set-credentials gitlab --client-certificate=ca.pem
+#    kubectl config set-context gitlab-testing-deploy --namespace=${KUBE_NAMESPACE} --cluster=test_cluster --user=admin
+#    kubectl config use-context gitlab-testing-deploy
     kubectl config view
   }
 
