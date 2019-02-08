@@ -167,7 +167,6 @@ cleanup:
 
     helm upgrade --install \
       --force \
-      --tls \
       --wait \
       --namespace="$KUBE_NAMESPACE" \
       --version="$CI_PIPELINE_ID-$CI_JOB_ID" \
@@ -176,7 +175,6 @@ cleanup:
 
     helm upgrade --install \
       --force \
-      --tls \
       --wait \
       --set service.enabled="$service_enabled" \
       --set releaseOverride="$CI_ENVIRONMENT_SLUG" \
@@ -213,7 +211,6 @@ cleanup:
   function deploy_to_stg() {
     helm upgrade --install \
       --force \
-      --tls \
       --wait \
       --namespace="$KUBE_NAMESPACE" \
       --version="$CI_BUILD_ID" \
