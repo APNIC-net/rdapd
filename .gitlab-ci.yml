@@ -18,7 +18,7 @@ build_docker_image:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
   script:
-    - build
+    - build_and_push_docker_image $TEST_REGISTRY
   only:
     - branches
 
@@ -292,11 +292,12 @@ code_quality:
     fi
   }
 
-  function build() {
-    echo "Building Dockerfile-based application..."
-    echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+#Takes one argument: the repository server (test or prod)
+  function bulid_and_push_docker_image() {
+    echo "Creating and pusing docker image"
+    echo "{\"auths\":{\"$1\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
     cat registry.crt  >> /kaniko/ssl/certs/ca-certificates.crt
-    /kaniko/executor --context $CI_PROJECT_DIR --build-arg MAVEN_MIRROR_OF=$MAVEN_MIRROR_OF --build-arg MAVEN_MIRROR_URL=$MAVEN_MIRROR_URL --build-arg HTTP_PROXY=$HTTP_PROXY --build-arg HTTPS_PROXY=$HTTPS_PROXY --build-arg NO_PROXY=$NO_PROXY --dockerfile $CI_PROJECT_DIR/Dockerfile --destination $CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG
+    /kaniko/executor --context $CI_PROJECT_DIR --build-arg MAVEN_MIRROR_OF=$MAVEN_MIRROR_OF --build-arg MAVEN_MIRROR_URL=$MAVEN_MIRROR_URL --build-arg HTTP_PROXY=$HTTP_PROXY --build-arg HTTPS_PROXY=$HTTPS_PROXY --build-arg NO_PROXY=$NO_PROXY --dockerfile $CI_PROJECT_DIR/Dockerfile --destination $1/$REGISTRY_PATH/$CI_COMMIT_REF_SLUG:$CI_APPLICATION_TAG
   }
 
   function publish_chart() {
