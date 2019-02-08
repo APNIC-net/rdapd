@@ -456,10 +456,7 @@ cleanup:
         export DOCKER_HOST='tcp://localhost:2375'
       fi
     fi
-    mkdir -p /etc/docker/certs.d/$CI_REGISTRY/
-    cat registry.crt  >> /etc/docker/certs.d/$CI_REGISTRY/$CI_REGISTRY.crt
     cat registry.crt  >> /etc/ssl/certs/$CI_REGISTRY.crt
-    cat /etc/docker/certs.d/$CI_REGISTRY/ca.crt
 
   }
 
