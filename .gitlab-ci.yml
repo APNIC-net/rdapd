@@ -2,6 +2,10 @@ image: alpine:latest
 
 variables:
   AUTO_DEVOPS_DOMAIN: rdapd.tst.apnic.net
+  POSTGRES_USER: user
+  POSTGRES_PASSWORD: testing-password
+  POSTGRES_ENABLED: "true"
+  POSTGRES_DB: $CI_ENVIRONMENT_SLUG
   KUBERNETES_VERSION: 1.9.1
   HELM_VERSION: 2.8.2
   CODECLIMATE_VERSION: 0.69.0
@@ -9,8 +13,12 @@ variables:
 stages:
   - package
   - test
+  - review
   - staging
+  - canary
   - production
+  - performance
+  - cleanup
 
 .build_test_docker_image:
   stage: package
