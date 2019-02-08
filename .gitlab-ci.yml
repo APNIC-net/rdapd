@@ -74,7 +74,7 @@ stages:
     - publish_chart
   when: manual
 
-.code_quality:
+code_quality:
   image: docker:stable
   variables:
     DOCKER_DRIVER: overlay2
@@ -82,6 +82,7 @@ stages:
   services:
     - docker:stable-dind
   script:
+    - setup_docker
     - export SP_VERSION=$(echo "$CI_SERVER_VERSION" | sed 's/^\([0-9]*\)\.\([0-9]*\).*/\1-\2-stable/')
     - docker run
         --env SOURCE_CODE="$PWD"
@@ -207,7 +208,7 @@ cleanup:
 # only manually promote to production, enable this job by removing the dot (.),
 # and uncomment the `when: manual` line in the `production` job.
 
-staging:
+.staging:
   stage: staging
   image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
   script:
