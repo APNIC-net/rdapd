@@ -456,7 +456,7 @@ cleanup:
         export DOCKER_HOST='tcp://localhost:2375'
       fi
     fi
-    cp registry.crt /etc/ssl/certs/$CI_REGISTRY.crt
+    cat registry.crt  >> /root/ssl/certs/ca-certificates.crt
 
   }
 
