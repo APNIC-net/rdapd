@@ -1,79 +1,232 @@
 image: alpine:latest
 
 variables:
-  AUTO_DEVOPS_DOMAIN: rdapd.tst.apnic.net
+  POSTGRES_USER: user
+  POSTGRES_PASSWORD: testing-password
+  POSTGRES_ENABLED: "true"
+  POSTGRES_DB: $CI_ENVIRONMENT_SLUG
   KUBERNETES_VERSION: 1.9.1
   HELM_VERSION: 2.8.2
-  CODECLIMATE_VERSION: 0.69.0
+  CODECLIMATE_VERSION: 0.72.0
+  HTTP_PROXY: ${HTTP_PROXY}
+  HTTPS_PROXY: ${HTTPS_PROXY}
+  NO_PROXY: ${NO_PROXY}
 
 stages:
   - package
   - test
-  - staging
+  - review
+  - performance
   - production
+  - cleanup
 
-.build_test_docker_image:
+build_docker_image:
   stage: package
   image:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
   script:
-    - build_and_push_docker_image $TEST_REGISTRY
+    - build_docker_image
   only:
-    - branches
+    refs:
+      - branches
+  except:
+    refs:
+      - master
+    variables:
+      - $DISABLED_BUILD_IMAGE
 
-.unit_tests:
+fake_build:
+  variables:
+    DOCKER_DRIVER: overlay2
+    HTTP_PROXY: ${HTTP_PROXY}
+    HTTPS_PROXY: ${HTTPS_PROXY}
+    NO_PROXY: ${NO_PROXY}
+  stage: test
+  image: docker:stable
+  allow_failure: true
+  services:
+    - name: $CI_REGISTRY/ci/dind:0.0.1
+  script:
+    - setup_docker
+    - fake_build
+  only:
+    refs:
+      - branches
+  except:
+    refs:
+      - master
+    variables:
+      - $DISABLED_FAKE_BUILD_IMAGE
+
+unit_tests:
   stage: test
   image: maven:3.5-jdk-8-alpine
   script:
     - setup_maven
     - mvn test
   only:
-    - branches
+    refs:
+      - branches
+  except:
+    refs:
+      - master
+    variables:
+      - $DISABLED_UNIT_TESTS
 
-.publish_to_test:
+publish_to_test:
   stage: test
-  image: $TEST_REGISTRY/ci/alpine-kubectl-helm:1.0.1
+  image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
   script:
     - publish_chart tst
   only:
-    - branches
+    refs:
+      - branches
+  except:
+    refs:
+      - master
+    variables:
+      - $DISABLED_PUBLISH
 
-.publish_to_prod:
+publish_to_prod:
   stage: production
-  image: $TEST_REGISTRY/ci/alpine-kubectl-helm:1.0.1
+  image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
   script:
     - publish_chart prod
-  when: manual
+  only:
+    refs:
+      - master
+  except:
+      variables:
+        - $DISABLED_PUBLISH
 
-.code_quality:
-  stage: test
-  image: docker:stable
+codequality:
+  variables:
+    DOCKER_DRIVER: overlay2
+    HTTP_PROXY: ${HTTP_PROXY}
+    HTTPS_PROXY: ${HTTPS_PROXY}
+    NO_PROXY: ${NO_PROXY}
+  stage: review
+  image: $CI_REGISTRY/alex/docker-apnic:0.0.4
   allow_failure: true
   services:
-    - docker:stable-dind
+    - name: "$CI_REGISTRY/alex/dind-apnic:0.0.13"
   script:
     - setup_docker
-    - registry_login
     - code_quality
   artifacts:
     paths: [gl-code-quality-report.json]
   only:
-    - branches
+    refs:
+      - branches
   except:
+    refs:
+      - master
     variables:
-      - $CODE_QUALITY_DISABLED
+      - $DISABLED_CODE_QUALITY
 
-deploy_to_test:
+sast:
+  image: docker:stable
   stage: test
-  image: $TEST_REGISTRY/ci/alpine-kubectl-helm:1.0.1
+  variables:
+    DOCKER_DRIVER: overlay2
+  allow_failure: true
+  services:
+    - $CI_REGISTRY/ci/dind:0.0.1
   script:
-    - export KUBE_NAMESPACE=${CI_PROJECT_NAME}-${CI_BUILD_REF_SLUG}
-    - configure_cluster ${CI_PROJECT_NAME}-${CI_BUILD_REF_SLUG}
-    - initialise_helm
-    - deploy
+    - setup_docker
+    - sast
+  artifacts:
+    paths: [gl-sast-container-report.json]
   only:
-    - branches
+    refs:
+      - branches
+  except:
+    refs:
+      - master
+    variables:
+      - $DISABLED_SAST
+
+review:
+  stage: review
+  image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
+  variables:
+    HTTP_PROXY: ${HTTP_PROXY}
+    HTTPS_PROXY: ${HTTPS_PROXY}
+    NO_PROXY: ${NO_PROXY}
+  script:
+    - configure_cluster ${CI_PROJECT_NAME}-${CI_BUILD_REF_SLUG}
+    - initialise_helm$CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
+    - ensure_namespace
+    - create_secret
+    - deploy
+    - persist_environment_url
+  environment:
+    name: review/$CI_COMMIT_REF_NAME
+    url: ${TEST_CLUSTER_SERVER}/api/v1/namespaces/${CI_PROJECT_NAME}-${CI_BUILD_REF_SLUG}/services/${CI_ENVIRONMENT_SLUG}-rdapd:8080/proxy/
+    on_stop: cleanup
+  artifacts:
+    paths: [environment_url.txt, environment.html]
+  only:
+    refs:
+      - branches
+    kubernetes: active
+  except:
+    refs:
+      - master
+    variables:
+      - $DISABLED_REVIEW
+
+.performance:
+  stage: performance
+  image: docker:latest
+  variables:
+    DOCKER_DRIVER: overlay2
+    HTTP_PROXY: ${HTTP_PROXY}
+    HTTPS_PROXY: ${HTTPS_PROXY}
+    NO_PROXY: ${NO_PROXY}
+
+  allow_failure: true
+  services:
+    - $CI_REGISTRY/ci/dind:0.0.1
+  script:
+    - setup_docker
+    - performance
+  artifacts:
+    paths:
+    - performance.json
+  only:
+    refs:
+      - branches
+    kubernetes: active
+  except:
+    refs:
+      - master
+    variables:
+      - $DISABLED_PERFORMANCE
+
+
+cleanup:
+  stage: cleanup
+  image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - delete_charts
+  environment:
+    name: review/$CI_COMMIT_REF_NAME
+    action: stop
+  when: manual
+  allow_failure: true
+  only:
+    refs:
+      - branches
+    kubernetes: active
+  except:
+    refs:
+      - master
+    variables:
+      - $DISABLED_CLEANUP
 
 # ---------------------------------------------------------------------------
 
@@ -86,63 +239,81 @@ deploy_to_test:
   export CI_APPLICATION_TAG=$CI_PIPELINE_ID.$CI_COMMIT_SHA
   export CI_CONTAINER_NAME=ci_job_build_${CI_JOB_ID}
   export KUBE_NAMESPACE=${CI_PROJECT_NAME}-${CI_BUILD_REF_SLUG}
-  export TILLER_NAMESPACE=$KUBE_NAMESPACE
+  export TILLER_NAMESPACE='tiller'
+  export SP_VERSION=$(echo "$CI_SERVER_VERSION" | sed 's/^\([0-9]*\)\.\([0-9]*\).*/\1-\2-stable/')
+
+  function sast() {
+    case "$CI_SERVER_VERSION" in
+      *-ee)
+
+        # Deprecation notice for CONFIDENCE_LEVEL variable
+        if [ -z "$SAST_CONFIDENCE_LEVEL" -a "$CONFIDENCE_LEVEL" ]; then
+          SAST_CONFIDENCE_LEVEL="$CONFIDENCE_LEVEL"
+          echo "WARNING: CONFIDENCE_LEVEL is deprecated and MUST be replaced with SAST_CONFIDENCE_LEVEL"
+        fi
+
+        echo "docker run --env SAST_CONFIDENCE_LEVEL=\"${SAST_CONFIDENCE_LEVEL:-3}\" --volume \"$PWD:/code\" --volume /var/run/docker.sock:/var/run/docker.sock \"registry.gitlab.com/gitlab-org/security-products/sast:$SP_VERSION\" /app/bin/run /code"
+
+        docker run --env SAST_CONFIDENCE_LEVEL="${SAST_CONFIDENCE_LEVEL:-3}" \
+                   --volume "$PWD:/code" \
+                   --volume /var/run/docker.sock:/var/run/docker.sock \
+                   "registry.gitlab.com/gitlab-org/security-products/sast:$SP_VERSION" /app/bin/run /code
+        ;;
+      *)
+        echo "GitLab EE is required"
+        ;;
+    esac
+  }
 
   function code_quality() {
-    docker run --env SOURCE_CODE="$PWD" \
-               --volume "$PWD":/code \
-               --volume /var/run/docker.sock:/var/run/docker.sock \
-               "registry.gitlab.com/gitlab-org/security-products/codequality:$SP_VERSION" /code
+  echo $DOCKER_CONFIG
+  docker run --env SOURCE_CODE="$(pwd)" \
+          --env HTTP_PROXY=$HTTP_PROXY \
+          --env HTTPS_PROXY=$HTTPS_PROXY \
+          --env NO_PROXY=$NO_PROXY \
+          --volume $(pwd):/code \
+          --volume /var/run/docker.sock:/var/run/docker.sock \
+          "acr2.tst.apnic.net/alex/codequality:0.0.3" /code
   }
 
   function deploy() {
-    track="${1-stable}"
-    name="$CI_ENVIRONMENT_SLUG"
-
-    if [[ "$track" != "stable" ]]; then
-      name="$name-$track"
-    fi
-
+    name=$(get_name)
     replicas="1"
-    service_enabled="false"
     postgres_enabled="$POSTGRES_ENABLED"
-    # canary uses stable db
-    [[ "$track" == "canary" ]] && postgres_enabled="false"
+    test_name="$(test_dep_name $name)"
+    echo "Starting test chart install"
 
-    env_track=$( echo $track | tr -s  '[:lower:]'  '[:upper:]' )
-    env_slug=$( echo ${CI_ENVIRONMENT_SLUG//-/_} | tr -s  '[:lower:]'  '[:upper:]' )
-
-    if [[ "$track" == "stable" ]]; then
-      # for stable track get number of replicas from `PRODUCTION_REPLICAS`
-      eval new_replicas=\$${env_slug}_REPLICAS
-      service_enabled="true"
-    else
-      # for all tracks get number of replicas from `CANARY_PRODUCTION_REPLICAS`
-      eval new_replicas=\$${env_track}_${env_slug}_REPLICAS
+    if [[ -n $(helm ls -q "^$test_name$") ]]; then
+      echo "helm delete --purge \"$test_name\""
+      helm delete --purge "$test_name"
+      echo "$test_name deleted"
     fi
-    if [[ -n "$new_replicas" ]]; then
-      replicas="$new_replicas"
-    fi
-
     helm upgrade --install \
+      --tiller-namespace=$TILLER_NAMESPACE \
       --force \
       --wait \
       --namespace="$KUBE_NAMESPACE" \
       --version="$CI_PIPELINE_ID-$CI_JOB_ID" \
-      $(test_dep_name $name) \
+      $test_name \
       helm/test/
 
+    echo "Starting rdapd chart install"
+
+    if [[ -n $(helm ls -q "^$name$") ]]; then
+      echo "helm delete --purge \"$name\""
+      helm delete --purge "$name" &>/dev/null
+      echo "$name deleted"
+    fi
+
     helm upgrade --install \
+      --tiller-namespace=$TILLER_NAMESPACE \
       --force \
       --wait \
-      --set service.enabled="$service_enabled" \
       --set releaseOverride="$CI_ENVIRONMENT_SLUG" \
-      --set image.repository="$CI_APPLICATION_REPOSITORY" \
+      --set image.repository="$CI_REGISTRY/$CI_REGISTRY_PATH/$CI_COMMIT_REF_SLUG" \
       --set image.tag="$CI_APPLICATION_TAG" \
       --set image.pullPolicy=IfNotPresent \
-      --set application.track="$track" \
       --set application.database_url="$DATABASE_URL" \
-      --set service.url="$CI_ENVIRONMENT_URL" \
       --set replicaCount="$replicas" \
       --set postgresql.enabled="$postgres_enabled" \
       --set postgresql.nameOverride="postgres" \
@@ -156,12 +327,9 @@ deploy_to_test:
       helm/rdapd/
   }
 
-  #Takes one parameter: a namespace
   function configure_cluster() {
     echo "Configuring cluster"
     echo $TEST_CLUSTER_CA_BUNDLE > test_cluster_ca.crt
-    cat test_cluster_ca.crt
-    #kubectl config set-cluster --kubeconfig=ci ci --server=$TEST_CLUSTER_SERVER --certificate-authority=test_cluster_ca.crt
     kubectl config set-cluster --kubeconfig=ci ci --server=$TEST_CLUSTER_SERVER --insecure-skip-tls-verify=true
     kubectl config set-context  --kubeconfig=ci ci --namespace=$1 --cluster=ci --user=ci
     kubectl config set-credentials --kubeconfig=ci ci --token=$KUBE_TOKEN
@@ -169,15 +337,13 @@ deploy_to_test:
     export  KUBECONFIG=ci
   }
 
-  function deploy_to_stg() {
-    helm upgrade --install \
-      --force \
-      --wait \
-      --namespace="$KUBE_NAMESPACE" \
-      --version="$CI_BUILD_ID" \
-      --values=helm/$1-env-values.yaml \
-      "$CHART_NAME" \
-      "staging/$CHART_NAME"
+  function test_dep_name() {
+    local name=$1
+    echo "$name-test-env"
+  }
+
+  function get_name() {
+    echo $CI_ENVIRONMENT_SLUG
   }
 
   function setup_docker() {
@@ -186,6 +352,7 @@ deploy_to_test:
         export DOCKER_HOST='tcp://localhost:2375'
       fi
     fi
+    echo "docker login -u \"$CI_REGISTRY_USER\" -p \"$CI_REGISTRY_PASSWORD\" \"$CI_REGISTRY\""
     docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
   }
 
@@ -203,13 +370,25 @@ deploy_to_test:
     helm dependency build "$chart_dir/"
   }
 
-  #Takes one argument: the repository server (test or prod)
-  function build_and_push_docker_image() {
-    echo "Creating and pusing docker image"
-    echo "{\"auths\":{\"$1\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
-    cat registry.crt  >> /kaniko/ssl/certs/ca-certificates.crt
-    echo "$1/$REGISTRY_PATH/$CI_COMMIT_REF_SLUG:$CI_APPLICATION_TAG"
-    /kaniko/executor --context $CI_PROJECT_DIR --build-arg MAVEN_MIRROR_OF=$MAVEN_MIRROR_OF --build-arg MAVEN_MIRROR_URL=$MAVEN_MIRROR_URL --build-arg HTTP_PROXY=$HTTP_PROXY --build-arg HTTPS_PROXY=$HTTPS_PROXY --build-arg NO_PROXY=$NO_PROXY --dockerfile $CI_PROJECT_DIR/Dockerfile --destination $1/$REGISTRY_PATH/$CI_COMMIT_REF_SLUG:$CI_APPLICATION_TAG
+  function ensure_namespace() {
+    kubectl describe namespace "$KUBE_NAMESPACE" || kubectl create namespace "$KUBE_NAMESPACE"
+  }
+
+  function fake_build() {
+    docker pull acr2.tst.apnic.net/rdap/rdapd/ci-tests:1942.3ad6a0224f645d708c6f433ed62ac99f8a084d19
+    docker tag acr2.tst.apnic.net/rdap/rdapd/ci-tests:1942.3ad6a0224f645d708c6f433ed62ac99f8a084d19 $CI_REGISTRY/$CI_REGISTRY_PATH/$CI_COMMIT_REF_SLUG:$CI_APPLICATION_TAG
+    docker push $CI_REGISTRY/$CI_REGISTRY_PATH/$CI_COMMIT_REF_SLUG:$CI_APPLICATION_TAG
+  }
+
+  function build_docker_image() {
+    echo "Creating and pusing docker image $CI_REGISTRY/$CI_REGISTRY_PATH/$CI_COMMIT_REF_SLUG:$CI_APPLICATION_TAG"
+    echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+    cat gitlab-ci/registry.crt  >> /kaniko/ssl/certs/ca-certificates.crt
+    /kaniko/executor --context $CI_PROJECT_DIR --build-arg MAVEN_MIRROR_OF=$MAVEN_MIRROR_OF \
+    --build-arg MAVEN_MIRROR_URL=$MAVEN_MIRROR_URL --build-arg HTTP_PROXY=$HTTP_PROXY \
+    --build-arg HTTPS_PROXY=$HTTPS_PROXY --build-arg NO_PROXY=$NO_PROXY \
+    --dockerfile $CI_PROJECT_DIR/Dockerfile \
+    --destination $CI_REGISTRY/$CI_REGISTRY_PATH/$CI_COMMIT_REF_SLUG:$CI_APPLICATION_TAG
   }
 
   #Takes one argument: the chart museum server (tst or prd)
@@ -221,57 +400,47 @@ deploy_to_test:
     curl -s --data-binary "@$(ls -A1 /root/helm_package/)" $CHART_API_URI/api/$1/charts
   }
 
-   function install_tiller() {
+  function create_secret() {
+    echo "Create secret..."
 
-      #kubectl create -n "$TILLER_NAMESPACE"
-      #kubectl create namespace "$TILLER_NAMESPACE"
+    kubectl create secret -n "$KUBE_NAMESPACE" \
+      docker-registry gitlab-registry \
+      --docker-server="$CI_REGISTRY" \
+      --docker-username="$CI_REGISTRY_USER" \
+      --docker-password="$CI_REGISTRY_PASSWORD" \
+      --docker-email="$GITLAB_USER_EMAIL" \
+      -o yaml --dry-run | kubectl replace -n "$KUBE_NAMESPACE" --force -f -
+  }
 
-      echo "Creating Tiller Service Account for namespace ${TILLER_NAMESPACE}"
-      cat | kubectl apply -n "$TILLER_NAMESPACE" -f - << EOF
-      apiVersion: v1
-      kind: ServiceAccount
-      metadata:
-        name: tiller
-    EOF
+  function performance() {
+    export CI_ENVIRONMENT_URL=$(cat environment_url.txt)
+    mkdir gitlab-exporter
+    cp gitlab-ci/performance.js gitlab-exporter/index.js
+    #wget -O gitlab-exporter/index.js https://gitlab.com/gitlab-org/gl-performance/raw/10-3/index.js
+    mkdir sitespeed-results
+    if [ -f .gitlab-urls.txt ]
+    then
+      sed -i -e 's@^@'"$CI_ENVIRONMENT_URL"'@' .gitlab-urls.txt
+      docker run --shm-size=1g --rm -v "$(pwd)":/sitespeed.io sitespeedio/sitespeed.io:6.0.3 --plugins.add ./gitlab-exporter --outputFolder sitespeed-results .gitlab-urls.txt
+    else
+      docker run --shm-size=1g --rm -v "$(pwd)":/sitespeed.io sitespeedio/sitespeed.io:6.0.3 --plugins.add ./gitlab-exporter --outputFolder sitespeed-results "$CI_ENVIRONMENT_URL"
+    fi
+    mv sitespeed-results/data/performance.json performance.json
+  }
 
-      echo "Creating Tiller Role for namespace ${TILLER_NAMESPACE}"
-      cat | kubectl apply -n "$TILLER_NAMESPACE" -f - << EOF
-      kind: Role
-      apiVersion: rbac.authorization.k8s.io/v1beta1
-      metadata:
-        name: tiller-manager
-      rules:
-        - apiGroups: ["", "extensions", "apps"]
-          resources: ["*"]
-          verbs: ["*"]
-    EOF
+  function persist_environment_url() {
+    echo "Application is available here: $CI_ENVIRONMENT_URL"
+    echo "$CI_ENVIRONMENT_URL" > environment_url.txt
+    echo "<script>window.location.replace(\"$CI_ENVIRONMENT_URL\")</script>" >> environment.html
+  }
 
-      echo "Creating Tiller RoleBinding for namespace ${TILLER_NAMESPACE}"
-      cat | kubectl apply -n "$TILLER_NAMESPACE" -f - << EOF
-      kind: RoleBinding
-      apiVersion: rbac.authorization.k8s.io/v1beta1
-      metadata:
-        name: tiller-binding
-      subjects:
-        - kind: ServiceAccount
-          name: tiller
-      roleRef:
-        kind: Role
-        name: tiller-manager
-        apiGroup: rbac.authorization.k8s.io
-    EOF
-
-
-      echo "Checking Tiller..."
-      helm init --upgrade --service-account "tiller" --tiller-namespace "$TILLER_NAMESPACE" --tiller-image acr2.tst.apnic.net/asdf/kubernetes-helm/tiller:v2.8.0
-      kubectl rollout status -n "$TILLER_NAMESPACE" -w "deployment/tiller-deploy"
-      if ! helm version --debug; then
-        echo "Failed to init Tiller."
-        return 1
-      fi
-      echo ""
-    }
-
+  function delete_charts() {
+    name=$(get_name)
+    if [[ -n "$(helm ls -q "^$name$")" ]]; then
+      helm delete --purge "$name"
+      helm delete --purge "$(test_dep_name $name)"
+    fi
+  }
 
 before_script:
   - *auto_devops
