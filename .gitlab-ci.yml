@@ -168,7 +168,7 @@ cleanup:
     helm upgrade --install \
       --force \
       --wait \
-      --timeout 1500
+      --timeout 1500 \
       --namespace="$KUBE_NAMESPACE" \
       --version="$CI_PIPELINE_ID-$CI_JOB_ID" \
       $(test_dep_name $name) \
@@ -177,7 +177,7 @@ cleanup:
     helm upgrade --install \
       --force \
       --wait \
-      --timeout 1500
+      --timeout 1500 \
       --set service.enabled="$service_enabled" \
       --set releaseOverride="$CI_ENVIRONMENT_SLUG" \
       --set image.repository="$CI_APPLICATION_REPOSITORY" \
