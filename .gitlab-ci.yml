@@ -467,7 +467,7 @@ cleanup:
     mkdir .docker
     echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > .docker/config.json
     cat .docker/config.json
-    mcdir -p /etc/docker/
+    mkdir -p /etc/docker/
     echo "{\"insecure-registries\" : [\"acr2.tst.apnic.net]\"}" > /etc/docker/daemon.json
     echo "docker login -u \"$CI_REGISTRY_USER\" -p \"$CI_REGISTRY_PASSWORD\" \"$CI_REGISTRY\""
     docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
