@@ -136,7 +136,7 @@ code_quality:
     echo registry.crt >> /etc/ssl/certs/ca-certificates.crt
     mkdir -p /etc/docker/certs.d/$TEST_REGISTRY/
     echo registry.crt > /etc/docker/certs.d/$TEST_REGISTRY/ca.crt
-    cat /etc/docker/daemon.json
+    #cat /etc/docker/daemon.json
     mkdir -p certs
     openssl req \
       -newkey rsa:4096 -nodes -sha256 -keyout certs/domain.key \
