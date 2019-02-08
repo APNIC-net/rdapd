@@ -129,14 +129,12 @@ code_quality:
   export TILLER_NAMESPACE=$KUBE_NAMESPACE
 
   function code_quality() {
-    echo "docker run --env SOURCE_CODE=\"$(pwd)\" --volume $(pwd):/code --volume /var/run/docker.sock:/var/run/docker.sock \"$TEST_REGISTRY/gitlab-org/codequality:latest\" /code"
-    mkdir -p /etc/ssl/cert/$TEST_REGISTRY
-    echo registry.crt > /etc/ssl/cert/registry.crt
-    echo registry.crt > /etc/ssl/cert/$TEST_REGISTRY/registry.crt
-    echo registry.crt >> /etc/ssl/certs/ca-certificates.crt
+    openssl genrsa -out acr2.key 4096
+    printf '\n\n\n\n\n\n\n' | openssl req -new -x509 -text -key acr2.key -out acr2.cert
     mkdir -p /etc/docker/certs.d/$TEST_REGISTRY/
-    echo registry.crt > /etc/docker/certs.d/$TEST_REGISTRY/ca.crt
-    update-ca-certificates
+    mv acr2.key /etc/docker/certs.d/$TEST_REGISTRY/
+    mv acr2.cert /etc/docker/certs.d/$TEST_REGISTRY/
+    cp registry.crt /etc/docker/certs.d/$TEST_REGISTRY/
     docker run -v certs:/etc/docker/certs.d/$TEST_REGISTRY/ \
             --env SOURCE_CODE="$(pwd)" \
             --volume $(pwd):/code \
