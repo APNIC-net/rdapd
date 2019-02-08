@@ -12,7 +12,7 @@ stages:
   - staging
   - production
 
-build_docker_image:
+build_test_docker_image:
   stage: package
   image:
     name: gcr.io/kaniko-project/executor:debug
@@ -292,8 +292,8 @@ code_quality:
     fi
   }
 
-#Takes one argument: the repository server (test or prod)
-  function bulid_and_push_docker_image() {
+  #Takes one argument: the repository server (test or prod)
+  function build_and_push_docker_image() {
     echo "Creating and pusing docker image"
     echo "{\"auths\":{\"$1\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
     cat registry.crt  >> /kaniko/ssl/certs/ca-certificates.crt
