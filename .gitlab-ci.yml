@@ -12,7 +12,7 @@ stages:
   - staging
   - production
 
-build_test_docker_image:
+.build_test_docker_image:
   stage: package
   image:
     name: gcr.io/kaniko-project/executor:debug
@@ -31,7 +31,7 @@ build_test_docker_image:
   only:
     - branches
 
-publish_to_test:
+.publish_to_test:
   stage: test
   image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
   script:
@@ -46,7 +46,7 @@ publish_to_test:
     - publish_chart prod
   when: manual
 
-code_quality:
+.code_quality:
   stage: test
   image: docker:stable
   allow_failure: true
@@ -64,12 +64,11 @@ code_quality:
     variables:
       - $CODE_QUALITY_DISABLED
 
-.staging:
+staging:
   stage: staging
   image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
   script:
     - switch_to_stg_cluster
-    - check_kube_domain
     - initialise_helm
     - ensure_namespace
     - install_tiller
