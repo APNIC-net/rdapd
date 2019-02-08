@@ -222,6 +222,10 @@ deploy_to_test:
   }
 
    function install_tiller() {
+
+      #kubectl create -n "$TILLER_NAMESPACE"
+      #kubectl create namespace "$TILLER_NAMESPACE"
+
       echo "Creating Tiller Service Account for namespace ${TILLER_NAMESPACE}"
       cat | kubectl apply -n "$TILLER_NAMESPACE" -f - << EOF
       apiVersion: v1
@@ -256,6 +260,7 @@ deploy_to_test:
         name: tiller-manager
         apiGroup: rbac.authorization.k8s.io
     EOF
+
 
       echo "Checking Tiller..."
       helm init --upgrade --service-account "tiller" --tiller-namespace "$TILLER_NAMESPACE" --tiller-image acr2.tst.apnic.net/asdf/kubernetes-helm/tiller:v2.8.0
