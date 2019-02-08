@@ -68,10 +68,9 @@ staging:
   stage: staging
   image: $TEST_REGISTRY/ci/alpine-kubectl-helm:1.0.1
   script:
-    - switch_to_stg_cluster
+    - configure_cluster
     - initialise_helm
     - ensure_namespace
-    - install_tiller
     - create_secret
     - push_stg_chart
     - deploy_to_stg
@@ -185,22 +184,13 @@ staging:
       helm/rdapd/
   }
 
-  function switch_to_stg_cluster() {
-    echo "Switching to staging cluster"
-    CONFIG_FILE="/tmp/stg_kubeconfig"
-    echo "$KUBE_STG_CONFIG" > "$CONFIG_FILE"
-    export KUBECONFIG="$CONFIG_FILE"
-    export KUBE_NAMESPACE="applications"
-    export TILLER_NAMESPACE=$KUBE_NAMESPACE
-    echo $KUBE_NAMESPACE
-  }
-
   function configure_cluster() {
     echo "Configuring cluster"
-    echo $TEST_CLUSTER_CA_BUNDLE > ca.pem
-    kubectl config set-context gitlab-testing-deploy --namespace=${KUBE_NAMESPACE} --cluster=gitlab-deploy --user=admin
-    kubectl config use-context gitlab-testing-deploy
-    kubectl config view
+    echo $TEST_CLUSTER_CA_BUNDLE > test_cluster_ca.crt
+    kubectl config set-cluster --kubeconfig=ci ci --server=$TEST_CLUSTER_SERVER --certificate-authority=test_cluster_ca.crt
+    kubectl config set-context  --kubeconfig=ci ci --namespace=${KUBE_NAMESPACE} --cluster=ci --user=ci
+    kubectl config set-credentials --kubeconfig=ci ci --token=$KUBE_TOKEN
+    kubectl config use-context --kubeconfig=ci ci
     echo $KUBE_NAMESPACE
   }
 
