@@ -129,10 +129,8 @@ code_quality:
   export TILLER_NAMESPACE=$KUBE_NAMESPACE
 
   function code_quality() {
+    apk add openrc
     rc --list
-    cat /etc/os-release
-    lsb_release -a
-    hostnamectl
     echo "docker run --env SOURCE_CODE=\"$(pwd)\" --volume $(pwd):/code --volume /var/run/docker.sock:/var/run/docker.sock \"$TEST_REGISTRY/gitlab-org/codequality:latest\" /code"
     mkdir certs
     cp registry.crt certs
