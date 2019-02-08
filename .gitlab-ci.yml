@@ -129,10 +129,11 @@ code_quality:
   export TILLER_NAMESPACE=$KUBE_NAMESPACE
 
   function code_quality() {
-    docker run --env SOURCE_CODE="$pwd" \
-               --volume $pwd:/code \
-               --volume /var/run/docker.sock:/var/run/docker.sock \
-               "registry.gitlab.com/gitlab-org/security-products/codequality:$SP_VERSION" /code
+  echo "docker run --env SOURCE_CODE=\"$pwd\" --volume $pwd:/code \ --volume /var/run/docker.sock:/var/run/docker.sock \ \"registry.gitlab.com/gitlab-org/security-products/codequality:$SP_VERSION\" /code"
+    #docker run --env SOURCE_CODE="$pwd" \
+    #          --volume $pwd:/code \
+    #         --volume /var/run/docker.sock:/var/run/docker.sock \
+    #           "registry.gitlab.com/gitlab-org/security-products/codequality:$SP_VERSION" /code
   }
 
   function deploy() {
