@@ -62,7 +62,6 @@ code_quality:
     - docker:stable-dind
   script:
     - setup_docker
-    - registry_login
     - code_quality
   artifacts:
     paths: [gl-code-quality-report.json]
