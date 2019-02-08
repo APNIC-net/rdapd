@@ -82,6 +82,7 @@ code_quality:
     - docker:stable-dind
   script:
     - setup_docker
+    - registry_login
     - code_quality
   artifacts:
     paths: [gl-code-quality-report.json]
@@ -456,6 +457,22 @@ cleanup:
       fi
     fi
   }
+
+   function registry_login() {
+      echo "Booyah"
+      echo "CI_REGISTRY_USER" $CI_REGISTRY_USER
+      echo "CI_REGISTRY_PASSWORD" $CI_REGISTRY_PASSWORD
+      echo "CI_REGISTRY" $CI_REGISTRY
+      if [[ -n "$CI_REGISTRY_USER" ]]; then
+        echo "Logging to GitLab Container Registry with CI credentials..."
+        echo "$CI_REGISTRY_USER" $CI_REGISTRY_USER
+        echo "$CI_REGISTRY_PASSWORD" $CI_REGISTRY_PASSWORD
+        echo "$CI_REGISTRY" $CI_REGISTRY
+        docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+        echo ""
+      fi
+    }
+
 
   function setup_test() {
     export MAVEN_MIRROR_OF=$MAVEN_MIRROR_OF
