@@ -187,7 +187,7 @@ staging:
   function configure_cluster() {
     echo "Configuring cluster"
     echo $TEST_CLUSTER_CA_BUNDLE > test_cluster_ca.crt
-    kubectl config set-cluster --kubeconfig=ci ci --server=$TEST_CLUSTER_SERVER --certificate-authority=test_cluster_ca.crt
+    kubectl config set-cluster --kubeconfig=ci ci --server=$TEST_CLUSTER_SERVER --certificate-authority=test_cluster_ca.crt --insecure-skip-tls-verify=true
     kubectl config set-context  --kubeconfig=ci ci --namespace=${KUBE_NAMESPACE} --cluster=ci --user=ci
     kubectl config set-credentials --kubeconfig=ci ci --token=$KUBE_TOKEN
     kubectl config use-context --kubeconfig=ci ci
