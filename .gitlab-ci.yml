@@ -130,6 +130,7 @@ code_quality:
 
   function code_quality() {
     mkdir -p /etc/docker/certs.d/$TEST_REGISTRY/
+    cat /etc/docker/daemon.json
     ls /etc/docker/certs.d/$TEST_REGISTRY/
     docker run -v certs:/etc/docker/certs.d/$TEST_REGISTRY/ \
             --env SOURCE_CODE="$(pwd)" \
