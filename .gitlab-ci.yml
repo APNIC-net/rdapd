@@ -457,6 +457,7 @@ cleanup:
       fi
     fi
     mkdir -p /root/ssl/certs/
+    update-ca-certificates
     cat registry.crt  >> /root/ssl/certs/ca-certificates.crt
 
   }
