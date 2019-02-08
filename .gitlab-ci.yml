@@ -71,6 +71,7 @@ deploy_to_test:
     - export KUBE_NAMESPACE=${CI_PROJECT_NAME}-${CI_BUILD_REF_SLUG}
     - configure_cluster ${CI_PROJECT_NAME}-${CI_BUILD_REF_SLUG}
     - initialise_helm
+    - install_tiller
     - deploy
   only:
     - branches
