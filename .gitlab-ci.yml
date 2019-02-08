@@ -136,14 +136,6 @@ code_quality:
     echo registry.crt >> /etc/ssl/certs/ca-certificates.crt
     mkdir -p /etc/docker/certs.d/$TEST_REGISTRY/
     echo registry.crt > /etc/docker/certs.d/$TEST_REGISTRY/ca.crt
-    #cat /etc/docker/daemon.json
-    mkdir -p certs
-    apk add openssl
-    #openssl req \
-    #  -newkey rsa:4096 -nodes -sha256 -keyout certs/domain.key \
-    #  -x509 -days 365 -out certs/domain.crt
-    #echo registry.crt > /etc/docker/certs.d/$TEST_REGISTRY/domain.crt
-    #cp certs/domain.crt /usr/local/share/ca-certificates/myregistrydomain.com.crt
     update-ca-certificates
     docker run -v certs:/etc/docker/certs.d/$TEST_REGISTRY/ \
             --env SOURCE_CODE="$(pwd)" \
