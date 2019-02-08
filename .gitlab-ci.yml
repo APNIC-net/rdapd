@@ -74,7 +74,7 @@ stages:
     - publish_chart
   when: manual
 
-code_quality:
+.code_quality:
   stage: test
   image: docker:stable
   allow_failure: true
@@ -207,7 +207,7 @@ cleanup:
 # only manually promote to production, enable this job by removing the dot (.),
 # and uncomment the `when: manual` line in the `production` job.
 
-.staging:
+staging:
   stage: staging
   image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
   script:
