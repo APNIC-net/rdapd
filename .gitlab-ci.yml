@@ -98,7 +98,24 @@ review:
   except:
     - master
 
-
+cleanup:
+  stage: cleanup
+  image: alpine-kubectl-helm:1.0.0
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - delete
+  environment:
+    name: review/$CI_COMMIT_REF_NAME
+    action: stop
+  when: manual
+  allow_failure: true
+  only:
+    refs:
+      - branches
+    kubernetes: active
+  except:
+    - master
 # ---------------------------------------------------------------------------
 
 .auto_devops: &auto_devops |
