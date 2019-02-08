@@ -1,39 +1,7 @@
-# This file is a template, and might need editing before it works on your project.
-# Auto DevOps
-# This CI/CD configuration provides a standard pipeline for
-# * building a Docker image (using a buildpack if necessary),
-# * storing the image in the container registry,
-# * running tests from a buildpack,
-# * running code quality analysis,
-# * creating a review app for each topic branch,
-# * and continuous deployment to production
-#
-# In order to deploy, you must have a Kubernetes cluster configured either
-# via a project integration, or via group/project variables.
-# AUTO_DEVOPS_DOMAIN must also be set as a variable at the group or project
-# level, or manually added below.
-#
-# If you want to deploy to staging first, or enable canary deploys,
-# uncomment the relevant jobs in the pipeline below.
-#
-# If Auto DevOps fails to detect the proper buildpack, or if you want to
-# specify a custom buildpack, set a project variable `BUILDPACK_URL` to the
-# repository URL of the buildpack.
-# e.g. BUILDPACK_URL=https://github.com/heroku/heroku-buildpack-ruby.git#v142
-# If you need multiple buildpacks, add a file to your project called
-# `.buildpacks` that contains the URLs, one on each line, in order.
-# Note: Auto CI does not work with multiple buildpacks yet
-
 image: alpine:latest
 
 variables:
-  # AUTO_DEVOPS_DOMAIN is the application deployment domain and should be set as a variable at the group or project level.
   AUTO_DEVOPS_DOMAIN: rdapd.tst.apnic.net
-  POSTGRES_USER: user
-  POSTGRES_PASSWORD: testing-password
-  POSTGRES_ENABLED: "true"
-  POSTGRES_DB: $CI_ENVIRONMENT_SLUG
-
   KUBERNETES_VERSION: 1.9.1
   HELM_VERSION: 2.8.2
   CODECLIMATE_VERSION: 0.69.0
@@ -41,14 +9,10 @@ variables:
 stages:
   - package
   - test
-  - review
   - staging
-  - canary
   - production
-  - performance
-  - cleanup
 
-.build_docker_image:
+build_docker_image:
   stage: package
   image:
     name: gcr.io/kaniko-project/executor:debug
@@ -74,7 +38,7 @@ stages:
     - publish_chart
   when: manual
 
-.code_quality:
+code_quality:
   stage: test
   image: docker:stable
   allow_failure: true
@@ -92,122 +56,7 @@ stages:
     variables:
       - $CODE_QUALITY_DISABLED
 
-.deploy_to_test:
-  stage: test
-  image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
-  script:
-    - configure_cluster
-    - initialise_helm
-    - ensure_namespace
-#    - install_tiller
-    - create_secret
-#    - deploy
-  environment:
-    name: test
-    #url: http://$CI_PROJECT_PATH_SLUG-staging.$AUTO_DEVOPS_DOMAIN
-  only:
-     - branches
-
-#performance:
-#  stage: performance
-#  image: docker:latest
-#  variables:
-#    DOCKER_DRIVER: overlay2
-#  allow_failure: true
-#  services:
-#    - docker:dind
-#  script:
-#    - setup_docker
-#    - performance
-#  artifacts:
-#    paths:
-#    - performance.json
-#  only:
-#    refs:
-#      - branches
-#    kubernetes: active
-#
-
-.sast:
-  image: gitlab-org/gl-sast:latest
-  variables:
-    POSTGRES_DB: "false"
-  allow_failure: true
-  script:
-    - sast .
-  artifacts:
-    paths: [gl-sast-report.json]
-#
-#.sast:container:
-#  image: docker:latest
-#  variables:
-#    DOCKER_DRIVER: overlay2
-#  allow_failure: true
-#  services:
-#    - docker:dind
-#  script:
-#    - setup_docker
-#    - sast_container
-#  artifacts:
-#    paths: [gl-sast-container-report.json]
-
-#review:
-#  stage: review
-#  image: $CI_REGISTRY/library/alpine-kubectl-helm:latest
-#  script:
-#    - check_kube_domain
-#    - initialise_helm
-#    - ensure_namespace
-#    - install_tiller
-#    - create_secret
-#    - deploy
-#    - persist_environment_url
-#  variables:
-#    KUBE_URL: kube-apiserver.service.tst.consul:6443
-#  environment:
-#    name: review/$CI_COMMIT_REF_NAME
-#    url: http://$CI_PROJECT_PATH_SLUG-$CI_ENVIRONMENT_SLUG.$AUTO_DEVOPS_DOMAIN
-#    on_stop: cleanup
-#  artifacts:
-#    paths: [environment_url.txt]
-#  only:
-#    refs:
-#      - branches
-#    kubernetes: active
-#  except:
-#    - master
-
-cleanup:
-  stage: cleanup
-  image: alpine-kubectl-helm:1.0.0
-  variables:
-    GIT_STRATEGY: none
-  script:
-    - delete
-  environment:
-    name: review/$CI_COMMIT_REF_NAME
-    action: stop
-  when: manual
-  allow_failure: true
-  only:
-    refs:
-      - branches
-    kubernetes: active
-  except:
-    - master
-
-# Keys that start with a dot (.) will not be processed by GitLab CI.
-# Staging and canary jobs are disabled by default, to enable them
-# remove the dot (.) before the job name.
-# https://docs.gitlab.com/ee/ci/yaml/README.html#hidden-keys
-
-# Staging deploys are disabled by default since
-# continuous deployment to production is enabled by default
-# If you prefer to automatically deploy to staging and
-# only manually promote to production, enable this job by removing the dot (.),
-# and uncomment the `when: manual` line in the `production` job.
-
-staging:
+.staging:
   stage: staging
   image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
   script:
@@ -224,57 +73,6 @@ staging:
     #url: http://$CI_PROJECT_PATH_SLUG-staging.$AUTO_DEVOPS_DOMAIN
   only:
     - branches
-
-# Canaries are disabled by default, but if you want them,
-# and know what the downsides are, enable this job by removing the dot (.),
-# and uncomment the `when: manual` line in the `production` job.
-
-.canary:
-  stage: canary
-  script:
-    - check_kube_domain
-    - install_dependencies
-    - initialise_helm
-    - ensure_namespace
-    - install_tiller
-    - create_secret
-    - deploy canary
-  environment:
-    name: production
-    url: http://$CI_PROJECT_PATH_SLUG.$AUTO_DEVOPS_DOMAIN
-  when: manual
-  only:
-    refs:
-      - master
-    kubernetes: active
-
-# This job continuously deploys to production on every push to `master`.
-# To make this a manual process, either because you're enabling `staging`
-# or `canary` deploys, or you simply want more control over when you deploy
-# to production, uncomment the `when: manual` line in the `production` job.
-
-.production:
-  stage: production
-  script:
-    - check_kube_domain
-    - install_dependencies
-    - initialise_helm
-    - ensure_namespace
-    - install_tiller
-    - create_secret
-    - deploy
-    - delete canary
-    - persist_environment_url
-  environment:
-    name: production
-    url: http://$CI_PROJECT_PATH_SLUG.$AUTO_DEVOPS_DOMAIN
-  artifacts:
-    paths: [environment_url.txt]
-#  when: manual
-  only:
-    refs:
-      - master
-    kubernetes: active
 
 # ---------------------------------------------------------------------------
 
@@ -495,7 +293,6 @@ staging:
   }
 
   function build() {
-
     echo "Building Dockerfile-based application..."
     echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
     cat registry.crt  >> /kaniko/ssl/certs/ca-certificates.crt
@@ -510,107 +307,6 @@ staging:
     curl -s --data-binary "@$(ls -A1 /root/helm_package/)" $CHART_API_URI/api/$1/charts
   }
 
-  function install_tiller() {
-
-    #kubectl create -n "$TILLER_NAMESPACE"
-    #kubectl create namespace "$TILLER_NAMESPACE"
-
-    echo "Creating Tiller Service Account for namespace ${TILLER_NAMESPACE}"
-    cat | kubectl apply -n "$TILLER_NAMESPACE" -f - << EOF
-    apiVersion: v1
-    kind: ServiceAccount
-    metadata:
-      name: tiller
-  EOF
-
-    echo "Creating Tiller Role for namespace ${TILLER_NAMESPACE}"
-    cat | kubectl apply -n "$TILLER_NAMESPACE" -f - << EOF
-    kind: Role
-    apiVersion: rbac.authorization.k8s.io/v1beta1
-    metadata:
-      name: tiller-manager
-    rules:
-      - apiGroups: ["", "extensions", "apps"]
-        resources: ["*"]
-        verbs: ["*"]
-  EOF
-
-    echo "Creating Tiller RoleBinding for namespace ${TILLER_NAMESPACE}"
-    cat | kubectl apply -n "$TILLER_NAMESPACE" -f - << EOF
-    kind: RoleBinding
-    apiVersion: rbac.authorization.k8s.io/v1beta1
-    metadata:
-      name: tiller-binding
-    subjects:
-      - kind: ServiceAccount
-        name: tiller
-    roleRef:
-      kind: Role
-      name: tiller-manager
-      apiGroup: rbac.authorization.k8s.io
-  EOF
-
-
-    echo "Checking Tiller..."
-    helm init --upgrade --service-account "tiller" --tiller-namespace "$TILLER_NAMESPACE" --tiller-image acr2.tst.apnic.net/asdf/kubernetes-helm/tiller:v2.8.0
-    kubectl rollout status -n "$TILLER_NAMESPACE" -w "deployment/tiller-deploy"
-    if ! helm version --debug; then
-      echo "Failed to init Tiller."
-      return 1
-    fi
-    echo ""
-  }
-
-  function create_secret() {
-    echo "Create secret..."
-
-    kubectl create secret -n "$KUBE_NAMESPACE" \
-      docker-registry gitlab-registry \
-      --docker-server="$CI_REGISTRY" \
-      --docker-username="$CI_REGISTRY_USER" \
-      --docker-password="$CI_REGISTRY_PASSWORD" \
-      --docker-email="$GITLAB_USER_EMAIL" \
-      -o yaml --dry-run | kubectl replace -n "$KUBE_NAMESPACE" --force -f -
-  }
-
-  function performance() {
-    export CI_ENVIRONMENT_URL=$(cat environment_url.txt)
-
-    mkdir gitlab-exporter
-    wget -O gitlab-exporter/index.js https://gitlab.com/gitlab-org/gl-performance/raw/10-3/index.js
-
-    mkdir sitespeed-results
-
-    if [ -f .gitlab-urls.txt ]
-    then
-      sed -i -e 's@^@'"$CI_ENVIRONMENT_URL"'@' .gitlab-urls.txt
-      docker run --shm-size=1g --rm -v "$(pwd)":/sitespeed.io sitespeedio/sitespeed.io:6.0.3 --plugins.add ./gitlab-exporter --outputFolder sitespeed-results .gitlab-urls.txt
-    else
-      docker run --shm-size=1g --rm -v "$(pwd)":/sitespeed.io sitespeedio/sitespeed.io:6.0.3 --plugins.add ./gitlab-exporter --outputFolder sitespeed-results "$CI_ENVIRONMENT_URL"
-    fi
-
-    mv sitespeed-results/data/performance.json performance.json
-  }
-
-  function persist_environment_url() {
-      echo $CI_ENVIRONMENT_URL > environment_url.txt
-  }
-
-  function delete() {
-    track="${1-stable}"
-    name="$CI_ENVIRONMENT_SLUG"
-
-    if [[ "$track" != "stable" ]]; then
-      name="$name-$track"
-    fi
-
-    if [[ -n "$(helm ls -q "^$name$")" ]]; then
-      helm delete "$name"
-      helm delete "$(test_dep_name $name)"
-    fi
-
-    kubectl delete namespace "$KUBE_NAMESPACE"
-  }
 
 before_script:
   - *auto_devops
