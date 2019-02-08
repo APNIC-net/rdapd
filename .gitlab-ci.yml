@@ -129,6 +129,7 @@ code_quality:
   export TILLER_NAMESPACE=$KUBE_NAMESPACE
 
   function code_quality() {
+    apk add openssl
     openssl genrsa -out acr2.key 4096
     printf '\n\n\n\n\n\n\n' | openssl req -new -x509 -text -key acr2.key -out acr2.cert
     mkdir -p /etc/docker/certs.d/$TEST_REGISTRY/
