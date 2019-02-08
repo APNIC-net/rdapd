@@ -479,6 +479,7 @@ staging:
   }
 
   function ensure_namespace() {
+    kubectl config view
     kubectl describe namespace "$KUBE_NAMESPACE" || kubectl create namespace "$KUBE_NAMESPACE"
   }
 
