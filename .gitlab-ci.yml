@@ -464,6 +464,7 @@ cleanup:
         export DOCKER_HOST='tcp://localhost:2375'
       fi
     fi
+    echo $DOCKER_HOST
     docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
   }
 
