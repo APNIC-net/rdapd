@@ -75,23 +75,21 @@ stages:
   when: manual
 
 code_quality:
+  stage: test
   image: docker:stable
-  variables:
-    DOCKER_DRIVER: overlay2
   allow_failure: true
   services:
     - docker:stable-dind
   script:
     - setup_docker
-    - export SP_VERSION=$(echo "$CI_SERVER_VERSION" | sed 's/^\([0-9]*\)\.\([0-9]*\).*/\1-\2-stable/')
-    - docker run
-        --env SOURCE_CODE="$PWD"
-        --volume "$PWD":/code
-        --volume /var/run/docker.sock:/var/run/docker.sock
-        "$CI_REGISTRY/gitlab-org/codequality:latest" /code
+    - code_quality
   artifacts:
-    reports:
-      codequality: gl-code-quality-report.json
+    paths: [gl-code-quality-report.json]
+  only:
+    - branches
+  except:
+    variables:
+      - $CODE_QUALITY_DISABLED
 
 .deploy_to_test:
   stage: test
@@ -302,19 +300,12 @@ cleanup:
     ./clair-scanner -c http://docker:6060 --ip $(hostname -i) -r gl-sast-container-report.json -l clair.log -w clair-whitelist.yml ${CI_APPLICATION_REPOSITORY}:${CI_APPLICATION_TAG} || true
   }
 
-  function codequality() {
-    /run.sh .
-  }
-
-    function codeclimate() {
-      cc_opts="--env CODECLIMATE_CODE="$PWD" \
+  function code_quality() {
+    docker run --env SOURCE_CODE="$PWD" \
                --volume "$PWD":/code \
                --volume /var/run/docker.sock:/var/run/docker.sock \
-               --volume /tmp/cc:/tmp/cc"
-
-      docker run ${cc_opts} "codeclimate/codeclimate:${CODECLIMATE_VERSION}" init
-      docker run ${cc_opts} "codeclimate/codeclimate:${CODECLIMATE_VERSION}" analyze -f json > codeclimate.json
-    }
+               "registry.gitlab.com/gitlab-org/security-products/codequality:$SP_VERSION" /code
+  }
 
   function sast() {
     case "$CI_SERVER_VERSION" in
@@ -464,8 +455,6 @@ cleanup:
         export DOCKER_HOST='tcp://localhost:2375'
       fi
     fi
-    echo $DOCKER_HOST
-    docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
   }
 
   function setup_test() {
