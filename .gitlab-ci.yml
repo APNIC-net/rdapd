@@ -72,17 +72,32 @@ stages:
     variables:
       - $CODE_QUALITY_DISABLED
 
-deploy_to_test:
-  stage: test
+review:
+  stage: review
   image: $TEST_REGISTRY/ci/alpine-kubectl-helm:1.0.1
   script:
+    - check_kube_domain
     - export KUBE_NAMESPACE=${CI_PROJECT_NAME}-${CI_BUILD_REF_SLUG}
     - configure_cluster ${CI_PROJECT_NAME}-${CI_BUILD_REF_SLUG}
     - initialise_helm
+    - ensure_namespace
     - install_tiller
+    - create_secret
     - deploy
+    - persist_environment_url
+  environment:
+    name: review/$CI_COMMIT_REF_NAME
+    url: http://$CI_PROJECT_PATH_SLUG-$CI_ENVIRONMENT_SLUG.$AUTO_DEVOPS_DOMAIN
+    on_stop: cleanup
+  artifacts:
+    paths: [environment_url.txt]
   only:
-    - branches
+    refs:
+      - branches
+    kubernetes: active
+  except:
+    - master
+
 
 # ---------------------------------------------------------------------------
 
