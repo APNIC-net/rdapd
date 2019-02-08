@@ -191,6 +191,7 @@ staging:
     kubectl config set-context  --kubeconfig=ci ci --namespace=${KUBE_NAMESPACE} --cluster=ci --user=ci
     kubectl config set-credentials --kubeconfig=ci ci --token=$KUBE_TOKEN
     kubectl config use-context --kubeconfig=ci ci
+    export  KUBECONFIG=ci
     echo $KUBE_NAMESPACE
   }
 
