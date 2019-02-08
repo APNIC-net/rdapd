@@ -129,7 +129,7 @@ code_quality:
   export TILLER_NAMESPACE=$KUBE_NAMESPACE
 
   function code_quality() {
-    rc-status --list
+    rc --list
     cat /etc/os-release
     lsb_release -a
     hostnamectl
