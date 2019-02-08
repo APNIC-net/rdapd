@@ -458,6 +458,7 @@ cleanup:
     fi
     mkdir -p /root/ssl/certs/
     cat registry.crt  >> /etc/ssl/certs/ca-certificates.crt
+    cp registry.crt /etc/ssl/certs/$CI_REGISTRY.crt
     update-ca-certificates
     docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
   }
