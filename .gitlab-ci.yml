@@ -132,7 +132,7 @@ code_quality:
     echo "docker run --env SOURCE_CODE=\"$(pwd)\" --volume $(pwd):/code --volume /var/run/docker.sock:/var/run/docker.sock \"$TEST_REGISTRY/gitlab-org/codequality:latest\" /code"
     mkdir certs
     cp registry.crt certs
-    docker run -v certs:/etc/ssl/certs/ \
+    docker run -v certs:/usr/local/share/ca-certificates/ \
             --env SOURCE_CODE="$(pwd)" \
             --volume $(pwd):/code \
             --volume /var/run/docker.sock:/var/run/docker.sock \
