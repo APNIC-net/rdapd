@@ -88,7 +88,7 @@ code_quality:
         --env SOURCE_CODE="$PWD"
         --volume "$PWD":/code
         --volume /var/run/docker.sock:/var/run/docker.sock
-        "registry.gitlab.com/gitlab-org/security-products/codequality:$SP_VERSION" /code
+        "$CI_REGISTRY/gitlab-org/codequality:latest" /code
   artifacts:
     reports:
       codequality: gl-code-quality-report.json
