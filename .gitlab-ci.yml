@@ -131,8 +131,9 @@ code_quality:
   function code_quality() {
     mkdir -p /etc/docker/certs.d/$TEST_REGISTRY/
     cp acr2.key /etc/docker/certs.d/$TEST_REGISTRY/
-    pc acr2.cert /etc/docker/certs.d/$TEST_REGISTRY/
+    cp acr2.cert /etc/docker/certs.d/$TEST_REGISTRY/
     cp registry.crt /etc/docker/certs.d/$TEST_REGISTRY/
+    docker login -u "$REGISTRY_USER" -p "$REGISTRY_PASSWORD" "$TEST_REGISTRY"
     docker run -v certs:/etc/docker/certs.d/$TEST_REGISTRY/ \
             --env SOURCE_CODE="$(pwd)" \
             --volume $(pwd):/code \
