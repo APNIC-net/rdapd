@@ -33,7 +33,7 @@ stages:
 
 .publish_to_test:
   stage: test
-  image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
+  image: $TEST_REGISTRY/ci/alpine-kubectl-helm:1.0.1
   script:
     - publish_chart tst
   only:
@@ -41,7 +41,7 @@ stages:
 
 .publish_to_prod:
   stage: production
-  image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
+  image: $TEST_REGISTRY/ci/alpine-kubectl-helm:1.0.1
   script:
     - publish_chart prod
   when: manual
