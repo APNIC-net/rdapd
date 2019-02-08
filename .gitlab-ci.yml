@@ -167,6 +167,7 @@ cleanup:
 
     helm upgrade --install \
       --force \
+      --tls \
       --wait \
       --namespace="$KUBE_NAMESPACE" \
       --version="$CI_PIPELINE_ID-$CI_JOB_ID" \
@@ -175,6 +176,7 @@ cleanup:
 
     helm upgrade --install \
       --force \
+      --tls \
       --wait \
       --set service.enabled="$service_enabled" \
       --set releaseOverride="$CI_ENVIRONMENT_SLUG" \
@@ -201,8 +203,6 @@ cleanup:
   function configure_cluster() {
     echo "Configuring cluster"
     echo $TEST_CLUSTER_CA_BUNDLE > test_cluster_ca.crt
-    cat test_cluster_ca.crt
-    #kubectl config set-cluster --kubeconfig=ci ci --server=$TEST_CLUSTER_SERVER --certificate-authority=test_cluster_ca.crt
     kubectl config set-cluster --kubeconfig=ci ci --server=$TEST_CLUSTER_SERVER --insecure-skip-tls-verify=true
     kubectl config set-context  --kubeconfig=ci ci --namespace=$1 --cluster=ci --user=ci
     kubectl config set-credentials --kubeconfig=ci ci --token=$KUBE_TOKEN
@@ -213,6 +213,7 @@ cleanup:
   function deploy_to_stg() {
     helm upgrade --install \
       --force \
+      --tls \
       --wait \
       --namespace="$KUBE_NAMESPACE" \
       --version="$CI_BUILD_ID" \
