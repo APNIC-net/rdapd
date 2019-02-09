@@ -55,6 +55,8 @@ stages:
   when: manual
 
 codequality:
+  variables:
+    DOCKER_DRIVER: overlay2
   stage: test
   image: $CI_REGISTRY/alex/docker-ca
   allow_failure: true
