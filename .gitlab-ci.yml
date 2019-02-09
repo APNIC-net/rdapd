@@ -129,7 +129,7 @@ codequality:
   export TILLER_NAMESPACE=$KUBE_NAMESPACE
 
   function code_quality() {
-    docker pull codeclimate/codeclimate:$CODECLIMATE_VERSION
+    docker pull $CI_REGISTRY/codeclimate/codeclimate:$CODECLIMATE_VERSION
     docker run -v certs:/etc/docker/certs.d/$CI_REGISTRY/ \
             --env SOURCE_CODE="$(pwd)" \
             --env HTTP_PROXY=$HTTP_PROXY \
