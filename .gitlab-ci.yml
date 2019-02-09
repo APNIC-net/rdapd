@@ -132,7 +132,7 @@ codequality:
   export TILLER_NAMESPACE=$KUBE_NAMESPACE
 
   function code_quality() {
-  export SOURCE_CODE=$(pwd)
+  export SOURCE_CODE="$(docker info)"
   docker info
   docker run \
       --env CODECLIMATE_CODE="$SOURCE_CODE" \
