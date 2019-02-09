@@ -134,7 +134,7 @@ code_quality:
     docker run --env SOURCE_CODE="$(pwd)" \
             --volume $(pwd):/code \
             --volume /var/run/docker.sock:/var/run/docker.sock \
-               "/gitlab-org/security-products/codequality:latest" /code
+               "gitlab-org/security-products/codequality:latest" /code
   }
 
   function deploy() {
