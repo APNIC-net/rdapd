@@ -60,7 +60,7 @@ codequality:
   allow_failure: true
   services:
     - name: "$CI_REGISTRY/alex/dind-ca"
-      command: ["--insecure-registry=$CI_REGISTRY"]
+      #command: ["--insecure-registry=$CI_REGISTRY"]
   script:
     - setup_docker
     - code_quality
