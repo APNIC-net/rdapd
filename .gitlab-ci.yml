@@ -26,7 +26,7 @@ stages:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
   script:
-    - build_and_push_docker_image $TEST_REGISTRY
+    - build_and_push_docker_image $CI_REGISTRY
   only:
     - branches
 
@@ -41,7 +41,7 @@ stages:
 
 .publish_to_test:
   stage: test
-  image: $TEST_REGISTRY/ci/alpine-kubectl-helm:1.0.1
+  image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
   script:
     - publish_chart tst
   only:
@@ -49,17 +49,17 @@ stages:
 
 .publish_to_prod:
   stage: production
-  image: $TEST_REGISTRY/ci/alpine-kubectl-helm:1.0.1
+  image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
   script:
     - publish_chart prod
   when: manual
 
-code_quality:
+codequality:
   stage: test
-  image: $TEST_REGISTRY/alex/docker-ca
+  image: $CI_REGISTRY/alex/docker-ca
   allow_failure: true
   services:
-    - $TEST_REGISTRY/alex/dind-ca
+    - $CI_REGISTRY/alex/dind-ca
   script:
     - setup_docker
     - code_quality
@@ -73,7 +73,7 @@ code_quality:
 
 .review:
   stage: review
-  image: $TEST_REGISTRY/ci/alpine-kubectl-helm:1.0.1
+  image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
   script:
     - check_kube_domain
     - export KUBE_NAMESPACE=${CI_PROJECT_NAME}-${CI_BUILD_REF_SLUG}
@@ -129,7 +129,8 @@ code_quality:
   export TILLER_NAMESPACE=$KUBE_NAMESPACE
 
   function code_quality() {
-    docker run -v certs:/etc/docker/certs.d/$TEST_REGISTRY/ \
+    docker pull codeclimate/codeclimate:$CODECLIMATE_VERSION
+    docker run -v certs:/etc/docker/certs.d/$CI_REGISTRY/ \
             --env SOURCE_CODE="$(pwd)" \
             --env HTTP_PROXY=$HTTP_PROXY \
             --env HTTPS_PROXY=$HTTPS_PROXY \
