@@ -59,7 +59,7 @@ codequality:
   image: $CI_REGISTRY/alex/docker-ca
   allow_failure: true
   services:
-    - $CI_REGISTRY/alex/dind-ca
+    - name: $CI_REGISTRY/alex/dind-ca
     - command: ["--insecure-registry=$CI_REGISTRY"]
   script:
     - setup_docker
