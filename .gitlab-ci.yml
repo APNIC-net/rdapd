@@ -8,7 +8,7 @@ variables:
   POSTGRES_DB: $CI_ENVIRONMENT_SLUG
   KUBERNETES_VERSION: 1.9.1
   HELM_VERSION: 2.8.2
-  CODECLIMATE_VERSION: 0.69.0
+  CODECLIMATE_VERSION: 0.72.0
 
 stages:
   - package
@@ -136,7 +136,7 @@ code_quality:
             --env SOURCE_CODE="$(pwd)" \
             --volume $(pwd):/code \
             --volume /var/run/docker.sock:/var/run/docker.sock \
-               "$TEST_REGISTRY/gitlab-org/codequality:latest" /code
+               "/gitlab-org/security-products/codequality:latest" /code
   }
 
   function deploy() {
