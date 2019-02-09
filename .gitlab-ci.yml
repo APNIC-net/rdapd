@@ -131,6 +131,7 @@ codequality:
 
   function code_quality() {
   export SOURCE_CODE=$(pwd)
+  docker info
   docker run \
       --env CODECLIMATE_CODE="$SOURCE_CODE" \
       --env CONTAINER_TIMEOUT_SECONDS=300 \
