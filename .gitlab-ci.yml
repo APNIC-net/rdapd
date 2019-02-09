@@ -129,6 +129,16 @@ codequality:
   export TILLER_NAMESPACE=$KUBE_NAMESPACE
 
   function code_quality() {
+  export $SOURCE_CODE=$(pwd)
+  docker run \
+      --env CODECLIMATE_CODE="$SOURCE_CODE" \
+      --env CONTAINER_TIMEOUT_SECONDS=300 \
+      --volume "$SOURCE_CODE":/code \
+      --volume /tmp/cc:/tmp/cc \
+      --volume /var/run/docker.sock:/var/run/docker.sock \
+      "$CI_REGISTRY/codeclimate/codeclimate:$CODECLIMATE_VERSION" analyze -f json > /tmp/raw_codeclimate.json
+
+
     docker pull $CI_REGISTRY/codeclimate/codeclimate:$CODECLIMATE_VERSION
     docker run -v certs:/etc/docker/certs.d/$CI_REGISTRY/ \
             --env SOURCE_CODE="$(pwd)" \
