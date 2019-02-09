@@ -59,7 +59,7 @@ code_quality:
   image: $TEST_REGISTRY/alex/docker-ca
   allow_failure: true
   services:
-    - docker:stable-dind
+    - $TEST_REGISTRY/alex/dind-ca
   script:
     - setup_docker
     - code_quality
