@@ -129,11 +129,9 @@ code_quality:
   export TILLER_NAMESPACE=$KUBE_NAMESPACE
 
   function code_quality() {
-    mkdir -p /etc/docker/certs.d/$TEST_REGISTRY/
-    cat /etc/docker/daemon.json
-    ls /etc/docker/certs.d/$TEST_REGISTRY/
-    docker run -v certs:/etc/docker/certs.d/$TEST_REGISTRY/ \
-            --env SOURCE_CODE="$(pwd)" \
+    echo "docker run -v --env SOURCE_CODE=\"$(pwd)\" --volume $(pwd):/code --volume /var/run/docker.sock:/var/run/docker.sock \"/gitlab-org/security-products/codequality:latest\" /code"
+
+    docker run --env SOURCE_CODE="$(pwd)" \
             --volume $(pwd):/code \
             --volume /var/run/docker.sock:/var/run/docker.sock \
                "/gitlab-org/security-products/codequality:latest" /code
