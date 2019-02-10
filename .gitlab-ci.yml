@@ -137,7 +137,7 @@ cleanup:
           --env NO_PROXY=$NO_PROXY \
           --volume $(pwd):/code \
           --volume /var/run/docker.sock:/var/run/docker.sock \
-             "acr2.tst.apnic.net/alex/codequality:0.0.1" /code
+             "acr2.tst.apnic.net/alex/codequality:0.0.2" /code
   }
 
   function deploy() {
