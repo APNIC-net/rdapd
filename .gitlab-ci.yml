@@ -67,7 +67,6 @@ codequality:
   services:
     - name: "$CI_REGISTRY/alex/dind-apnic:0.0.13"
   script:
-    - sleep 3600s
     - setup_docker
     - code_quality
   artifacts:
