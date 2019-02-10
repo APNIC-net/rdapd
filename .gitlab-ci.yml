@@ -62,7 +62,7 @@ codequality:
   image: $CI_REGISTRY/alex/docker-apnic:0.0.4
   allow_failure: true
   services:
-    - name: "$CI_REGISTRY/alex/dind-apnic:0.0.11"
+    - name: "$CI_REGISTRY/alex/dind-apnic:0.0.12"
   script:
     - setup_docker
     - code_quality
