@@ -174,8 +174,6 @@ cleanup:
       replicas="$new_replicas"
     fi
 
-    helm del --purge $(test_dep_name $name)
-
     helm upgrade --install \
       --force \
       --debug \
@@ -185,8 +183,6 @@ cleanup:
       --version="$CI_PIPELINE_ID-$CI_JOB_ID" \
       $(test_dep_name $name) \
       helm/test/
-
-    helm del --purge $name
 
     helm upgrade --install \
       --force \
