@@ -139,12 +139,6 @@ codequality:
           --env NO_PROXY=$NO_PROXY \
           --volume $(pwd):/code \
           --volume /var/run/docker.sock:/var/run/docker.sock \
-          #--volume config.yml:/etc/docker/registry/config.yml \
-          #-e MIRROR_SOURCE=https://registry-1.docker.io \
-          #-e MIRROR_SOURCE_INDEX=https://index.docker.io \
-          #-e "REGISTRY_LOG_LEVEL=debug" \
-          #-e "REGISTRY_REDIRECT_DISABLE=true" \
-          #-v /var/lib/registry:/var/lib/registry \
           "acr2.tst.apnic.net/alex/codequality:0.0.2" /code
   }
 
