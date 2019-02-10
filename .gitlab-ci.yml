@@ -221,7 +221,7 @@ cleanup:
     export  KUBECONFIG=ci
   }
 
-  function deploy_to_stg() {
+  function deploy_to() {
     helm upgrade --install \
       --force \
       --wait \
@@ -229,7 +229,7 @@ cleanup:
       --version="$CI_BUILD_ID" \
       --values=helm/$1-env-values.yaml \
       "$CHART_NAME" \
-      "staging/$CHART_NAME"
+      "$1/$CHART_NAME"
   }
 
   function test_dep_name() {
@@ -391,8 +391,6 @@ cleanup:
       helm delete --purge "$name"
       helm delete --purge "$(test_dep_name $name)"
     fi
-
-    kubectl delete namespace "$KUBE_NAMESPACE"
   }
 
 before_script:
