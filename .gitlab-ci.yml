@@ -100,7 +100,7 @@ review:
   except:
     - master
 
-.cleanup:
+cleanup:
   stage: cleanup
   image: alpine-kubectl-helm:1.0.0
   variables:
