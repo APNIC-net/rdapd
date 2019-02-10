@@ -131,9 +131,7 @@ codequality:
   export TILLER_NAMESPACE=$KUBE_NAMESPACE
 
   function code_quality() {
-  docker -D info
-  echo "daemon"
-  cat /etc/docker/daemon.json
+  echo $DOCKER_CONFIG
   exit
   docker run --env SOURCE_CODE="$(pwd)" \
           --env HTTP_PROXY=$HTTP_PROXY \
