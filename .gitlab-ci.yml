@@ -132,6 +132,8 @@ cleanup:
 
   function code_quality() {
   docker -D info
+  cat /etc/docker/daemon.json
+  exit
   docker run --env SOURCE_CODE="$(pwd)" \
           --env HTTP_PROXY=$HTTP_PROXY \
           --env HTTPS_PROXY=$HTTPS_PROXY \
