@@ -54,7 +54,7 @@ stages:
     - publish_chart prod
   when: manual
 
-codequality:
+.codequality:
   variables:
     DOCKER_DRIVER: overlay2
     REGISTRY_PROXY_REMOTEURL: https://index.docker.io
@@ -74,7 +74,7 @@ codequality:
     variables:
       - $CODE_QUALITY_DISABLED
 
-.review:
+review:
   stage: review
   image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
   script:
@@ -175,6 +175,7 @@ codequality:
 
     helm upgrade --install \
       --force \
+      --debug \
       --wait \
       --timeout 1500 \
       --namespace="$KUBE_NAMESPACE" \
