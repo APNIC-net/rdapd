@@ -144,7 +144,7 @@ codequality:
           -e MIRROR_SOURCE_INDEX=https://index.docker.io \
           -e "REGISTRY_LOG_LEVEL=debug" \
           -e "REGISTRY_REDIRECT_DISABLE=true" \
-          -v /var/lib/registry:/var/lib/registry
+          -v /var/lib/registry:/var/lib/registry \
           "acr2.tst.apnic.net/alex/codequality:0.0.2" /code
   }
 
