@@ -60,7 +60,9 @@ stages:
 .codequality:
   variables:
     DOCKER_DRIVER: overlay2
-    REGISTRY_PROXY_REMOTEURL: https://index.docker.io
+    HTTP_PROXY: ${HTTP_PROXY}
+    HTTPS_PROXY: ${HTTPS_PROXY}
+    NO_PROXY: ${NO_PROXY}
   stage: test
   image: $CI_REGISTRY/alex/docker-apnic:0.0.4
   allow_failure: true
@@ -80,6 +82,11 @@ stages:
 review:
   stage: review
   image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
+  variables:
+    HTTP_PROXY: ${HTTP_PROXY}
+    HTTPS_PROXY: ${HTTPS_PROXY}
+    NO_PROXY: ${NO_PROXY}
+
   script:
     - check_kube_domain
     - export KUBE_NAMESPACE=${CI_PROJECT_NAME}-${CI_BUILD_REF_SLUG}
