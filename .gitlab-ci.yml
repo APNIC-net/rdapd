@@ -59,10 +59,10 @@ codequality:
     DOCKER_DRIVER: overlay2
     REGISTRY_PROXY_REMOTEURL: https://index.docker.io
   stage: test
-  image: $CI_REGISTRY/alex/docker-apnic:0.0.3
+  image: $CI_REGISTRY/alex/docker-apnic:0.0.4
   allow_failure: true
   services:
-    - name: "$CI_REGISTRY/alex/dind-apnic:0.0.9"
+    - name: "$CI_REGISTRY/alex/dind-apnic:0.0.10"
   script:
     - setup_docker
     - code_quality
