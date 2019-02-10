@@ -188,7 +188,7 @@ cleanup:
     helm upgrade --install \
       --force \
       --wait \
-      --timeout 1500 \
+      --timeout 15000 \
       --debug \
       --set service.enabled="$service_enabled" \
       --set releaseOverride="$CI_ENVIRONMENT_SLUG" \
