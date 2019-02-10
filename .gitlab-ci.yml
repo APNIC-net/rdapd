@@ -189,6 +189,7 @@ cleanup:
       --force \
       --wait \
       --timeout 1500 \
+      --debug \
       --set service.enabled="$service_enabled" \
       --set releaseOverride="$CI_ENVIRONMENT_SLUG" \
       --set image.repository="$CI_APPLICATION_REPOSITORY" \
