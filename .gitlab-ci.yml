@@ -9,7 +9,10 @@ variables:
   KUBERNETES_VERSION: 1.9.1
   HELM_VERSION: 2.8.2
   CODECLIMATE_VERSION: 0.72.0
-  DOCKER_CONFIG: "~/.docker/"
+  HTTP_PROXY: ${HTTP_PROXY}
+  HTTPS_PROXY: ${HTTPS_PROXY}
+  NO_PROXY: ${NO_PROXY}
+
 stages:
   - package
   - test
@@ -54,13 +57,10 @@ stages:
     - publish_chart prod
   when: manual
 
-codequality:
+.codequality:
   variables:
     DOCKER_DRIVER: overlay2
     REGISTRY_PROXY_REMOTEURL: https://index.docker.io
-    HTTP_PROXY: ${HTTP_PROXY}
-    HTTPS_PROXY: ${HTTPS_PROXY}
-    NO_PROXY: ${NO_PROXY}
   stage: test
   image: $CI_REGISTRY/alex/docker-apnic:0.0.4
   allow_failure: true
@@ -86,7 +86,7 @@ review:
     - configure_cluster ${CI_PROJECT_NAME}-${CI_BUILD_REF_SLUG}
     - initialise_helm
     - ensure_namespace
-    - install_tiller
+    #- install_tiller
     - create_secret
     - deploy
     - persist_environment_url
@@ -132,7 +132,7 @@ cleanup:
   export CI_APPLICATION_TAG=$CI_PIPELINE_ID.$CI_COMMIT_SHA
   export CI_CONTAINER_NAME=ci_job_build_${CI_JOB_ID}
   export KUBE_NAMESPACE=${CI_PROJECT_NAME}-${CI_BUILD_REF_SLUG}
-  export TILLER_NAMESPACE=$KUBE_NAMESPACE
+  export TILLER_NAMESPACE='tiller'
 
   function code_quality() {
   echo $DOCKER_CONFIG
