@@ -131,6 +131,10 @@ cleanup:
   export TILLER_NAMESPACE=$KUBE_NAMESPACE
 
   function code_quality() {
+  cat > /etc/docker/registry <<EOL
+  proxy:
+    remoteurl: https://index.docker.io
+  EOL
   docker -D info
   exit
   docker run --env SOURCE_CODE="$(pwd)" \
