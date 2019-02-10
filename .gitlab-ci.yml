@@ -132,7 +132,7 @@ cleanup:
 
   function code_quality() {
   export REGISTRY_PROXY_REMOTEURL=https://index.docker.io
-  mkdir /etc/docker/registry
+  mkdir -p /etc/docker/registry
   cat > /etc/docker/registry <<EOL
   proxy:
     remoteurl: https://index.docker.io
