@@ -57,6 +57,7 @@ stages:
 codequality:
   variables:
     DOCKER_DRIVER: overlay2
+    REGISTRY_PROXY_REMOTEURL: https://index.docker.io
   stage: test
   image: $CI_REGISTRY/alex/docker-apnic:0.0.1
   allow_failure: true
