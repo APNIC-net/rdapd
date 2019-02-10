@@ -58,10 +58,10 @@ codequality:
   variables:
     DOCKER_DRIVER: overlay2
   stage: test
-  image: docker
+  image: $TEST_REGISTRY/alex/docker-ca
   allow_failure: true
   services:
-    - name: "$CI_REGISTRY/alex/dind-ca:0.0.3"
+    - name: "$CI_REGISTRY/alex/dind-ca:0.0.4"
   script:
     - setup_docker
     - code_quality
