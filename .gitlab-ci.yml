@@ -9,7 +9,7 @@ variables:
   KUBERNETES_VERSION: 1.9.1
   HELM_VERSION: 2.8.2
   CODECLIMATE_VERSION: 0.72.0
-
+  DOCKER_CONFIG: "~/.docker/"
 stages:
   - package
   - test
@@ -132,7 +132,6 @@ codequality:
 
   function code_quality() {
   echo $DOCKER_CONFIG
-  exit
   docker run --env SOURCE_CODE="$(pwd)" \
           --env HTTP_PROXY=$HTTP_PROXY \
           --env HTTPS_PROXY=$HTTPS_PROXY \
