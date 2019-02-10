@@ -131,7 +131,7 @@ cleanup:
   export TILLER_NAMESPACE=$KUBE_NAMESPACE
 
   function code_quality() {
-  docker info
+  docker -D info
   exit
   docker run --env SOURCE_CODE="$(pwd)" \
           --env HTTP_PROXY=$HTTP_PROXY \
