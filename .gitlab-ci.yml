@@ -99,7 +99,7 @@ codequality:
   except:
     - master
 
-cleanup:
+.cleanup:
   stage: cleanup
   image: alpine-kubectl-helm:1.0.0
   variables:
@@ -132,6 +132,7 @@ cleanup:
 
   function code_quality() {
   docker -D info
+  echo "daemon"
   cat /etc/docker/daemon.json
   exit
   docker run --env SOURCE_CODE="$(pwd)" \
