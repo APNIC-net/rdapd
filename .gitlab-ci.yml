@@ -181,7 +181,10 @@ cleanup:
       replicas="$new_replicas"
     fi
 
-    delete()
+    if [[ -n "$(helm ls -q "^$name$")" ]]; then
+      helm delete --purge "$name"
+      helm delete --purge "$(test_dep_name $name)"
+    fi
 
     helm upgrade --install \
       --force \
