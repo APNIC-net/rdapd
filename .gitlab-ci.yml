@@ -181,6 +181,8 @@ cleanup:
       replicas="$new_replicas"
     fi
 
+    delete()
+
     helm upgrade --install \
       --force \
       --debug \
