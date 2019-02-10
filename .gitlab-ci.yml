@@ -61,7 +61,7 @@ codequality:
   image: $CI_REGISTRY/alex/docker-ca
   allow_failure: true
   services:
-    - name: "$CI_REGISTRY/alex/dind-ca"
+    - name: "$CI_REGISTRY/alex/dind-ca:0.0.1"
       #command: ["--insecure-registry=$CI_REGISTRY"]
   script:
     - setup_docker
@@ -138,7 +138,7 @@ codequality:
           --env NO_PROXY=$NO_PROXY \
           --volume $(pwd):/code \
           --volume /var/run/docker.sock:/var/run/docker.sock \
-             "acr2.tst.apnic.net/alex/codequality:0.0.1" /code
+             "acr2.tst.apnic.net/alex/codequality:latest" /code
   }
 
   function deploy() {
