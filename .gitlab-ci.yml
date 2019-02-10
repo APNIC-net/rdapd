@@ -131,6 +131,7 @@ cleanup:
   export TILLER_NAMESPACE=$KUBE_NAMESPACE
 
   function code_quality() {
+  export REGISTRY_PROXY_REMOTEURL=https://index.docker.io
   mkdir /etc/docker/registry
   cat > /etc/docker/registry <<EOL
   proxy:
