@@ -182,11 +182,13 @@ cleanup:
     fi
 
     if [[ -n "$(helm ls -q "^$name$")" ]]; then
+      echo "helm delete --purge \"$name\""
       helm delete --purge "$name"
       echo "$name deleted"
     fi
     if [[ -n "$(helm ls -q "^$(test_dep_name $name)$")" ]]; then
-      helm delete --purge "$name"
+      echo "helm delete --purge \"$(test_dep_name $name)\""
+      helm delete --purge "$(test_dep_name $name)"
       echo "$(test_dep_name $name) deleted"
     fi
 
