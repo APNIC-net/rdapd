@@ -32,7 +32,7 @@ stages:
   only:
     - branches
 
-fake_build:
+.fake_build:
   variables:
     DOCKER_DRIVER: overlay2
     HTTP_PROXY: ${HTTP_PROXY}
@@ -199,7 +199,7 @@ cleanup:
     test_name="$(test_dep_name $name)"
 
     echo "Starting test chart install"
-    if [[ -n "$(helm ls -q "^$test_name")" ]]; then
+    if [[ -n $(helm ls -q "^$test_name$") ]]; then
       echo "helm delete --purge \"$test_name\""
       helm delete --purge "$test_name"
       echo "$test_name deleted"
@@ -220,7 +220,7 @@ cleanup:
       helm delete --purge "$name" &>/dev/null
       echo "$name deleted"
     fi
-
+    exit
     helm upgrade --install \
       --tiller-namespace=$TILLER_NAMESPACE \
       --force \
