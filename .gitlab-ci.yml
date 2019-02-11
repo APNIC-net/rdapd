@@ -190,7 +190,7 @@ cleanup:
     fi
 
     helm upgrade --install \
-      --tiller-namespace=$TILLER_NAMESPACE
+      --tiller-namespace=$TILLER_NAMESPACE \
       --force \
       --wait \
       --namespace="$KUBE_NAMESPACE" \
@@ -203,7 +203,7 @@ cleanup:
     fi
 
     helm upgrade --install \
-      --tiller-namespace=$TILLER_NAMESPACE
+      --tiller-namespace=$TILLER_NAMESPACE \
       --force \
       --wait \
       --set service.enabled="$service_enabled" \
