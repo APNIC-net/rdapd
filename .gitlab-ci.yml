@@ -1,6 +1,7 @@
 image: alpine:latest
 
 variables:
+  AUTO_DEVOPS_DOMAIN: rdapd.tst.apnic.net
   POSTGRES_USER: user
   POSTGRES_PASSWORD: testing-password
   POSTGRES_ENABLED: "true"
@@ -104,6 +105,7 @@ review:
     NO_PROXY: ${NO_PROXY}
 
   script:
+    - check_kube_domain
     - export KUBE_NAMESPACE=${CI_PROJECT_NAME}-${CI_BUILD_REF_SLUG}
     - configure_cluster ${CI_PROJECT_NAME}-${CI_BUILD_REF_SLUG}
     - initialise_helm
@@ -113,7 +115,7 @@ review:
     - persist_environment_url
   environment:
     name: review/$CI_COMMIT_REF_NAME
-    url: http://$CI_PROJECT_PATH_SLUG-$CI_ENVIRONMENT_SLUG
+    url: http://$CI_PROJECT_PATH_SLUG-$CI_ENVIRONMENT_SLUG.$AUTO_DEVOPS_DOMAIN
     on_stop: cleanup
   artifacts:
     paths: [environment_url.txt]
@@ -194,6 +196,7 @@ cleanup:
     if [[ -n "$new_replicas" ]]; then
       replicas="$new_replicas"
     fi
+
     test_name="$(test_dep_name $name)"
 
     echo "Starting test chart install"
@@ -220,9 +223,11 @@ cleanup:
       echo "$name deleted"
     fi
 
+
+    #helm upgrade --install --tiller-namespace=$TILLER_NAMESPACE --debug --force --wait --set service.enabled=\"$service_enabled\" --set releaseOverride=\"$CI_ENVIRONMENT_SLUG\" --set image.repository=\"$CI_REGISTRY/$CI_REGISTRY_PATH/$CI_COMMIT_REF_SLUG\" --set image.tag=\"$CI_APPLICATION_TAG\" --set image.pullPolicy=IfNotPresent --set application.track=\"$track\" --set application.database_url=\"$DATABASE_URL\" --set service.url=\"$CI_ENVIRONMENT_URL\" --set replicaCount=\"$replicas\" --set postgresql.enabled=\"$postgres_enabled\" --set postgresql.nameOverride=\"postgres\" --set postgresql.postgresUser=\"$POSTGRES_USER\" --set postgresql.postgresDatabase=\"$POSTGRES_DB\" --namespace=\"$KUBE_NAMESPACE\" --version=\"$CI_PIPELINE_ID-$CI_JOB_ID\" --values=helm/test-env-values.yaml \"$name\" helm/rdapd/"
+
     helm upgrade --install \
       --tiller-namespace=$TILLER_NAMESPACE \
-      --debug \
       --force \
       --wait \
       --set service.enabled="$service_enabled" \
@@ -298,6 +303,17 @@ cleanup:
 
   function ensure_namespace() {
     kubectl describe namespace "$KUBE_NAMESPACE" || kubectl create namespace "$KUBE_NAMESPACE"
+  }
+
+  function check_kube_domain() {
+    if [ -z ${AUTO_DEVOPS_DOMAIN+x} ]; then
+      echo "In order to deploy or use Review Apps, AUTO_DEVOPS_DOMAIN variable must be set"
+      echo "You can do it in Auto DevOps project settings or defining a secret variable at group or project level"
+      echo "You can also manually add it in .gitlab-ci.yml"
+      false
+    else
+      true
+    fi
   }
 
   function fake_build() {
