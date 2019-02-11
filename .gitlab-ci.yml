@@ -43,7 +43,7 @@ fake_build:
   image: docker:stable
   allow_failure: true
   services:
-    - name: $CI_REGISTRY/ci/dind-apnic:0.0.1
+    - name: $CI_REGISTRY/ci/dind:0.0.1
   script:
     - setup_docker
     - fake_build
@@ -81,10 +81,10 @@ fake_build:
     HTTPS_PROXY: ${HTTPS_PROXY}
     NO_PROXY: ${NO_PROXY}
   stage: test
-  image: $CI_REGISTRY/alex/docker-apnic:0.0.4
+  image: $CI_REGISTRY/docker:stable
   allow_failure: true
   services:
-    - name: $CI_REGISTRY/alex/dind-apnic:0.0.13
+    - name: $CI_REGISTRY/ci/dind:0.0.1
   script:
     - setup_docker
     - code_quality
