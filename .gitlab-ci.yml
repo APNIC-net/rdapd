@@ -217,7 +217,7 @@ cleanup:
     echo "Starting rdapd chart install"
     echo $name
     helm ls
-    helm ls -q "^$name$"
+    helm ls -q "$name"
     exit
     echo "Delete previous"
     if [[ -n "$(helm ls -q "^$name$")" ]]; then
