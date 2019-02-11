@@ -29,7 +29,7 @@ build_test_docker_image:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
   script:
-    - build_and_push_docker_image $TEST_REGISTRY
+    - build_and_push_docker_image $CI_REGISTRY
   only:
     - branches
 
@@ -299,7 +299,7 @@ cleanup:
   #Takes one argument: the repository server (test or prod)
   function build_and_push_docker_image() {
     echo "Creating and pusing docker image"
-    echo "{\"auths\":{\"$1\":{\"username\":\"$TEST_REGISTRY_USER\",\"password\":\"$TEST_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+    echo "{\"auths\":{\"$1\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
     cat registry.crt  >> /kaniko/ssl/certs/ca-certificates.crt
     echo "$1/$REGISTRY_PATH/$CI_COMMIT_REF_SLUG:$CI_APPLICATION_TAG"
     /kaniko/executor --context $CI_PROJECT_DIR --build-arg MAVEN_MIRROR_OF=$MAVEN_MIRROR_OF --build-arg MAVEN_MIRROR_URL=$MAVEN_MIRROR_URL --build-arg HTTP_PROXY=$HTTP_PROXY --build-arg HTTPS_PROXY=$HTTPS_PROXY --build-arg NO_PROXY=$NO_PROXY --dockerfile $CI_PROJECT_DIR/Dockerfile --destination $1/$REGISTRY_PATH/$CI_COMMIT_REF_SLUG:$CI_APPLICATION_TAG
