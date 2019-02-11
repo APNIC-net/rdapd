@@ -33,7 +33,7 @@ stages:
   only:
     - branches
 
-.fake_build:
+fake_build:
   variables:
     DOCKER_DRIVER: overlay2
     HTTP_PROXY: ${HTTP_PROXY}
@@ -196,8 +196,6 @@ cleanup:
     if [[ -n "$new_replicas" ]]; then
       replicas="$new_replicas"
     fi
-    echo $service_enabled
-    exit
     test_name="$(test_dep_name $name)"
 
     echo "Starting test chart install"
@@ -224,11 +222,9 @@ cleanup:
       echo "$name deleted"
     fi
 
-    echo "Env url: $CI_ENVIRONMENT_URL"
-    echo "ENV url: http://$CI_PROJECT_PATH_SLUG-$CI_ENVIRONMENT_SLUG.$AUTO_DEVOPS_DOMAIN"
-
     helm upgrade --install \
       --tiller-namespace=$TILLER_NAMESPACE \
+      --debug \
       --force \
       --wait \
       --set service.enabled="$service_enabled" \
