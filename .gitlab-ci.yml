@@ -197,7 +197,7 @@ cleanup:
     helm upgrade --install \
       --tiller-namespace=$TILLER_NAMESPACE \
       --force \
-      --timeout=3600
+      --timeout=3600 \
       --wait \
       --set service.enabled="$service_enabled" \
       --set releaseOverride="$CI_ENVIRONMENT_SLUG" \
