@@ -33,7 +33,7 @@ stages:
   only:
     - branches
 
-fake_build:
+.fake_build:
   variables:
     DOCKER_DRIVER: overlay2
     HTTP_PROXY: ${HTTP_PROXY}
@@ -215,6 +215,9 @@ cleanup:
       helm/test/
 
     echo "Starting rdapd chart install"
+    echo $name
+    helm ls
+    exit
     helm ls -q "^$name$"
     echo "Delete previous"
     if [[ -n "$(helm ls -q "^$name$")" ]]; then
@@ -222,9 +225,6 @@ cleanup:
       helm delete --purge "$name"
       echo "$name deleted"
     fi
-
-    echo "Env url: $CI_ENVIRONMENT_URL"
-    echo "ENV url: http://$CI_PROJECT_PATH_SLUG-$CI_ENVIRONMENT_SLUG.$AUTO_DEVOPS_DOMAIN"
 
     helm upgrade --install \
       --tiller-namespace=$TILLER_NAMESPACE \
