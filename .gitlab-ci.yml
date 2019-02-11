@@ -186,10 +186,11 @@ cleanup:
       helm delete --purge "$name"
       echo "$name deleted"
     fi
-    if [[ -n "$(helm ls -q "^$(test_dep_name $name)$")" ]]; then
-      echo "helm delete --purge \"$(test_dep_name $name)\""
-      helm delete --purge "$(test_dep_name $name)"
-      echo "$(test_dep_name $name) deleted"
+    test_name = test_dep_name $name
+    if [[ -n "$(helm ls -q "^$test_name")" ]]; then
+      echo "helm delete --purge \"$test_name\""
+      helm delete --purge "$test_name"
+      echo "$test_name deleted"
     fi
 
 
@@ -199,7 +200,7 @@ cleanup:
       --wait \
       --namespace="$KUBE_NAMESPACE" \
       --version="$CI_PIPELINE_ID-$CI_JOB_ID" \
-      $(test_dep_name $name) \
+      $test_name \
       helm/test/
 
     helm delete --purge "$name" &>/dev/null
