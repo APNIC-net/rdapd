@@ -171,8 +171,6 @@ cleanup:
   function deploy() {
     track="${1-stable}"
     name="$CI_ENVIRONMENT_SLUG"
-    echo $track
-    exit
 
     if [[ "$track" != "stable" ]]; then
       name="$name-$track"
@@ -198,7 +196,8 @@ cleanup:
     if [[ -n "$new_replicas" ]]; then
       replicas="$new_replicas"
     fi
-
+    echo $service_enabled
+    exit
     test_name="$(test_dep_name $name)"
 
     echo "Starting test chart install"
