@@ -81,7 +81,7 @@ build_test_docker_image:
 
 review:
   stage: review
-  image: $TEST_REGISTRY/ci/alpine-kubectl-helm:1.0.1
+  image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
   variables:
     HTTP_PROXY: ${HTTP_PROXY}
     HTTPS_PROXY: ${HTTPS_PROXY}
