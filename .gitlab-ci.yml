@@ -23,13 +23,30 @@ stages:
   - performance
   - cleanup
 
-build_test_docker_image:
+.build_test_docker_image:
   stage: package
   image:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
   script:
     - build_and_push_docker_image
+  only:
+    - branches
+
+fake_build:
+  variables:
+    DOCKER_DRIVER: overlay2
+    HTTP_PROXY: ${HTTP_PROXY}
+    HTTPS_PROXY: ${HTTPS_PROXY}
+    NO_PROXY: ${NO_PROXY}
+  stage: test
+  image: docker:stable
+  allow_failure: true
+  services:
+    - name: $CI_REGISTRY/ci/dind-apnic:0.0.1
+  script:
+    - setup_docker
+    - fake_build
   only:
     - branches
 
@@ -296,11 +313,13 @@ cleanup:
     fi
   }
 
-  function build_and_push_docker_image() {
+  function fake_build() {
     docker pull acr2.tst.apnic.net/rdap/rdapd/ci-tests:1942.3ad6a0224f645d708c6f433ed62ac99f8a084d19
     docker tag acr2.tst.apnic.net/rdap/rdapd/ci-tests:1942.3ad6a0224f645d708c6f433ed62ac99f8a084d19 $CI_REGISTRY/$CI_REGISTRY_PATH/$CI_COMMIT_REF_SLUG:$CI_APPLICATION_TAG
     docker push $CI_REGISTRY/$CI_REGISTRY_PATH/$CI_COMMIT_REF_SLUG:$CI_APPLICATION_TAG
-    exit
+  }
+
+  function build_and_push_docker_image() {
     echo "Creating and pusing docker image $CI_REGISTRY/$CI_REGISTRY_PATH/$CI_COMMIT_REF_SLUG:$CI_APPLICATION_TAG"
     echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
     cat registry.crt  >> /kaniko/ssl/certs/ca-certificates.crt
