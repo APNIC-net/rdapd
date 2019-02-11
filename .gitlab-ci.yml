@@ -181,26 +181,25 @@ cleanup:
       replicas="$new_replicas"
     fi
 
-    if [[ -n "$(helm ls -q "^$name$")" ]]; then
-      helm delete --purge "$name"
+    if [[ -n "$(helm ls -q "$(test_dep_name $name))" ]]; then
       helm delete --purge "$(test_dep_name $name)"
     fi
 
     helm upgrade --install \
       --force \
-      --debug \
       --wait \
-      --timeout 1500 \
       --namespace="$KUBE_NAMESPACE" \
       --version="$CI_PIPELINE_ID-$CI_JOB_ID" \
       $(test_dep_name $name) \
       helm/test/
 
+    if [[ -n "$(helm ls -q "$name)" ]]; then
+      helm delete --purge "$name"
+    fi
+
     helm upgrade --install \
       --force \
       --wait \
-      --timeout 15000 \
-      --debug \
       --set service.enabled="$service_enabled" \
       --set releaseOverride="$CI_ENVIRONMENT_SLUG" \
       --set image.repository="$CI_APPLICATION_REPOSITORY" \
