@@ -181,11 +181,12 @@ cleanup:
       replicas="$new_replicas"
     fi
 
-    if [[ -n "$(helm ls -q "$(test_dep_name $name))" ]]; then
+    if [[ -n "$(helm ls -q "$(test_dep_name $name)") ]]; then
       helm delete --purge "$(test_dep_name $name)"
     fi
 
     helm upgrade --install \
+      --tiller-namespace=$TILLER_NAMESPACE \
       --force \
       --wait \
       --namespace="$KUBE_NAMESPACE" \
@@ -198,6 +199,7 @@ cleanup:
     fi
 
     helm upgrade --install \
+      --tiller-namespace=$TILLER_NAMESPACE \
       --force \
       --wait \
       --set service.enabled="$service_enabled" \
