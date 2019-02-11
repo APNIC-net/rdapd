@@ -171,6 +171,8 @@ cleanup:
   function deploy() {
     track="${1-stable}"
     name="$CI_ENVIRONMENT_SLUG"
+    echo track
+    exit
 
     if [[ "$track" != "stable" ]]; then
       name="$name-$track"
