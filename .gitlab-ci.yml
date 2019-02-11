@@ -88,7 +88,6 @@ review:
     NO_PROXY: ${NO_PROXY}
 
   script:
-    - setup_docker
     - check_kube_domain
     - export KUBE_NAMESPACE=${CI_PROJECT_NAME}-${CI_BUILD_REF_SLUG}
     - configure_cluster ${CI_PROJECT_NAME}-${CI_BUILD_REF_SLUG}
