@@ -181,7 +181,7 @@ cleanup:
       replicas="$new_replicas"
     fi
 
-    #helm delete --purge "$(test_dep_name $name)" &>/dev/null
+    helm delete --purge "$(test_dep_name $name)" &>/dev/null
 
     #helm upgrade --install \
     #  --tiller-namespace=$TILLER_NAMESPACE \
@@ -192,7 +192,7 @@ cleanup:
     #  $(test_dep_name $name) \
     #  helm/test/
 
-    #helm delete --purge "$name" &>/dev/null
+    helm delete --purge "$name" &>/dev/null
 
     helm upgrade --install \
       --tiller-namespace=$TILLER_NAMESPACE \
