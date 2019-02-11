@@ -222,6 +222,10 @@ cleanup:
       echo "$name deleted"
     fi
 
+
+    echo "helm upgrade --install --tiller-namespace=$TILLER_NAMESPACE --debug --force --wait --set service.enabled=\"$service_enabled\" --set releaseOverride=\"$CI_ENVIRONMENT_SLUG\" --set image.repository=\"$CI_REGISTRY/$CI_REGISTRY_PATH/$CI_COMMIT_REF_SLUG\" --set image.tag=\"$CI_APPLICATION_TAG\" --set image.pullPolicy=IfNotPresent --set application.track=\"$track\" --set application.database_url=\"$DATABASE_URL\" --set service.url=\"$CI_ENVIRONMENT_URL\" --set replicaCount=\"$replicas\" --set postgresql.enabled=\"$postgres_enabled\" --set postgresql.nameOverride=\"postgres\" --set postgresql.postgresUser=\"$POSTGRES_USER\" --set postgresql.postgresDatabase=\"$POSTGRES_DB\" --namespace=\"$KUBE_NAMESPACE\" --version=\"$CI_PIPELINE_ID-$CI_JOB_ID\" --values=helm/test-env-values.yaml \"$name\" helm/rdapd/"
+    exit
+
     helm upgrade --install \
       --tiller-namespace=$TILLER_NAMESPACE \
       --debug \
