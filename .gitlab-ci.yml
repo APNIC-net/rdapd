@@ -223,7 +223,7 @@ cleanup:
       echo "$name deleted"
     fi
 
-    echo "Env url: CI_ENVIRONMENT_URL"
+    echo "Env url: $CI_ENVIRONMENT_URL"
     echo "ENV url: http://$CI_PROJECT_PATH_SLUG-$CI_ENVIRONMENT_SLUG.$AUTO_DEVOPS_DOMAIN"
 
     helm upgrade --install \
