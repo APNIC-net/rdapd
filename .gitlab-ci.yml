@@ -186,14 +186,16 @@ cleanup:
       helm delete --purge "$name"
       echo "$name deleted"
     fi
+    echo "Setting test name"
     test_name = test_dep_name $name
+    echo "Test name: $test_name"
     if [[ -n "$(helm ls -q "^$test_name")" ]]; then
       echo "helm delete --purge \"$test_name\""
       helm delete --purge "$test_name"
       echo "$test_name deleted"
     fi
 
-
+    echo "Staring test helm install"
     helm upgrade --install \
       --tiller-namespace=$TILLER_NAMESPACE \
       --force \
@@ -203,8 +205,7 @@ cleanup:
       $test_name \
       helm/test/
 
-    helm delete --purge "$name" &>/dev/null
-
+  echo "Staring biuld helm install"
     helm upgrade --install \
       --tiller-namespace=$TILLER_NAMESPACE \
       --force \
