@@ -218,7 +218,7 @@ cleanup:
 
     if [[ -n "$(helm ls -q "$name")" ]]; then
       echo "helm delete --purge \"$name\""
-      helm delete --purge "$name"
+      helm delete --purge "$name" &>/dev/null
       echo "$name deleted"
     fi
 
