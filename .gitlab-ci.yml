@@ -181,6 +181,9 @@ cleanup:
       replicas="$new_replicas"
     fi
 
+    echo helm ls -q "^$name$"
+    helm ls -q "^$(test_dep_name $name)"
+
     helm delete --purge "$(test_dep_name $name)" &>/dev/null
 
     helm upgrade --install \
