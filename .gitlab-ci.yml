@@ -181,9 +181,7 @@ cleanup:
       replicas="$new_replicas"
     fi
 
-    if [[ -n "$(helm ls -q "$(test_dep_name $name)") ]]; then
-      helm delete --purge "$(test_dep_name $name)"
-    fi
+    helm delete --purge "$(test_dep_name $name)"
 
     helm upgrade --install \
       --tiller-namespace=$TILLER_NAMESPACE \
@@ -194,9 +192,7 @@ cleanup:
       $(test_dep_name $name) \
       helm/test/
 
-    if [[ -n "$(helm ls -q "$name)" ]]; then
       helm delete --purge "$name"
-    fi
 
     helm upgrade --install \
       --tiller-namespace=$TILLER_NAMESPACE \
