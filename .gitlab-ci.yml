@@ -23,7 +23,7 @@ stages:
   - performance
   - cleanup
 
-build_test_docker_image:
+.build_test_docker_image:
   stage: package
   image:
     name: gcr.io/kaniko-project/executor:debug
@@ -187,7 +187,7 @@ cleanup:
       echo "$name deleted"
     fi
     echo "Setting test name"
-    test_name=test_dep_name $name
+    test_name="$(test_dep_name $name)"
     echo "Test name: $test_name"
     if [[ -n "$(helm ls -q "^$test_name")" ]]; then
       echo "helm delete --purge \"$test_name\""
