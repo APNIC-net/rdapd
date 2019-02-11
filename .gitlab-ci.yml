@@ -110,7 +110,6 @@ review:
     - configure_cluster ${CI_PROJECT_NAME}-${CI_BUILD_REF_SLUG}
     - initialise_helm
     - ensure_namespace
-    #- install_tiller
     - create_secret
     - deploy
     - persist_environment_url
@@ -223,6 +222,9 @@ cleanup:
       helm delete --purge "$name"
       echo "$name deleted"
     fi
+
+    echo "Env url: CI_ENVIRONMENT_URL"
+    echo "ENV url: http://$CI_PROJECT_PATH_SLUG-$CI_ENVIRONMENT_SLUG.$AUTO_DEVOPS_DOMAIN"
 
     helm upgrade --install \
       --tiller-namespace=$TILLER_NAMESPACE \
@@ -338,57 +340,6 @@ cleanup:
     cd /root/helm_package
     echo "curl -s --data-binary \"@$(ls -A1 /root/helm_package/)\" $CHART_API_URI/api/$1/charts"
     curl -s --data-binary "@$(ls -A1 /root/helm_package/)" $CHART_API_URI/api/$1/charts
-  }
-
-  function install_tiller() {
-
-    #kubectl create -n "$TILLER_NAMESPACE"
-    #kubectl create namespace "$TILLER_NAMESPACE"
-
-    echo "Creating Tiller Service Account for namespace ${TILLER_NAMESPACE}"
-    cat | kubectl apply -n "$TILLER_NAMESPACE" -f - << EOF
-    apiVersion: v1
-    kind: ServiceAccount
-    metadata:
-      name: tiller
-  EOF
-
-    echo "Creating Tiller Role for namespace ${TILLER_NAMESPACE}"
-    cat | kubectl apply -n "$TILLER_NAMESPACE" -f - << EOF
-    kind: Role
-    apiVersion: rbac.authorization.k8s.io/v1beta1
-    metadata:
-      name: tiller-manager
-    rules:
-      - apiGroups: ["", "extensions", "apps"]
-        resources: ["*"]
-        verbs: ["*"]
-  EOF
-
-    echo "Creating Tiller RoleBinding for namespace ${TILLER_NAMESPACE}"
-    cat | kubectl apply -n "$TILLER_NAMESPACE" -f - << EOF
-    kind: RoleBinding
-    apiVersion: rbac.authorization.k8s.io/v1beta1
-    metadata:
-      name: tiller-binding
-    subjects:
-      - kind: ServiceAccount
-        name: tiller
-    roleRef:
-      kind: Role
-      name: tiller-manager
-      apiGroup: rbac.authorization.k8s.io
-  EOF
-
-
-    echo "Checking Tiller..."
-    helm init --upgrade --service-account "tiller" --tiller-namespace "$TILLER_NAMESPACE" --tiller-image acr2.tst.apnic.net/asdf/kubernetes-helm/tiller:v2.8.0
-    kubectl rollout status -n "$TILLER_NAMESPACE" -w "deployment/tiller-deploy"
-    if ! helm version --debug; then
-      echo "Failed to init Tiller."
-      return 1
-    fi
-    echo ""
   }
 
   function create_secret() {
