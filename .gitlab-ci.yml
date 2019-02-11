@@ -187,12 +187,12 @@ cleanup:
       echo "$name deleted"
     fi
     echo "Setting test name"
-    test_name = test_dep_name $name
-    echo "Test name: $test_name"
-    if [[ -n "$(helm ls -q "^$test_name")" ]]; then
-      echo "helm delete --purge \"$test_name\""
-      helm delete --purge "$test_name"
-      echo "$test_name deleted"
+    testname = test_dep_name $name
+    echo "Test name: $testname"
+    if [[ -n "$(helm ls -q "^$testname")" ]]; then
+      echo "helm delete --purge \"$testname\""
+      helm delete --purge "$testname"
+      echo "$testname deleted"
     fi
 
     echo "Staring test helm install"
@@ -202,7 +202,7 @@ cleanup:
       --wait \
       --namespace="$KUBE_NAMESPACE" \
       --version="$CI_PIPELINE_ID-$CI_JOB_ID" \
-      $test_name \
+      $testname \
       helm/test/
 
   echo "Staring biuld helm install"
