@@ -1,7 +1,6 @@
 image: alpine:latest
 
 variables:
-  AUTO_DEVOPS_DOMAIN: rdapd.tst.apnic.net
   POSTGRES_USER: user
   POSTGRES_PASSWORD: testing-password
   POSTGRES_ENABLED: "true"
@@ -115,7 +114,7 @@ review:
     - persist_environment_url
   environment:
     name: review/$CI_COMMIT_REF_NAME
-    url: http://$CI_PROJECT_PATH_SLUG-$CI_ENVIRONMENT_SLUG.$AUTO_DEVOPS_DOMAIN
+    url: http://$CI_PROJECT_PATH_SLUG-$CI_ENVIRONMENT_SLUG
     on_stop: cleanup
   artifacts:
     paths: [environment_url.txt]
@@ -302,14 +301,7 @@ cleanup:
   }
 
   function check_kube_domain() {
-    if [ -z ${AUTO_DEVOPS_DOMAIN+x} ]; then
-      echo "In order to deploy or use Review Apps, AUTO_DEVOPS_DOMAIN variable must be set"
-      echo "You can do it in Auto DevOps project settings or defining a secret variable at group or project level"
-      echo "You can also manually add it in .gitlab-ci.yml"
-      false
-    else
-      true
-    fi
+    true
   }
 
   function fake_build() {
