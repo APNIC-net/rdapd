@@ -182,9 +182,18 @@ cleanup:
     fi
 
     helm ls -q "^$name$"
-    helm ls -q "^$(test_dep_name $name)"
 
     helm delete --purge "$(test_dep_name $name)" &>/dev/null
+
+    if [[ -n "$(helm ls -q "^$name$")" ]]; then
+      helm delete --purge "$name"
+      echo "$name deleted"
+    fi
+    if [[ -n "$(helm ls -q "^$(test_dep_name $name)$")" ]]; then
+      helm delete --purge "$name"
+      echo "$(test_dep_name $name) deleted"
+    fi
+
 
     helm upgrade --install \
       --tiller-namespace=$TILLER_NAMESPACE \
