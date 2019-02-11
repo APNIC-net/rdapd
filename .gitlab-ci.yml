@@ -32,7 +32,7 @@ stages:
   only:
     - branches
 
-.fake_build:
+fake_build:
   variables:
     DOCKER_DRIVER: overlay2
     HTTP_PROXY: ${HTTP_PROXY}
@@ -220,7 +220,7 @@ cleanup:
       helm delete --purge "$name" &>/dev/null
       echo "$name deleted"
     fi
-    exit
+
     helm upgrade --install \
       --tiller-namespace=$TILLER_NAMESPACE \
       --force \
