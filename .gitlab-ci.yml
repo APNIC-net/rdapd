@@ -181,10 +181,6 @@ cleanup:
       replicas="$new_replicas"
     fi
 
-    helm ls -q "^$name$"
-
-    helm delete --purge "$(test_dep_name $name)" &>/dev/null
-
     if [[ -n "$(helm ls -q "^$name$")" ]]; then
       helm delete --purge "$name"
       echo "$name deleted"
