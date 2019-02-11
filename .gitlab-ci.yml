@@ -216,6 +216,11 @@ cleanup:
 
     echo "Starting rdapd chart install"
 
+    my=$(helm ls -q "^$name$")
+
+    echo $my
+    exit
+
     if [[ -n "$(helm ls -q "^$name$")" ]]; then
       echo "helm delete --purge \"$name\""
       helm delete --purge "$name" &>/dev/null
