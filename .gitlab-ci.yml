@@ -1,7 +1,7 @@
 image: alpine:latest
 
 variables:
-  AUTO_DEVOPS_DOMAIN: rdapd.tst.apnic.net
+  AUTO_DEVOPS_DOMAIN: domain.example.com
   POSTGRES_USER: user
   POSTGRES_PASSWORD: testing-password
   POSTGRES_ENABLED: "true"
