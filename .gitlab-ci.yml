@@ -167,32 +167,11 @@ cleanup:
 
   function deploy() {
     echo $KUBE_NAMESPACE
-    set $CI_ENVIRONMENT_URL=$TEST_CLUSTER_SERVER/api/v1/namespaces/${KUBE_NAMESPACE}/services/${name}:8080/proxy/
     echo $CI_ENVIRONMENT_URL
     name=$(get_name)
     replicas="1"
-    service_enabled="false"
     postgres_enabled="$POSTGRES_ENABLED"
-    # canary uses stable db
-    [[ "$track" == "canary" ]] && postgres_enabled="false"
-
-    env_track=$( echo $track | tr -s  '[:lower:]'  '[:upper:]' )
-    env_slug=$( echo ${CI_ENVIRONMENT_SLUG//-/_} | tr -s  '[:lower:]'  '[:upper:]' )
-
-    if [[ "$track" == "stable" ]]; then
-      # for stable track get number of replicas from `PRODUCTION_REPLICAS`
-      eval new_replicas=\$${env_slug}_REPLICAS
-      service_enabled="true"
-    else
-      # for all tracks get number of replicas from `CANARY_PRODUCTION_REPLICAS`
-      eval new_replicas=\$${env_track}_${env_slug}_REPLICAS
-    fi
-    if [[ -n "$new_replicas" ]]; then
-      replicas="$new_replicas"
-    fi
-
     test_name="$(test_dep_name $name)"
-
     echo "Starting test chart install"
 
     if [[ -n $(helm ls -q "^$test_name$") ]]; then
@@ -223,14 +202,11 @@ cleanup:
       --tiller-namespace=$TILLER_NAMESPACE \
       --force \
       --wait \
-      --set service.enabled="$service_enabled" \
       --set releaseOverride="$CI_ENVIRONMENT_SLUG" \
       --set image.repository="$CI_REGISTRY/$CI_REGISTRY_PATH/$CI_COMMIT_REF_SLUG" \
       --set image.tag="$CI_APPLICATION_TAG" \
       --set image.pullPolicy=IfNotPresent \
-      --set application.track="$track" \
       --set application.database_url="$DATABASE_URL" \
-      --set service.url="$CI_ENVIRONMENT_URL" \
       --set replicaCount="$replicas" \
       --set postgresql.enabled="$postgres_enabled" \
       --set postgresql.nameOverride="postgres" \
