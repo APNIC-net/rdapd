@@ -32,7 +32,7 @@ stages:
   only:
     - branches
 
-fake_build:
+.fake_build:
   variables:
     DOCKER_DRIVER: overlay2
     HTTP_PROXY: ${HTTP_PROXY}
@@ -113,7 +113,7 @@ review:
     - persist_environment_url
   environment:
     name: review/$CI_COMMIT_REF_NAME
-    url: http://test.test.test
+    url: http:/test.test.test
     on_stop: cleanup
   artifacts:
     paths: [environment_url.html]
@@ -154,6 +154,7 @@ cleanup:
   export CI_CONTAINER_NAME=ci_job_build_${CI_JOB_ID}
   export KUBE_NAMESPACE=${CI_PROJECT_NAME}-${CI_BUILD_REF_SLUG}
   export TILLER_NAMESPACE='tiller'
+  export APP_NAME=$(get_name)
 
   function code_quality() {
   echo $DOCKER_CONFIG
@@ -167,9 +168,7 @@ cleanup:
   }
 
   function deploy() {
-    echo $CI_ENVIRONMENT_URL
-    return
-
+    set $CI_ENVIRONMENT_URL=$TEST_CLUSTER_SERVER/api/v1/namespaces/$KUBE_NAMESPACE/services/$APP_NAME:8080/proxy/
     name=$(get_name)
     replicas="1"
     service_enabled="false"
