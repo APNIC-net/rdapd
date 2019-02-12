@@ -383,6 +383,8 @@ cleanup:
   function build_docker_image() {
     echo "Creating and pusing docker image $CI_REGISTRY/$CI_REGISTRY_PATH/$CI_COMMIT_REF_SLUG:$CI_APPLICATION_TAG"
     echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+    echo $CI_REGISTRY_CERT
+    exit
     cat gitlab-ci/registry.cert>> /kaniko/ssl/certs/ca-certificates.crt
     cat /kaniko/ssl/certs/ca-certificates.crt
     /kaniko/executor --context $CI_PROJECT_DIR --build-arg MAVEN_MIRROR_OF=$MAVEN_MIRROR_OF \
