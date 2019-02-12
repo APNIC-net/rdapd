@@ -169,7 +169,6 @@ cleanup:
     echo $KUBE_NAMESPACE
     set $CI_ENVIRONMENT_URL=$TEST_CLUSTER_SERVER/api/v1/namespaces/${KUBE_NAMESPACE}/services/${name}:8080/proxy/
     echo $CI_ENVIRONMENT_URL
-    return
     name=$(get_name)
     replicas="1"
     service_enabled="false"
