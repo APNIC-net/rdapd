@@ -340,7 +340,8 @@ cleanup:
 
   function persist_environment_url() {
     echo "Application is available here: $CI_ENVIRONMENT_URL"
-    echo "$CI_ENVIRONMENT_URL\n<script>window.location.replace(\"$CI_ENVIRONMENT_URL\")</script>" > environment_url.html
+    echo "$CI_ENVIRONMENT_URL" > environment_url.html
+    echo "<script>window.location.replace(\"$CI_ENVIRONMENT_URL\")</script>" >> environment_url.html
     echo $CI_ENVIRONMENT_URL > environment_url.txt
   }
 
