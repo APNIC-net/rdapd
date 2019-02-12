@@ -327,6 +327,7 @@ cleanup:
     #export CI_ENVIRONMENT_URL=$(cat environment_url.txt)
 
     mkdir gitlab-exporter
+    echo $HTTPS_PROXY
     wget -O gitlab-exporter/index.js https://gitlab.com/gitlab-org/gl-performance/raw/10-3/index.js
 
     mkdir sitespeed-results
