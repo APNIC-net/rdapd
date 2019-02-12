@@ -116,7 +116,7 @@ review:
     url: http://$CI_PROJECT_PATH_SLUG-$CI_ENVIRONMENT_SLUG.example.com/
     on_stop: cleanup
   artifacts:
-    paths: [environment_url.txt]
+    paths: [environment_url.html]
   only:
     refs:
       - branches
