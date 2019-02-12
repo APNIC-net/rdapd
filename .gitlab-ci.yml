@@ -16,10 +16,8 @@ stages:
   - package
   - test
   - review
-  - staging
-  - canary
-  - production
   - performance
+  - production
   - cleanup
 
 .build_test_docker_image:
@@ -102,7 +100,6 @@ review:
     HTTP_PROXY: ${HTTP_PROXY}
     HTTPS_PROXY: ${HTTPS_PROXY}
     NO_PROXY: ${NO_PROXY}
-
   script:
     - configure_cluster ${CI_PROJECT_NAME}-${CI_BUILD_REF_SLUG}
     - initialise_helm
@@ -122,6 +119,31 @@ review:
     kubernetes: active
   except:
     - master
+
+performance:
+  stage: performance
+  image: docker:latest
+  variables:
+    DOCKER_DRIVER: overlay2
+    HTTP_PROXY: ${HTTP_PROXY}
+    HTTPS_PROXY: ${HTTPS_PROXY}
+    NO_PROXY: ${NO_PROXY}
+
+  allow_failure: true
+  services:
+    - $CI_REGISTRY/ci/dind:0.0.1
+  script:
+    - setup_docker
+    - performance
+  artifacts:
+    paths:
+    - performance.json
+  only:
+    refs:
+      - branches
+  except:
+    - master
+
 
 cleanup:
   stage: cleanup
