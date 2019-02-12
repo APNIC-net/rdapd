@@ -20,17 +20,23 @@ stages:
   - production
   - cleanup
 
-.build_test_docker_image:
+build_docker_image:
   stage: package
   image:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
   script:
-    - build_and_push_docker_image
+    - build_docker_image
   only:
-    - branches
+    refs:
+      - branches
+  except:
+    refs:
+      - master
+    variables:
+      - $DISABLED_BUILD_IMAGE
 
-.fake_build:
+fake_build:
   variables:
     DOCKER_DRIVER: overlay2
     HTTP_PROXY: ${HTTP_PROXY}
@@ -45,33 +51,56 @@ stages:
     - setup_docker
     - fake_build
   only:
-    - branches
+    refs:
+      - branches
+  except:
+    refs:
+      - master
+    variables:
+      - $DISABLED_FAKE_BUILD_IMAGE
 
-.unit_tests:
+unit_tests:
   stage: test
   image: maven:3.5-jdk-8-alpine
   script:
     - setup_maven
     - mvn test
   only:
-    - branches
+    refs:
+      - branches
+  except:
+    refs:
+      - master
+    variables:
+      - $DISABLED_UNIT_TESTS
 
-.publish_to_test:
+publish_to_test:
   stage: test
   image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
   script:
     - publish_chart tst
   only:
-    - branches
+    refs:
+      - branches
+  except:
+    refs:
+      - master
+    variables:
+      - $DISABLED_PUBLISH
 
-.publish_to_prod:
+publish_to_prod:
   stage: production
   image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
   script:
     - publish_chart prod
-  when: manual
+  only:
+    refs:
+      - master
+  except:
+      variables:
+        - $DISABLED_PUBLISH
 
-.codequality:
+codequality:
   variables:
     DOCKER_DRIVER: overlay2
     HTTP_PROXY: ${HTTP_PROXY}
@@ -88,10 +117,13 @@ stages:
   artifacts:
     paths: [gl-code-quality-report.json]
   only:
-    - branches
+    refs:
+      - branches
   except:
+    refs:
+      - master
     variables:
-      - $CODE_QUALITY_DISABLED
+      - $DISABLED_CODE_QUALITY
 
 sast:
   image: docker:stable
@@ -106,8 +138,16 @@ sast:
     - sast
   artifacts:
     paths: [gl-sast-container-report.json]
+  only:
+    refs:
+      - branches
+  except:
+    refs:
+      - master
+    variables:
+      - $DISABLED_SAST
 
-.review:
+review:
   stage: review
   image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
   variables:
@@ -126,13 +166,16 @@ sast:
     url: ${TEST_CLUSTER_SERVER}/api/v1/namespaces/${CI_PROJECT_NAME}-${CI_BUILD_REF_SLUG}/services/${CI_ENVIRONMENT_SLUG}-rdapd:8080/proxy/
     on_stop: cleanup
   artifacts:
-    paths: [environment_url.html]
+    paths: [environment_url.txt, environment.html]
   only:
     refs:
       - branches
     kubernetes: active
   except:
-    - master
+    refs:
+      - master
+    variables:
+      - $DISABLED_REVIEW
 
 .performance:
   stage: performance
@@ -155,8 +198,13 @@ sast:
   only:
     refs:
       - branches
+    kubernetes: active
   except:
-    - master
+    refs:
+      - master
+    variables:
+      - $DISABLED_PERFORMANCE
+
 
 cleanup:
   stage: cleanup
@@ -175,7 +223,11 @@ cleanup:
       - branches
     kubernetes: active
   except:
-    - master
+    refs:
+      - master
+    variables:
+      - $DISABLED_CLEANUP
+
 # ---------------------------------------------------------------------------
 
 .auto_devops: &auto_devops |
@@ -327,7 +379,7 @@ cleanup:
     docker push $CI_REGISTRY/$CI_REGISTRY_PATH/$CI_COMMIT_REF_SLUG:$CI_APPLICATION_TAG
   }
 
-  function build_and_push_docker_image() {
+  function build_docker_image() {
     echo "Creating and pusing docker image $CI_REGISTRY/$CI_REGISTRY_PATH/$CI_COMMIT_REF_SLUG:$CI_APPLICATION_TAG"
     echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
     cat gitlab-ci/registry.crt  >> /kaniko/ssl/certs/ca-certificates.crt
@@ -360,8 +412,7 @@ cleanup:
   }
 
   function performance() {
-    export CI_ENVIRONMENT_URL=line="$(head -1 environment_url.html)"
-    echo $CI_ENVIRONMENT_URL
+    export CI_ENVIRONMENT_URL=$(cat environment_url.txt)
     mkdir gitlab-exporter
     cp gitlab-ci/performance.js gitlab-exporter/index.js
     #wget -O gitlab-exporter/index.js https://gitlab.com/gitlab-org/gl-performance/raw/10-3/index.js
@@ -378,10 +429,8 @@ cleanup:
 
   function persist_environment_url() {
     echo "Application is available here: $CI_ENVIRONMENT_URL"
-    echo "$CI_ENVIRONMENT_URL" > environment_url.html
-    echo ""
-    echo "<script>window.location.replace(\"$CI_ENVIRONMENT_URL\")</script>" >> environment_url.html
-    echo $CI_ENVIRONMENT_URL > environment_url.txt
+    echo "$CI_ENVIRONMENT_URL" > environment_url.txt
+    echo "<script>window.location.replace(\"$CI_ENVIRONMENT_URL\")</script>" >> environment.html
   }
 
   function delete_charts() {
