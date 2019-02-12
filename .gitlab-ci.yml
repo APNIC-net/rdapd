@@ -199,6 +199,8 @@ cleanup:
           echo "WARNING: CONFIDENCE_LEVEL is deprecated and MUST be replaced with SAST_CONFIDENCE_LEVEL"
         fi
 
+        echo "docker run --env SAST_CONFIDENCE_LEVEL=\"${SAST_CONFIDENCE_LEVEL:-3}\" --volume \"$PWD:/code\" --volume /var/run/docker.sock:/var/run/docker.sock \"registry.gitlab.com/gitlab-org/security-products/sast:$SP_VERSION\" /app/bin/run /code"
+
         docker run --env SAST_CONFIDENCE_LEVEL="${SAST_CONFIDENCE_LEVEL:-3}" \
                    --volume "$PWD:/code" \
                    --volume /var/run/docker.sock:/var/run/docker.sock \
