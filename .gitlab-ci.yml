@@ -32,7 +32,7 @@ stages:
   only:
     - branches
 
-fake_build:
+.fake_build:
   variables:
     DOCKER_DRIVER: overlay2
     HTTP_PROXY: ${HTTP_PROXY}
@@ -104,7 +104,6 @@ review:
     NO_PROXY: ${NO_PROXY}
 
   script:
-    - export KUBE_NAMESPACE=${CI_PROJECT_NAME}-${CI_BUILD_REF_SLUG}
     - configure_cluster ${CI_PROJECT_NAME}-${CI_BUILD_REF_SLUG}
     - initialise_helm
     - ensure_namespace
@@ -113,7 +112,7 @@ review:
     - persist_environment_url
   environment:
     name: review/$CI_COMMIT_REF_NAME
-    url: $TEST_CLUSTER_SERVER/api/v1/namespaces/$KUBE_NAMESPACE/services/$CI_ENVIRONMENT_SLUG:8080/proxy/
+    url: $TEST_CLUSTER_SERVER/api/v1/namespaces/${CI_PROJECT_NAME}-${CI_BUILD_REF_SLUG}/services/$CI_ENVIRONMENT_SLUG:8080/proxy/
     on_stop: cleanup
   artifacts:
     paths: [environment_url.html]
@@ -167,7 +166,10 @@ cleanup:
   }
 
   function deploy() {
-    set $CI_ENVIRONMENT_URL=$TEST_CLUSTER_SERVER/api/v1/namespaces/$KUBE_NAMESPACE/services/$name:8080/proxy/
+    echo $KUBE_NAMESPACE
+    set $CI_ENVIRONMENT_URL=$TEST_CLUSTER_SERVER/api/v1/namespaces/${KUBE_NAMESPACE}/services/${name}:8080/proxy/
+    echo $CI_ENVIRONMENT_URL
+    return
     name=$(get_name)
     replicas="1"
     service_enabled="false"
