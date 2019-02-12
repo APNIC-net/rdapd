@@ -107,7 +107,7 @@ codequality:
     HTTPS_PROXY: ${HTTPS_PROXY}
     NO_PROXY: ${NO_PROXY}
   stage: test
-  image: $CI_REGISTRY/docker:stable
+  image: docker:stable
   allow_failure: true
   services:
     - name: $CI_REGISTRY/ci/dind:0.0.1
