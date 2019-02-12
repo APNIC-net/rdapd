@@ -32,7 +32,7 @@ stages:
   only:
     - branches
 
-fake_build:
+.fake_build:
   variables:
     DOCKER_DRIVER: overlay2
     HTTP_PROXY: ${HTTP_PROXY}
@@ -104,7 +104,6 @@ review:
     NO_PROXY: ${NO_PROXY}
 
   script:
-    - check_kube_domain
     - export KUBE_NAMESPACE=${CI_PROJECT_NAME}-${CI_BUILD_REF_SLUG}
     - configure_cluster ${CI_PROJECT_NAME}-${CI_BUILD_REF_SLUG}
     - initialise_helm
@@ -114,7 +113,7 @@ review:
     - persist_environment_url
   environment:
     name: review/$CI_COMMIT_REF_NAME
-    url: $CI_ENVIRONMENT_URL
+    url: $TEST_CLUSTER_SERVER/api/v1/namespaces/$KUBE_NAMESPACE/services/$CI_ENVIRONMENT_SLUG:8080/proxy/
     on_stop: cleanup
   artifacts:
     paths: [environment_url.txt]
@@ -168,14 +167,17 @@ cleanup:
           "acr2.tst.apnic.net/alex/codequality:0.0.3" /code
   }
 
-  function deploy() {
-    track="${1-stable}"
-    name="$CI_ENVIRONMENT_SLUG"
+  function get_name(){
+      name="$CI_ENVIRONMENT_SLUG"
 
-    if [[ "$track" != "stable" ]]; then
-      name="$name-$track"
-    fi
+      if [[ "$track" != "stable" ]]; then
+        name="$name-$track"
+      fi
+  }
 
+  function deploy_to_test() {
+
+    name=get_name
     replicas="1"
     service_enabled="false"
     postgres_enabled="$POSTGRES_ENABLED"
@@ -200,19 +202,24 @@ cleanup:
     test_name="$(test_dep_name $name)"
 
     echo "Starting test chart install"
+
     if [[ -n $(helm ls -q "^$test_name$") ]]; then
       echo "helm delete --purge \"$test_name\""
       helm delete --purge "$test_name"
       echo "$test_name deleted"
     fi
-    #helm upgrade --install \
-    #  --tiller-namespace=$TILLER_NAMESPACE \
-    #  --force \
-    #  --wait \
-    #  --namespace="$KUBE_NAMESPACE" \
-    #  --version="$CI_PIPELINE_ID-$CI_JOB_ID" \
-    #  $test_name \
-    #  helm/test/
+
+    echo $CI_ENVIRONMENT_URL
+    exit
+
+    helm upgrade --install \
+      --tiller-namespace=$TILLER_NAMESPACE \
+      --force \
+      --wait \
+      --namespace="$KUBE_NAMESPACE" \
+      --version="$CI_PIPELINE_ID-$CI_JOB_ID" \
+      $test_name \
+      helm/test/
 
     echo "Starting rdapd chart install"
 
@@ -251,7 +258,6 @@ cleanup:
       helm/rdapd/
   }
 
-  #Takes one parameter: a namespace
   function configure_cluster() {
     echo "Configuring cluster"
     echo $TEST_CLUSTER_CA_BUNDLE > test_cluster_ca.crt
@@ -262,20 +268,20 @@ cleanup:
     export  KUBECONFIG=ci
   }
 
-  function deploy_to() {
-    helm upgrade --install \
-      --force \
-      --wait \
-      --namespace="$KUBE_NAMESPACE" \
-      --version="$CI_BUILD_ID" \
-      --values=helm/$1-env-values.yaml \
-      "$CHART_NAME" \
-      "$1/$CHART_NAME"
-  }
-
   function test_dep_name() {
     local name=$1
     echo "$name-test-env"
+  }
+
+  function get_name(){
+      track="${1-stable}"
+      echo "Track: $track"
+      name="$CI_ENVIRONMENT_SLUG"
+
+      if [[ "$track" != "stable" ]]; then
+        name="$name-$track"
+      fi
+      echo $name
   }
 
   function setup_docker() {
@@ -303,10 +309,6 @@ cleanup:
 
   function ensure_namespace() {
     kubectl describe namespace "$KUBE_NAMESPACE" || kubectl create namespace "$KUBE_NAMESPACE"
-  }
-
-  function check_kube_domain() {
-    true
   }
 
   function fake_build() {
@@ -367,17 +369,11 @@ cleanup:
   }
 
   function persist_environment_url() {
-      echo $CI_ENVIRONMENT_URL > environment_url.txt
+      echo $CI_ENVIRONMENT_URL > environment_url.html
   }
 
   function delete() {
-    track="${1-stable}"
-    name="$CI_ENVIRONMENT_SLUG"
-
-    if [[ "$track" != "stable" ]]; then
-      name="$name-$track"
-    fi
-
+    local name=get_name
     if [[ -n "$(helm ls -q "^$name$")" ]]; then
       helm delete --purge "$name"
       helm delete --purge "$(test_dep_name $name)"
