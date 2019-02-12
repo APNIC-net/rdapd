@@ -269,7 +269,7 @@ cleanup:
     export MAVEN_MIRROR_OF=$MAVEN_MIRROR_OF
     export MAVEN_MIRROR_URL=$MAVEN_MIRROR_URL
     mkdir /root/.m2/
-    cp maven_settings.xml /root/.m2/settings.xml
+    cp ci/maven_settings.xml /root/.m2/settings.xml
   }
 
   function initialise_helm() {
@@ -292,7 +292,7 @@ cleanup:
   function build_and_push_docker_image() {
     echo "Creating and pusing docker image $CI_REGISTRY/$CI_REGISTRY_PATH/$CI_COMMIT_REF_SLUG:$CI_APPLICATION_TAG"
     echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
-    cat registry.crt  >> /kaniko/ssl/certs/ca-certificates.crt
+    cat ci/registry.crt  >> /kaniko/ssl/certs/ca-certificates.crt
     /kaniko/executor --context $CI_PROJECT_DIR --build-arg MAVEN_MIRROR_OF=$MAVEN_MIRROR_OF \
     --build-arg MAVEN_MIRROR_URL=$MAVEN_MIRROR_URL --build-arg HTTP_PROXY=$HTTP_PROXY \
     --build-arg HTTPS_PROXY=$HTTPS_PROXY --build-arg NO_PROXY=$NO_PROXY \
@@ -325,11 +325,9 @@ cleanup:
     export CI_ENVIRONMENT_URL=line="$(head -1 environment_url.html)"
     echo $CI_ENVIRONMENT_URL
     mkdir gitlab-exporter
-    echo $HTTPS_PROXY
-    wget -O gitlab-exporter/index.js https://gitlab.com/gitlab-org/gl-performance/raw/10-3/index.js
-
+    cp ci/performance.js gitlab-exporter/index.js
+    #wget -O gitlab-exporter/index.js https://gitlab.com/gitlab-org/gl-performance/raw/10-3/index.js
     mkdir sitespeed-results
-
     if [ -f .gitlab-urls.txt ]
     then
       sed -i -e 's@^@'"$CI_ENVIRONMENT_URL"'@' .gitlab-urls.txt
