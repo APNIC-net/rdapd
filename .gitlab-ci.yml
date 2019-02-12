@@ -268,15 +268,13 @@ cleanup:
     echo "$name-test-env"
   }
 
-  function get_name(){
-      track="${1-stable}"
-      echo "Track: $track"
-      local name="$CI_ENVIRONMENT_SLUG"
-
-      if [[ "$track" != "stable" ]]; then
-        name="$name-$track"
-      fi
-      echo $name
+  function get_name() {
+    track="${1-stable}"
+    local name="$CI_ENVIRONMENT_SLUG"
+    if [[ "$track" != "stable" ]]; then
+      name="$name-$track"
+    fi
+    echo $name
   }
 
   function setup_docker() {
