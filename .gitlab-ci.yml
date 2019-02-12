@@ -359,7 +359,7 @@ cleanup:
     export MAVEN_MIRROR_OF=$MAVEN_MIRROR_OF
     export MAVEN_MIRROR_URL=$MAVEN_MIRROR_URL
     mkdir /root/.m2/
-    cp gitlab-ci/maven_settings.xml /root/.m2/settings.xml
+    cp maven_settings.xml /root/.m2/settings.xml
   }
 
   function initialise_helm() {
