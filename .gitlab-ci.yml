@@ -156,7 +156,7 @@ review:
     NO_PROXY: ${NO_PROXY}
   script:
     - configure_cluster ${CI_PROJECT_NAME}-${CI_BUILD_REF_SLUG}
-    - initialise_helm$CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
+    - initialise_helm
     - ensure_namespace
     - create_secret
     - deploy
