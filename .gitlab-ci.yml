@@ -176,7 +176,8 @@ cleanup:
   }
 
   function deploy_to_test() {
-
+    echo $CI_ENVIRONMENT_URL
+    exit
     name=get_name
     replicas="1"
     service_enabled="false"
