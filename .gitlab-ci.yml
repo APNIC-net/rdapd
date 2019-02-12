@@ -32,7 +32,7 @@ stages:
   only:
     - branches
 
-fake_build:
+.fake_build:
   variables:
     DOCKER_DRIVER: overlay2
     HTTP_PROXY: ${HTTP_PROXY}
@@ -112,7 +112,7 @@ review:
     - persist_environment_url
   environment:
     name: review/$CI_COMMIT_REF_NAME
-    url: $TEST_CLUSTER_SERVER/api/v1/namespaces/${CI_PROJECT_NAME}-${CI_BUILD_REF_SLUG}/services/$CI_ENVIRONMENT_SLUG:8080/proxy/
+    url: $TEST_CLUSTER_SERVER/api/v1/namespaces/${CI_PROJECT_NAME}-${CI_BUILD_REF_SLUG}/services/$CI_ENVIRONMENT_SLUG:8080/proxy/${1-stable}
     on_stop: cleanup
   artifacts:
     paths: [environment_url.html]
@@ -166,6 +166,7 @@ cleanup:
   }
 
   function deploy() {
+    return
     echo $KUBE_NAMESPACE
     echo $CI_ENVIRONMENT_URL
     name=$(get_name)
