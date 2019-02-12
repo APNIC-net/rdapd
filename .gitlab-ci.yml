@@ -188,18 +188,7 @@ cleanup:
   export KUBE_NAMESPACE=${CI_PROJECT_NAME}-${CI_BUILD_REF_SLUG}
   export TILLER_NAMESPACE='tiller'
 
-  function code_quality() {
-  echo $DOCKER_CONFIG
-  docker run --env SOURCE_CODE="$(pwd)" \
-          --env HTTP_PROXY=$HTTP_PROXY \
-          --env HTTPS_PROXY=$HTTPS_PROXY \
-          --env NO_PROXY=$NO_PROXY \
-          --volume $(pwd):/code \
-          --volume /var/run/docker.sock:/var/run/docker.sock \
-          "acr2.tst.apnic.net/alex/codequality:0.0.3" /code
-  }
-
- function sast() {
+  function sast() {
     case "$CI_SERVER_VERSION" in
       *-ee)
 
@@ -220,6 +209,16 @@ cleanup:
     esac
   }
 
+  function code_quality() {
+  echo $DOCKER_CONFIG
+  docker run --env SOURCE_CODE="$(pwd)" \
+          --env HTTP_PROXY=$HTTP_PROXY \
+          --env HTTPS_PROXY=$HTTPS_PROXY \
+          --env NO_PROXY=$NO_PROXY \
+          --volume $(pwd):/code \
+          --volume /var/run/docker.sock:/var/run/docker.sock \
+          "acr2.tst.apnic.net/alex/codequality:0.0.3" /code
+  }
 
   function deploy() {
     name=$(get_name)
