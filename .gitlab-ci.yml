@@ -199,7 +199,7 @@ cleanup:
 
     export CI_ENVIRONMENT_URL=$TEST_CLUSTER_SERVER/api/v1/namespaces/$KUBE_NAMESPACE/services/$name:8080/proxy/
     echo $CI_ENVIRONMENT_URL
-    echo get_name
+    echo $(get_name)
     return
     echo "Starting test chart install"
 
