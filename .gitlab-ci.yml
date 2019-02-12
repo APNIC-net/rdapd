@@ -106,7 +106,7 @@ codequality:
     HTTP_PROXY: ${HTTP_PROXY}
     HTTPS_PROXY: ${HTTPS_PROXY}
     NO_PROXY: ${NO_PROXY}
-  stage: performance
+  stage: review
   image: $CI_REGISTRY/alex/docker-apnic:0.0.4
   allow_failure: true
   services:
