@@ -166,9 +166,6 @@ cleanup:
   }
 
   function deploy() {
-    return
-    echo $KUBE_NAMESPACE
-    echo $CI_ENVIRONMENT_URL
     name=$(get_name)
     replicas="1"
     postgres_enabled="$POSTGRES_ENABLED"
@@ -330,7 +327,7 @@ cleanup:
   }
 
   function persist_environment_url() {
-    echo "Application is available on this address: $CI_ENVIRONMENT_URL"
+    echo "Application is available here: $CI_ENVIRONMENT_URL"
     echo "<script>window.location.replace(\"$CI_ENVIRONMENT_URL\")</script>" > environment_url.html
   }
 
