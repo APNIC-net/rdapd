@@ -238,11 +238,12 @@ cleanup:
 
   function get_name() {
     #track="${1-stable}"
-    local name="$CI_ENVIRONMENT_SLUG"
+    #local name="$CI_ENVIRONMENT_SLUG"
     #if [[ "$track" != "stable" ]]; then
       #name="$name-$track"
     #fi
-    echo $name
+    #echo $name
+    echo $CI_ENVIRONMENT_SLUG
   }
 
   function setup_docker() {
