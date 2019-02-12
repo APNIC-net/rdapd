@@ -174,7 +174,7 @@ cleanup:
       fi
   }
 
-  function deploy_to_test() {
+  function deploy() {
     echo $CI_ENVIRONMENT_URL
     name=get_name
     replicas="1"
