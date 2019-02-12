@@ -156,7 +156,7 @@ review:
     NO_PROXY: ${NO_PROXY}
   script:
     - configure_cluster ${CI_PROJECT_NAME}-${CI_BUILD_REF_SLUG}
-    - initialise_helm
+    - initialise_helm$CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
     - ensure_namespace
     - create_secret
     - deploy
@@ -208,7 +208,7 @@ review:
 
 cleanup:
   stage: cleanup
-  image: alpine-kubectl-helm:1.0.0
+  image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
   variables:
     GIT_STRATEGY: none
   script:
