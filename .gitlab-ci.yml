@@ -331,7 +331,9 @@ cleanup:
   }
 
   function performance() {
-    export CI_ENVIRONMENT_URL=$(cat environment_url.txt)
+    echo $CI_ENVIRONMENT_URL
+
+    #export CI_ENVIRONMENT_URL=$(cat environment_url.txt)
 
     mkdir gitlab-exporter
     wget -O gitlab-exporter/index.js https://gitlab.com/gitlab-org/gl-performance/raw/10-3/index.js
@@ -351,6 +353,7 @@ cleanup:
   function persist_environment_url() {
     echo "Application is available here: $CI_ENVIRONMENT_URL"
     echo "<script>window.location.replace(\"$CI_ENVIRONMENT_URL\")</script>" > environment_url.html
+    echo $CI_ENVIRONMENT_URL > environment_url.txt
   }
 
   function delete() {
