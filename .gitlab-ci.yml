@@ -114,7 +114,7 @@ review:
     - persist_environment_url
   environment:
     name: review/$CI_COMMIT_REF_NAME
-    url: http://$CI_PROJECT_PATH_SLUG-$CI_ENVIRONMENT_SLUG.example.com/
+    url: $CI_ENVIRONMENT_URL
     on_stop: cleanup
   artifacts:
     paths: [environment_url.txt]
@@ -155,6 +155,7 @@ cleanup:
   export CI_CONTAINER_NAME=ci_job_build_${CI_JOB_ID}
   export KUBE_NAMESPACE=${CI_PROJECT_NAME}-${CI_BUILD_REF_SLUG}
   export TILLER_NAMESPACE='tiller'
+  https://kube-apiserver.service.tst.consul:6443/api/v1/namespaces/rdapd-ci-tests/services/review-ci-tests-uae0q3-rdapd:8080/proxy/
 
   function code_quality() {
   echo $DOCKER_CONFIG
@@ -241,6 +242,8 @@ cleanup:
       --set postgresql.postgresUser="$POSTGRES_USER" \
       --set postgresql.postgresPassword="$POSTGRES_PASSWORD" \
       --set postgresql.postgresDatabase="$POSTGRES_DB" \
+      --set service.type="ExternalName" \
+      --set service.externalName="my.alex.example.com" \
       --namespace="$KUBE_NAMESPACE" \
       --version="$CI_PIPELINE_ID-$CI_JOB_ID" \
       --values=helm/test-env-values.yaml \
