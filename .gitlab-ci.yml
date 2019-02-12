@@ -240,10 +240,10 @@ cleanup:
   function configure_cluster() {
     echo "Configuring cluster"
     echo $TEST_CLUSTER_CA_BUNDLE > test_cluster_ca.crt
-    kubectl config set-cluster --kubeconfig=ci_config ci --server=$TEST_CLUSTER_SERVER --insecure-skip-tls-verify=true
-    kubectl config set-context  --kubeconfig=ci_config ci --namespace=$1 --cluster=ci --user=ci
-    kubectl config set-credentials --kubeconfig=ci_config ci --token=$KUBE_TOKEN
-    kubectl config use-context --kubeconfig=ci_config ci
+    kubectl config set-cluster --kubeconfig=ci ci --server=$TEST_CLUSTER_SERVER --insecure-skip-tls-verify=true
+    kubectl config set-context  --kubeconfig=ci ci --namespace=$1 --cluster=ci --user=ci
+    kubectl config set-credentials --kubeconfig=ci ci --token=$KUBE_TOKEN
+    kubectl config use-context --kubeconfig=ci ci
     export  KUBECONFIG=ci
   }
 
@@ -269,7 +269,7 @@ cleanup:
     export MAVEN_MIRROR_OF=$MAVEN_MIRROR_OF
     export MAVEN_MIRROR_URL=$MAVEN_MIRROR_URL
     mkdir /root/.m2/
-    cp ci/maven_settings.xml /root/.m2/settings.xml
+    cp gitlab-ci/maven_settings.xml /root/.m2/settings.xml
   }
 
   function initialise_helm() {
@@ -292,7 +292,7 @@ cleanup:
   function build_and_push_docker_image() {
     echo "Creating and pusing docker image $CI_REGISTRY/$CI_REGISTRY_PATH/$CI_COMMIT_REF_SLUG:$CI_APPLICATION_TAG"
     echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
-    cat ci/registry.crt  >> /kaniko/ssl/certs/ca-certificates.crt
+    cat gitlab-ci/registry.crt  >> /kaniko/ssl/certs/ca-certificates.crt
     /kaniko/executor --context $CI_PROJECT_DIR --build-arg MAVEN_MIRROR_OF=$MAVEN_MIRROR_OF \
     --build-arg MAVEN_MIRROR_URL=$MAVEN_MIRROR_URL --build-arg HTTP_PROXY=$HTTP_PROXY \
     --build-arg HTTPS_PROXY=$HTTPS_PROXY --build-arg NO_PROXY=$NO_PROXY \
@@ -325,7 +325,7 @@ cleanup:
     export CI_ENVIRONMENT_URL=line="$(head -1 environment_url.html)"
     echo $CI_ENVIRONMENT_URL
     mkdir gitlab-exporter
-    cp ci/performance.js gitlab-exporter/index.js
+    cp gitlab-ci/performance.js gitlab-exporter/index.js
     #wget -O gitlab-exporter/index.js https://gitlab.com/gitlab-org/gl-performance/raw/10-3/index.js
     mkdir sitespeed-results
     if [ -f .gitlab-urls.txt ]
