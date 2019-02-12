@@ -353,7 +353,7 @@ cleanup:
   }
 
   function persist_environment_url() {
-    echo "persist_environment_url"
+    echo "Application is available on this address: $CI_ENVIRONMENT_URL"
     echo $CI_ENVIRONMENT_URL > environment_url.html
   }
 
