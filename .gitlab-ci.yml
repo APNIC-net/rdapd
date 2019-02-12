@@ -30,7 +30,7 @@ stages:
   only:
     - branches
 
-fake_build:
+.fake_build:
   variables:
     DOCKER_DRIVER: overlay2
     HTTP_PROXY: ${HTTP_PROXY}
@@ -95,6 +95,7 @@ fake_build:
 
 sast:
   image: $CI_REGISTRY/docker:stable
+  stage: test
   variables:
     DOCKER_DRIVER: overlay2
   allow_failure: true
@@ -106,7 +107,7 @@ sast:
   artifacts:
     paths: [gl-sast-container-report.json]
 
-review:
+.review:
   stage: review
   image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
   variables:
