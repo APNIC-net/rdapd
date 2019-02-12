@@ -166,17 +166,14 @@ cleanup:
           "acr2.tst.apnic.net/alex/codequality:0.0.3" /code
   }
 
-  function get_name(){
-      name="$CI_ENVIRONMENT_SLUG"
-
-      if [[ "$track" != "stable" ]]; then
-        name="$name-$track"
-      fi
-  }
-
   function deploy() {
-    echo $CI_ENVIRONMENT_URL
-    name=get_name
+    track="${1-stable}"
+    name="$CI_ENVIRONMENT_SLUG"
+
+    if [[ "$track" != "stable" ]]; then
+      name="$name-$track"
+    fi
+
     replicas="1"
     service_enabled="false"
     postgres_enabled="$POSTGRES_ENABLED"
@@ -210,10 +207,6 @@ cleanup:
       helm delete --purge "$test_name"
       echo "$test_name deleted"
     fi
-
-    echo $CI_ENVIRONMENT_URL
-    exit
-
     helm upgrade --install \
       --tiller-namespace=$TILLER_NAMESPACE \
       --force \
@@ -278,7 +271,7 @@ cleanup:
   function get_name(){
       track="${1-stable}"
       echo "Track: $track"
-      name="$CI_ENVIRONMENT_SLUG"
+      local name="$CI_ENVIRONMENT_SLUG"
 
       if [[ "$track" != "stable" ]]; then
         name="$name-$track"
@@ -375,7 +368,13 @@ cleanup:
   }
 
   function delete() {
-    local name=get_name
+    track="${1-stable}"
+    name="$CI_ENVIRONMENT_SLUG"
+
+    if [[ "$track" != "stable" ]]; then
+      name="$name-$track"
+    fi
+
     if [[ -n "$(helm ls -q "^$name$")" ]]; then
       helm delete --purge "$name"
       helm delete --purge "$(test_dep_name $name)"
