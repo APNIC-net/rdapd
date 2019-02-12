@@ -20,7 +20,7 @@ stages:
   - production
   - cleanup
 
-build_test_docker_image:
+.build_test_docker_image:
   stage: package
   image:
     name: gcr.io/kaniko-project/executor:debug
@@ -30,7 +30,7 @@ build_test_docker_image:
   only:
     - branches
 
-.fake_build:
+fake_build:
   variables:
     DOCKER_DRIVER: overlay2
     HTTP_PROXY: ${HTTP_PROXY}
@@ -47,7 +47,7 @@ build_test_docker_image:
   only:
     - branches
 
-unit_tests:
+.unit_tests:
   stage: test
   image: maven:3.5-jdk-8-alpine
   script:
@@ -56,7 +56,7 @@ unit_tests:
   only:
     - branches
 
-publish_to_test:
+.publish_to_test:
   stage: test
   image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
   script:
@@ -64,14 +64,14 @@ publish_to_test:
   only:
     - branches
 
-publish_to_prod:
+.publish_to_prod:
   stage: production
   image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
   script:
     - publish_chart prod
   when: manual
 
-codequality:
+.codequality:
   variables:
     DOCKER_DRIVER: overlay2
     HTTP_PROXY: ${HTTP_PROXY}
@@ -92,6 +92,19 @@ codequality:
   except:
     variables:
       - $CODE_QUALITY_DISABLED
+
+sast:
+  image: $CI_REGISTRY/docker:stable
+  variables:
+    DOCKER_DRIVER: overlay2
+  allow_failure: true
+  services:
+    - $CI_REGISTRY/ci/dind:0.0.1
+  script:
+    - setup_docker
+    - sast
+  artifacts:
+    paths: [gl-sast-container-report.json]
 
 review:
   stage: review
@@ -185,6 +198,28 @@ cleanup:
           --volume /var/run/docker.sock:/var/run/docker.sock \
           "acr2.tst.apnic.net/alex/codequality:0.0.3" /code
   }
+
+ function sast() {
+    case "$CI_SERVER_VERSION" in
+      *-ee)
+
+        # Deprecation notice for CONFIDENCE_LEVEL variable
+        if [ -z "$SAST_CONFIDENCE_LEVEL" -a "$CONFIDENCE_LEVEL" ]; then
+          SAST_CONFIDENCE_LEVEL="$CONFIDENCE_LEVEL"
+          echo "WARNING: CONFIDENCE_LEVEL is deprecated and MUST be replaced with SAST_CONFIDENCE_LEVEL"
+        fi
+
+        docker run --env SAST_CONFIDENCE_LEVEL="${SAST_CONFIDENCE_LEVEL:-3}" \
+                   --volume "$PWD:/code" \
+                   --volume /var/run/docker.sock:/var/run/docker.sock \
+                   "registry.gitlab.com/gitlab-org/security-products/sast:$SP_VERSION" /app/bin/run /code
+        ;;
+      *)
+        echo "GitLab EE is required"
+        ;;
+    esac
+  }
+
 
   function deploy() {
     name=$(get_name)
