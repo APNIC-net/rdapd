@@ -113,7 +113,7 @@ review:
     - persist_environment_url
   environment:
     name: review/$CI_COMMIT_REF_NAME
-    url: http:/test.test.test
+    url: $TEST_CLUSTER_SERVER/api/v1/namespaces/$KUBE_NAMESPACE/services/$CI_ENVIRONMENT_SLUG:8080/proxy/
     on_stop: cleanup
   artifacts:
     paths: [environment_url.html]
@@ -154,7 +154,6 @@ cleanup:
   export CI_CONTAINER_NAME=ci_job_build_${CI_JOB_ID}
   export KUBE_NAMESPACE=${CI_PROJECT_NAME}-${CI_BUILD_REF_SLUG}
   export TILLER_NAMESPACE='tiller'
-  export APP_NAME=$(get_name)
 
   function code_quality() {
   echo $DOCKER_CONFIG
@@ -168,7 +167,7 @@ cleanup:
   }
 
   function deploy() {
-    set $CI_ENVIRONMENT_URL=$TEST_CLUSTER_SERVER/api/v1/namespaces/$KUBE_NAMESPACE/services/$APP_NAME:8080/proxy/
+    set $CI_ENVIRONMENT_URL=$TEST_CLUSTER_SERVER/api/v1/namespaces/$KUBE_NAMESPACE/services/$name:8080/proxy/
     name=$(get_name)
     replicas="1"
     service_enabled="false"
