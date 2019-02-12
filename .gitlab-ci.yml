@@ -107,10 +107,10 @@ codequality:
     HTTPS_PROXY: ${HTTPS_PROXY}
     NO_PROXY: ${NO_PROXY}
   stage: test
-  image: docker:stable
+  image: $CI_REGISTRY/alex/docker-apnic:0.0.4
   allow_failure: true
   services:
-    - name: $CI_REGISTRY/ci/dind:0.0.1
+    - name: "$CI_REGISTRY/alex/dind-apnic:0.0.13"
   script:
     - setup_docker
     - code_quality
