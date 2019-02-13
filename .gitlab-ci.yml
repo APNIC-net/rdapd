@@ -413,7 +413,7 @@ cleanup:
   #Takes one argument: the chart museum server (tst or prd)
   function publish_chart() {
     mkdir /root/helm_package/
-    helm package -d --version $CI_BUILD_ID /root/helm_package/ helm/rdapd
+    helm package --version $CI_BUILD_ID -d /root/helm_package/ helm/rdapd
     cd /root/helm_package
     echo "curl -s --data-binary \"@$(ls -A1 /root/helm_package/)\" $CHART_API_URI/api/$1/charts"
     curl -s --data-binary "@$(ls -A1 /root/helm_package/)" $CHART_API_URI/api/$1/charts
