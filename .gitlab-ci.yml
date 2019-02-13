@@ -31,8 +31,6 @@ build_docker_image:
     refs:
       - branches
   except:
-    refs:
-      - master
     variables:
       - $DISABLED_BUILD_IMAGE
 
@@ -54,8 +52,6 @@ fake_build:
     refs:
       - branches
   except:
-    refs:
-      - master
     variables:
       - $DISABLED_FAKE_BUILD_IMAGE
 
@@ -69,8 +65,6 @@ unit_tests:
     refs:
       - branches
   except:
-    refs:
-      - master
     variables:
       - $DISABLED_UNIT_TESTS
 
@@ -120,8 +114,6 @@ codequality:
     refs:
       - branches
   except:
-    refs:
-      - master
     variables:
       - $DISABLED_CODE_QUALITY
 
@@ -142,8 +134,6 @@ sast:
     refs:
       - branches
   except:
-    refs:
-      - master
     variables:
       - $DISABLED_SAST
 
@@ -177,6 +167,34 @@ review:
     variables:
       - $DISABLED_REVIEW
 
+staging:
+  stage: review
+  image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
+  variables:
+    HTTP_PROXY: ${HTTP_PROXY}
+    HTTPS_PROXY: ${HTTPS_PROXY}
+    NO_PROXY: ${NO_PROXY}
+  script:
+    - configure_cluster ${CI_PROJECT_NAME}-${CI_BUILD_REF_SLUG}
+    - initialise_helm
+    - ensure_namespace
+    - create_secret
+    - deploy stage
+    - persist_environment_url
+  environment:
+    name: review/$CI_COMMIT_REF_NAME
+    url: ${TEST_CLUSTER_SERVER}/api/v1/namespaces/${CI_PROJECT_NAME}-${CI_BUILD_REF_SLUG}/services/${CI_ENVIRONMENT_SLUG}-rdapd:8080/proxy/
+    on_stop: cleanup
+  artifacts:
+    paths: [environment_url.txt, environment.html]
+  only:
+    refs:
+      - master
+    kubernetes: active
+  except:
+    variables:
+      - $DISABLED_STAGING
+
 .performance:
   stage: performance
   image: docker:latest
@@ -200,8 +218,6 @@ review:
       - branches
     kubernetes: active
   except:
-    refs:
-      - master
     variables:
       - $DISABLED_PERFORMANCE
 
@@ -223,8 +239,6 @@ cleanup:
       - branches
     kubernetes: active
   except:
-    refs:
-      - master
     variables:
       - $DISABLED_CLEANUP
 
@@ -277,29 +291,34 @@ cleanup:
   }
 
   function deploy() {
+    [[ $1 = "stage" ]] && type="stage" || type="test"
     name=$(get_name)
     replicas="1"
     postgres_enabled="$POSTGRES_ENABLED"
-    test_name="$(test_dep_name $name)"
-    echo "Starting test chart install"
 
-    if [[ -n $(helm ls -q "^$test_name$") ]]; then
-      echo "helm delete --purge \"$test_name\""
-      helm delete --purge "$test_name"
-      echo "$test_name deleted"
-    fi
-    helm upgrade --install \
-      --tiller-namespace=$TILLER_NAMESPACE \
-      --force \
-      --wait \
-      --namespace="$KUBE_NAMESPACE" \
-      --version="$CI_PIPELINE_ID-$CI_JOB_ID" \
-      $test_name \
-      helm/test/
+    if [[ -n "$type" ="test" ]]; then
+
+      test_name="$(test_dep_name $name)"
+      echo "Starting test chart install"
+
+      if [[ -n "$(helm ls -q "^$test_name$")" ]]; then
+        echo "helm delete --purge \"$test_name\""
+        helm delete --purge "$test_name"
+        echo "$test_name deleted"
+      fi
+      helm upgrade --install \
+        --tiller-namespace=$TILLER_NAMESPACE \
+        --force \
+        --wait \
+        --namespace="$KUBE_NAMESPACE" \
+        --version="$CI_PIPELINE_ID-$CI_JOB_ID" \
+        $test_name \
+        helm/test/
+      fi
 
     echo "Starting rdapd chart install"
 
-    if [[ -n $(helm ls -q "^$name$") ]]; then
+    if [[ -n "$(helm ls -q "^$name$")" ]]; then
       echo "helm delete --purge \"$name\""
       helm delete --purge "$name" &>/dev/null
       echo "$name deleted"
@@ -322,7 +341,7 @@ cleanup:
       --set postgresql.postgresDatabase="$POSTGRES_DB" \
       --namespace="$KUBE_NAMESPACE" \
       --version="$CI_PIPELINE_ID-$CI_JOB_ID" \
-      --values=helm/test-env-values.yaml \
+      --values=helm/$type-env-values.yaml \
       "$name" \
       helm/rdapd/
   }
@@ -394,7 +413,7 @@ cleanup:
   #Takes one argument: the chart museum server (tst or prd)
   function publish_chart() {
     mkdir /root/helm_package/
-    helm package -d /root/helm_package/ helm/rdapd
+    helm package -d --version $CI_BUILD_ID /root/helm_package/ helm/rdapd
     cd /root/helm_package
     echo "curl -s --data-binary \"@$(ls -A1 /root/helm_package/)\" $CHART_API_URI/api/$1/charts"
     curl -s --data-binary "@$(ls -A1 /root/helm_package/)" $CHART_API_URI/api/$1/charts
@@ -416,7 +435,7 @@ cleanup:
     export CI_ENVIRONMENT_URL=$(cat environment_url.txt)
     mkdir gitlab-exporter
     cp gitlab-ci/performance.js gitlab-exporter/index.js
-    #wget -O gitlab-exporter/index.js https://gitlab.com/gitlab-org/gl-performance/raw/10-3/index.js
+    wget -O gitlab-exporter/index.js https://gitlab.com/gitlab-org/gl-performance/raw/10-3/index.js
     mkdir sitespeed-results
     if [ -f .gitlab-urls.txt ]
     then
