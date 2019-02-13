@@ -17,6 +17,7 @@ stages:
   - test
   - review
   - performance
+  - staging
   - production
   - cleanup
 
@@ -37,9 +38,6 @@ build_docker_image:
 fake_build:
   variables:
     DOCKER_DRIVER: overlay2
-    HTTP_PROXY: ${HTTP_PROXY}
-    HTTPS_PROXY: ${HTTPS_PROXY}
-    NO_PROXY: ${NO_PROXY}
   stage: test
   image: docker:stable
   allow_failure: true
@@ -97,9 +95,6 @@ publish_to_prod:
 codequality:
   variables:
     DOCKER_DRIVER: overlay2
-    HTTP_PROXY: ${HTTP_PROXY}
-    HTTPS_PROXY: ${HTTPS_PROXY}
-    NO_PROXY: ${NO_PROXY}
   stage: review
   image: $CI_REGISTRY/alex/docker-apnic:0.0.4
   allow_failure: true
@@ -140,10 +135,6 @@ sast:
 review:
   stage: review
   image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
-  variables:
-    HTTP_PROXY: ${HTTP_PROXY}
-    HTTPS_PROXY: ${HTTPS_PROXY}
-    NO_PROXY: ${NO_PROXY}
   script:
     - configure_cluster ${CI_PROJECT_NAME}-${CI_BUILD_REF_SLUG}
     - initialise_helm
@@ -167,19 +158,15 @@ review:
     variables:
       - $DISABLED_REVIEW
 
-staging:
-  stage: review
+stage_review:
+  stage: staging
   image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
-  variables:
-    HTTP_PROXY: ${HTTP_PROXY}
-    HTTPS_PROXY: ${HTTPS_PROXY}
-    NO_PROXY: ${NO_PROXY}
   script:
     - configure_cluster ${CI_PROJECT_NAME}-${CI_BUILD_REF_SLUG}
     - initialise_helm
     - ensure_namespace
     - create_secret
-    - deploy stage
+    - deploy staging
     - persist_environment_url
   environment:
     name: review/$CI_COMMIT_REF_NAME
@@ -195,14 +182,11 @@ staging:
     variables:
       - $DISABLED_STAGING
 
-.performance:
+performance:
   stage: performance
   image: docker:latest
   variables:
     DOCKER_DRIVER: overlay2
-    HTTP_PROXY: ${HTTP_PROXY}
-    HTTPS_PROXY: ${HTTPS_PROXY}
-    NO_PROXY: ${NO_PROXY}
 
   allow_failure: true
   services:
@@ -228,6 +212,8 @@ cleanup:
   variables:
     GIT_STRATEGY: none
   script:
+    - configure_cluster ${CI_PROJECT_NAME}-${CI_BUILD_REF_SLUG}
+    #- initialise_helm
     - delete_charts
   environment:
     name: review/$CI_COMMIT_REF_NAME
@@ -266,10 +252,11 @@ cleanup:
           echo "WARNING: CONFIDENCE_LEVEL is deprecated and MUST be replaced with SAST_CONFIDENCE_LEVEL"
         fi
 
-        echo "docker run --env SAST_CONFIDENCE_LEVEL=\"${SAST_CONFIDENCE_LEVEL:-3}\" --volume \"$PWD:/code\" --volume /var/run/docker.sock:/var/run/docker.sock \"registry.gitlab.com/gitlab-org/security-products/sast:$SP_VERSION\" /app/bin/run /code"
-
+        mkdir .m2
+        cp maven_settings.xml .m2
         docker run --env SAST_CONFIDENCE_LEVEL="${SAST_CONFIDENCE_LEVEL:-3}" \
-                   --volume "$PWD:/code" \
+                   --volume "$(pwd):/code" \
+                   --volume $(pwd)/.m2/:/root/.m2 \
                    --volume /var/run/docker.sock:/var/run/docker.sock \
                    "registry.gitlab.com/gitlab-org/security-products/sast:$SP_VERSION" /app/bin/run /code
         ;;
@@ -280,31 +267,22 @@ cleanup:
   }
 
   function code_quality() {
-  echo $DOCKER_CONFIG
   docker run --env SOURCE_CODE="$(pwd)" \
-          --env HTTP_PROXY=$HTTP_PROXY \
-          --env HTTPS_PROXY=$HTTPS_PROXY \
-          --env NO_PROXY=$NO_PROXY \
           --volume $(pwd):/code \
           --volume /var/run/docker.sock:/var/run/docker.sock \
           "acr2.tst.apnic.net/alex/codequality:0.0.3" /code
   }
 
   function deploy() {
-    [[ $1 = "stage" ]] && type="stage" || type="test"
+    [[ $1 = "staging" ]] && type="staging" || type="test"
     name=$(get_name)
     replicas="1"
-    postgres_enabled="$POSTGRES_ENABLED"
 
-    if [[ -n "$type"="test" ]]; then
+    if [[ "$type" == "test" ]]; then
       test_name="$(test_dep_name $name)"
+      postgres_enabled="$POSTGRES_ENABLED"
       echo "Starting test chart install"
-
-      if [[ -n "$(helm ls -q "^$test_name$")" ]]; then
-        echo "helm delete --purge \"$test_name\""
-        helm delete --purge "$test_name"
-        echo "$test_name deleted"
-      fi
+      helm delete --tiller-namespace $TILLER_NAMESPACE --purge "$test_name"  &>/dev/null
       helm upgrade --install \
         --tiller-namespace=$TILLER_NAMESPACE \
         --force \
@@ -316,13 +294,7 @@ cleanup:
      fi
 
     echo "Starting rdapd chart install"
-
-    if [[ -n "$(helm ls -q "^$name$")" ]]; then
-      echo "helm delete --purge \"$name\""
-      helm delete --purge "$name" &>/dev/null
-      echo "$name deleted"
-    fi
-
+    helm delete --tiller-namespace $TILLER_NAMESPACE --purge "$name" &>/dev/null
     helm upgrade --install \
       --tiller-namespace=$TILLER_NAMESPACE \
       --force \
@@ -370,7 +342,6 @@ cleanup:
         export DOCKER_HOST='tcp://localhost:2375'
       fi
     fi
-    echo "docker login -u \"$CI_REGISTRY_USER\" -p \"$CI_REGISTRY_PASSWORD\" \"$CI_REGISTRY\""
     docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
   }
 
@@ -402,7 +373,6 @@ cleanup:
     echo "Creating and pusing docker image $CI_REGISTRY/$CI_REGISTRY_PATH/$CI_COMMIT_REF_SLUG:$CI_APPLICATION_TAG"
     echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
     cat registry.cert  >> /kaniko/ssl/certs/ca-certificates.crt
-    cat /kaniko/ssl/certs/ca-certificates.crt
     /kaniko/executor --context $CI_PROJECT_DIR --build-arg MAVEN_MIRROR_OF=$MAVEN_MIRROR_OF \
     --build-arg MAVEN_MIRROR_URL=$MAVEN_MIRROR_URL --build-arg HTTP_PROXY=$HTTP_PROXY \
     --build-arg HTTPS_PROXY=$HTTPS_PROXY --build-arg NO_PROXY=$NO_PROXY \
@@ -412,11 +382,12 @@ cleanup:
 
   #Takes one argument: the chart museum server (tst or prd)
   function publish_chart() {
-    mkdir /root/helm_package/
-    helm package --version $CI_BUILD_ID -d /root/helm_package/ helm/rdapd
-    cd /root/helm_package
-    echo "curl -s --data-binary \"@$(ls -A1 /root/helm_package/)\" $CHART_API_URI/api/$1/charts"
-    curl -s --data-binary "@$(ls -A1 /root/helm_package/)" $CHART_API_URI/api/$1/charts
+    helm package --version $CI_BUILD_ID helm/rdapd
+    response=$(curl -s --data-binary "@rdapd-$CI_BUILD_ID.tgz" $CHART_API_URI/api/$1/charts)
+    echo $response
+    if [[ $response != "{\"saved\":true}" ]]; then
+      return 1
+    fi
   }
 
   function create_secret() {
@@ -434,8 +405,8 @@ cleanup:
   function performance() {
     export CI_ENVIRONMENT_URL=$(cat environment_url.txt)
     mkdir gitlab-exporter
-    cp gitlab-ci/performance.js gitlab-exporter/index.js
-    wget -O gitlab-exporter/index.js https://gitlab.com/gitlab-org/gl-performance/raw/10-3/index.js
+    apk update && apk add curl
+    curl -s -o gitlab-exporter/index.js https://gitlab.com/gitlab-org/gl-performance/raw/10-3/index.js --proxy $HTTPS_PROXY
     mkdir sitespeed-results
     if [ -f .gitlab-urls.txt ]
     then
@@ -455,10 +426,9 @@ cleanup:
 
   function delete_charts() {
     name=$(get_name)
-    if [[ -n "$(helm ls -q "^$name$")" ]]; then
-      helm delete --purge "$name"
-      helm delete --purge "$(test_dep_name $name)"
-    fi
+    helm delete --tiller-namespace $TILLER_NAMESPACE --purge "$name" &>/dev/null
+    name=$(test_dep_name $name)
+    helm delete --tiller-namespace $TILLER_NAMESPACE --purge "$name" &>/dev/null
   }
 
 before_script:
