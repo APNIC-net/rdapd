@@ -296,7 +296,7 @@ cleanup:
     replicas="1"
     postgres_enabled="$POSTGRES_ENABLED"
 
-    if [[ -n "$type" = "test" ]]; then
+    if [[ -n "$type"="test" ]]; then
       test_name="$(test_dep_name $name)"
       echo "Starting test chart install"
 
