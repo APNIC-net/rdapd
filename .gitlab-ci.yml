@@ -296,8 +296,7 @@ cleanup:
     replicas="1"
     postgres_enabled="$POSTGRES_ENABLED"
 
-    if [[ -n "$type" ="test" ]]; then
-
+    if [[ -n "$type" = "test" ]]; then
       test_name="$(test_dep_name $name)"
       echo "Starting test chart install"
 
@@ -314,7 +313,7 @@ cleanup:
         --version="$CI_PIPELINE_ID-$CI_JOB_ID" \
         $test_name \
         helm/test/
-      fi
+     fi
 
     echo "Starting rdapd chart install"
 
