@@ -333,7 +333,7 @@ cleanup:
   }
 
   function get_name() {
-    echo ${CI_PROJECT_NAME}-${CI_BUILD_REF_SLUG}
+    echo $CI_ENVIRONMENT_SLUG
   }
 
   function setup_docker() {
