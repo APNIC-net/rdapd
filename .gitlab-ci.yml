@@ -282,8 +282,11 @@ cleanup:
       test_name="$(test_dep_name $name)"
       postgres_enabled="$POSTGRES_ENABLED"
       echo "Starting test chart install"
-      sleep 3600
+
+
       echo "helm delete --tiller-namespace $TILLER_NAMESPACE --purge \"$test_name\""
+
+      helm delete --tiller-namespace $TILLER_NAMESPACE --purge "$test_name" 2> error
 
       helm upgrade --install \
         --tiller-namespace=$TILLER_NAMESPACE \
