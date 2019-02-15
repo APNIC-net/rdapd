@@ -24,13 +24,16 @@ stages:
 package:
   # APNIC Change removed overlay docker driver variable
   stage: package
-  image: docker:git
-  services:
-    name: $CI_REGISTRY/ci/dind:0.0.1
+  variables:
+      DOCKER_DRIVER: overlay2
+    stage: package
+    image: docker:stable
+    allow_failure: true
+    services:
+      - name: $CI_REGISTRY/ci/dind:0.0.1
     command:
     #- '--registry-mirror https://acr2.tst.apnic.net'
     - '--insecure-registry acr2.tst.apnic.net'
-    alias: docker
   script:
     - setup_docker
     - build
