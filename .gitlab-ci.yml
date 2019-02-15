@@ -22,19 +22,19 @@ stages:
   - cleanup
 
 package:
-  image: docker:git
+  image: docker:stable
   stage: test
   variables:
     DOCKER_DRIVER: overlay2
   services:
     - name: $CI_REGISTRY/ci/dind:0.0.1
       alias: docker
-      command:
-      - '--insecure-registry acr2.tst.apnic.net'
+      #command:
+      #- '--insecure-registry acr2.tst.apnic.net'
       #- '--registry-mirror https://acr2.tst.apnic.net'
   script:
     - setup_docker
-    - build
+    #- build
   only:
     - branches
 
