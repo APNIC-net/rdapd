@@ -239,7 +239,7 @@ cleanup:
   export CI_APPLICATION_TAG=$CI_PIPELINE_ID.$CI_COMMIT_SHA
   export CI_CONTAINER_NAME=ci_job_build_${CI_JOB_ID}
   export KUBE_NAMESPACE=${CI_PROJECT_NAME}-${CI_BUILD_REF_SLUG}
-  export TILLER_NAMESPACE='tiller'
+  export TILLER_NAMESPACE=tiller
   export SP_VERSION=$(echo "$CI_SERVER_VERSION" | sed 's/^\([0-9]*\)\.\([0-9]*\).*/\1-\2-stable/')
 
   function sast() {
@@ -282,8 +282,11 @@ cleanup:
       test_name="$(test_dep_name $name)"
       postgres_enabled="$POSTGRES_ENABLED"
       echo "Starting test chart install"
-      helm delete --tiller-namespace $TILLER_NAMESPACE --purge "$test_name"  &> error
-      echo "chart deleted"
+
+
+      echo "Deleting $test_name"
+      helm delete --tiller-namespace $TILLER_NAMESPACE --purge "$test_name" || true
+
       helm upgrade --install \
         --tiller-namespace=$TILLER_NAMESPACE \
         --force \
@@ -295,7 +298,8 @@ cleanup:
      fi
 
     echo "Starting rdapd chart install"
-    helm delete --tiller-namespace $TILLER_NAMESPACE --purge "$name" &>error
+    echo "Deleting $name"
+    helm delete --tiller-namespace $TILLER_NAMESPACE --purge "$name" || true
     helm upgrade --install \
       --tiller-namespace=$TILLER_NAMESPACE \
       --force \
@@ -338,7 +342,7 @@ cleanup:
   }
 
   function setup_docker() {
-    if ! docker info &>error; then
+    if ! docker info &>/dev/null; then
       if [ -z "$DOCKER_HOST" -a "$KUBERNETES_PORT" ]; then
         export DOCKER_HOST='tcp://localhost:2375'
       fi
@@ -427,9 +431,9 @@ cleanup:
 
   function delete_charts() {
     name=$(get_name)
-    helm delete --tiller-namespace $TILLER_NAMESPACE --purge "$name" &>error
+    helm delete --tiller-namespace $TILLER_NAMESPACE --purge "$name" || true
     name=$(test_dep_name $name)
-    helm delete --tiller-namespace $TILLER_NAMESPACE --purge "$name" &>error
+    helm delete --tiller-namespace $TILLER_NAMESPACE --purge "$name" || true
   }
 
 before_script:
