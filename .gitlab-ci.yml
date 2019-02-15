@@ -22,7 +22,7 @@ stages:
   - cleanup
 
 package:
-  image: docker:stable
+  image: docker:git
   stage: test
   variables:
     DOCKER_DRIVER: overlay2
