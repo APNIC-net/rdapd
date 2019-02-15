@@ -285,7 +285,8 @@ cleanup:
 
 
       echo "helm delete --tiller-namespace $TILLER_NAMESPACE --purge \"$test_name\""
-
+      helm delete --tiller-namespace $TILLER_NAMESPACE --purge "$test_name" 2> error
+      helm delete --tiller-namespace $TILLER_NAMESPACE --purge "$test_name" 2> error
       helm delete --tiller-namespace $TILLER_NAMESPACE --purge "$test_name" 2> error
 
       helm upgrade --install \
