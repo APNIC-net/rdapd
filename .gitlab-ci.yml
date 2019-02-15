@@ -34,7 +34,7 @@ package:
       #- '--registry-mirror https://acr2.tst.apnic.net'
   script:
     - setup_docker
-    #- build
+    - build
   only:
     - branches
 
