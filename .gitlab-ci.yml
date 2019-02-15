@@ -21,7 +21,25 @@ stages:
   - production
   - cleanup
 
-build_docker_image:
+package:
+  # APNIC Change removed overlay docker driver variable
+  stage: package
+  image: docker:git
+  services:
+  - &dockerdind
+    name: $CI_REGISTRY/ci/dind:0.0.1
+    command:
+    - '--registry-mirror=https://acr2.tst.apnic.net'
+    - '--insecure-registry=acr2.tst.apnic.net'
+    alias: docker
+  script:
+    - setup_docker
+    - build
+  only:
+    - branches
+
+
+.build_docker_image:
   stage: package
   image:
     name: gcr.io/kaniko-project/executor:debug
@@ -274,7 +292,9 @@ build_docker_image:
   }
 
    function build() {
+      docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
       docker build --build-arg MAVEN_MIRROR_OF=$MAVEN_MIRROR_OF \
+      -e http_proxy=$HTTP_PROXY \
       --build-arg MAVEN_MIRROR_URL=$MAVEN_MIRROR_URL \
       -t "$CI_REGISTRY/$CI_REGISTRY_PATH/$CI_COMMIT_REF_SLUG:$CI_APPLICATION_TAG" .
       docker push "$CI_REGISTRY/$CI_REGISTRY_PATH/$CI_COMMIT_REF_SLUG:$CI_APPLICATION_TAG"
