@@ -30,7 +30,7 @@ package:
     - name: $CI_REGISTRY/ci/dind:0.0.1
       alias: docker
       #command:
-      - '--insecure-registry acr2.tst.apnic.net'
+      - '--insecure-registry $CI_REPOSITORY'
       #- '--registry-mirror https://acr2.tst.apnic.net'
   script:
     - setup_docker
@@ -293,8 +293,6 @@ package:
 
    function build() {
       docker info
-      cat /etc/docker/daemon.json
-      return
       docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
       docker build --build-arg MAVEN_MIRROR_OF=$MAVEN_MIRROR_OF \
       -e http_proxy=$HTTP_PROXY \
