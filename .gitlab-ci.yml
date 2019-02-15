@@ -292,6 +292,8 @@ package:
   }
 
    function build() {
+      docker info
+      cat /etc/docker/daemon.json
       docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
       docker build --build-arg MAVEN_MIRROR_OF=$MAVEN_MIRROR_OF \
       -e http_proxy=$HTTP_PROXY \
