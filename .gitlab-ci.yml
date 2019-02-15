@@ -21,25 +21,7 @@ stages:
   - production
   - cleanup
 
-package:
-  # APNIC Change removed overlay docker driver variable
-  stage: package
-  image: docker:git
-  services:
-  - &dockerdind
-    name: $CI_REGISTRY/ci/dind:0.0.1
-    command:
-    - '--registry-mirror=https://acr2.tst.apnic.net'
-    - '--insecure-registry=acr2.tst.apnic.net'
-    alias: docker
-  script:
-    - setup_docker
-    - build
-  only:
-    - branches
-
-
-.build_docker_image:
+build_docker_image:
   stage: package
   image:
     name: gcr.io/kaniko-project/executor:debug
