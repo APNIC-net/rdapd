@@ -92,7 +92,7 @@ build_docker_image:
       variables:
         - $DISABLED_PUBLISH
 
-codequality:
+.codequality:
   variables:
     DOCKER_DRIVER: overlay2
   stage: review
