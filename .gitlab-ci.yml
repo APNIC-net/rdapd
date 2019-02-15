@@ -282,7 +282,7 @@ cleanup:
       test_name="$(test_dep_name $name)"
       postgres_enabled="$POSTGRES_ENABLED"
       echo "Starting test chart install"
-      helm delete --tiller-namespace $TILLER_NAMESPACE --purge "$test_name"  &>/dev/null
+      helm delete --tiller-namespace $TILLER_NAMESPACE --purge "$test_name"  &> error
       echo "chart deleted"
       helm upgrade --install \
         --tiller-namespace=$TILLER_NAMESPACE \
@@ -295,7 +295,7 @@ cleanup:
      fi
 
     echo "Starting rdapd chart install"
-    helm delete --tiller-namespace $TILLER_NAMESPACE --purge "$name" &>/dev/null
+    helm delete --tiller-namespace $TILLER_NAMESPACE --purge "$name" &>error
     helm upgrade --install \
       --tiller-namespace=$TILLER_NAMESPACE \
       --force \
@@ -338,7 +338,7 @@ cleanup:
   }
 
   function setup_docker() {
-    if ! docker info &>/dev/null; then
+    if ! docker info &>error; then
       if [ -z "$DOCKER_HOST" -a "$KUBERNETES_PORT" ]; then
         export DOCKER_HOST='tcp://localhost:2375'
       fi
@@ -427,9 +427,9 @@ cleanup:
 
   function delete_charts() {
     name=$(get_name)
-    helm delete --tiller-namespace $TILLER_NAMESPACE --purge "$name" &>/dev/null
+    helm delete --tiller-namespace $TILLER_NAMESPACE --purge "$name" &>error
     name=$(test_dep_name $name)
-    helm delete --tiller-namespace $TILLER_NAMESPACE --purge "$name" &>/dev/null
+    helm delete --tiller-namespace $TILLER_NAMESPACE --purge "$name" &>error
   }
 
 before_script:
