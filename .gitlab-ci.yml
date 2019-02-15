@@ -29,8 +29,8 @@ package:
   - &dockerdind
     name: $CI_REGISTRY/ci/dind:0.0.1
     command:
-    - '--registry-mirror=https://acr2.tst.apnic.net'
-    - '--insecure-registry=acr2.tst.apnic.net'
+    #- '--registry-mirror https://acr2.tst.apnic.net'
+    - '--insecure-registry acr2.tst.apnic.net'
     alias: docker
   script:
     - setup_docker
