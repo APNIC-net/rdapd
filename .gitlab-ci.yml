@@ -35,7 +35,7 @@ build_docker_image:
     variables:
       - $DISABLED_BUILD_IMAGE
 
-fake_build:
+.fake_build:
   variables:
     DOCKER_DRIVER: overlay2
   stage: test
@@ -53,7 +53,7 @@ fake_build:
     variables:
       - $DISABLED_FAKE_BUILD_IMAGE
 
-unit_tests:
+.unit_tests:
   stage: test
   image: maven:3.5-jdk-8-alpine
   script:
@@ -66,7 +66,7 @@ unit_tests:
     variables:
       - $DISABLED_UNIT_TESTS
 
-publish_to_test:
+.publish_to_test:
   stage: test
   image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
   script:
@@ -80,7 +80,7 @@ publish_to_test:
     variables:
       - $DISABLED_PUBLISH
 
-publish_to_prod:
+.publish_to_prod:
   stage: production
   image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
   script:
@@ -112,7 +112,7 @@ codequality:
     variables:
       - $DISABLED_CODE_QUALITY
 
-sast:
+.sast:
   image: docker:stable
   stage: test
   variables:
@@ -132,7 +132,7 @@ sast:
     variables:
       - $DISABLED_SAST
 
-review:
+.review:
   stage: review
   image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
   script:
@@ -158,7 +158,7 @@ review:
     variables:
       - $DISABLED_REVIEW
 
-stage_review:
+.stage_review:
   stage: staging
   image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
   script:
@@ -182,7 +182,7 @@ stage_review:
     variables:
       - $DISABLED_STAGING
 
-performance:
+.performance:
   stage: performance
   image: docker:latest
   variables:
@@ -206,7 +206,7 @@ performance:
       - $DISABLED_PERFORMANCE
 
 
-cleanup:
+.cleanup:
   stage: cleanup
   image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
   variables:
