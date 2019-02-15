@@ -28,10 +28,6 @@ package:
     DOCKER_DRIVER: overlay2
   services:
     - name: $CI_REGISTRY/ci/dind:0.0.1
-      alias: docker
-      #command:
-      #- '--insecure-registry acr2.tst.apnic.net'
-      #- '--registry-mirror https://acr2.tst.apnic.net'
   script:
     - setup_docker
     - build
@@ -292,11 +288,10 @@ package:
   }
 
    function build() {
-      docker info
-      docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
       docker build --build-arg MAVEN_MIRROR_OF=$MAVEN_MIRROR_OF \
       --build-arg MAVEN_MIRROR_URL=$MAVEN_MIRROR_URL \
       -t "$CI_REGISTRY/$CI_REGISTRY_PATH/$CI_COMMIT_REF_SLUG:$CI_APPLICATION_TAG" .
+
       docker push "$CI_REGISTRY/$CI_REGISTRY_PATH/$CI_COMMIT_REF_SLUG:$CI_APPLICATION_TAG"
     }
 
