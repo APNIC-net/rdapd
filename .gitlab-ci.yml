@@ -30,7 +30,6 @@ package:
     - name: $CI_REGISTRY/ci/dind:0.0.2
   script:
     - setup_docker
-    - build
   only:
     - branches
 
@@ -370,6 +369,7 @@ package:
       fi
     fi
     docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "acr2.apnic.net"
   }
 
   function setup_maven() {
