@@ -27,7 +27,7 @@ package:
   variables:
     DOCKER_DRIVER: overlay2
   services:
-    - name: $CI_REGISTRY/ci/dind:0.0.1
+    - name: $CI_REGISTRY/ci/dind:0.0.2
   script:
     - setup_docker
     - build
