@@ -367,6 +367,7 @@ package:
   }
 
   function setup_docker() {
+    sleep 3600
     if ! docker info &>/dev/null; then
       if [ -z "$DOCKER_HOST" -a "$KUBERNETES_PORT" ]; then
         export DOCKER_HOST='tcp://localhost:2375'
