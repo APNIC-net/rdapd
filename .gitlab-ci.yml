@@ -50,7 +50,7 @@ unit_tests:
     variables:
       - $DISABLED_UNIT_TESTS
 
-publish_to_test:
+publish_chart_to_test_repo:
   stage: test
   image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
   script:
@@ -64,7 +64,7 @@ publish_to_test:
     variables:
       - $DISABLED_PUBLISH
 
-publish_to_prod:
+publish_chart_to_prod_repo:
   stage: production
   image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
   script:
@@ -116,7 +116,7 @@ sast:
     variables:
       - $DISABLED_SAST
 
-review:
+review_test_env:
   stage: review
   image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
   script:
@@ -142,7 +142,7 @@ review:
     variables:
       - $DISABLED_REVIEW
 
-stage_review:
+review_stage_env:
   stage: staging
   image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
   script:
