@@ -37,39 +37,6 @@ package:
     variables:
       - $DISABLED_BUILD_IMAGE
 
-
-.build_docker_image:
-  stage: package
-  image:
-    name: gcr.io/kaniko-project/executor:debug
-    entrypoint: [""]
-  script:
-    - build_docker_image
-  only:
-    refs:
-      - branches
-  except:
-    variables:
-      - $DISABLED_BUILD_IMAGE
-
-fake_build:
-  variables:
-    DOCKER_DRIVER: overlay2
-  stage: test
-  image: docker:stable
-  allow_failure: true
-  services:
-    - name: $CI_REGISTRY/ci/dind:0.0.1
-  script:
-    - setup_docker
-    - fake_build
-  only:
-    refs:
-      - branches
-  except:
-    variables:
-      - $DISABLED_FAKE_BUILD_IMAGE
-
 unit_tests:
   stage: test
   image: maven:3.5-jdk-8-alpine
@@ -391,23 +358,6 @@ cleanup:
 
   function ensure_namespace() {
     kubectl describe namespace "$KUBE_NAMESPACE" || kubectl create namespace "$KUBE_NAMESPACE"
-  }
-
-  function fake_build() {
-    docker pull acr2.tst.apnic.net/rdap/rdapd/ci-tests:1942.3ad6a0224f645d708c6f433ed62ac99f8a084d19
-    docker tag acr2.tst.apnic.net/rdap/rdapd/ci-tests:1942.3ad6a0224f645d708c6f433ed62ac99f8a084d19 $CI_REGISTRY/$CI_REGISTRY_PATH/$CI_COMMIT_REF_SLUG:$CI_APPLICATION_TAG
-    docker push $CI_REGISTRY/$CI_REGISTRY_PATH/$CI_COMMIT_REF_SLUG:$CI_APPLICATION_TAG
-  }
-
-  function build_docker_image() {
-    echo "Creating and pusing docker image $CI_REGISTRY/$CI_REGISTRY_PATH/$CI_COMMIT_REF_SLUG:$CI_APPLICATION_TAG"
-    echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
-    cat registry.cert  >> /kaniko/ssl/certs/ca-certificates.crt
-    /kaniko/executor --context $CI_PROJECT_DIR --build-arg MAVEN_MIRROR_OF=$MAVEN_MIRROR_OF \
-    --build-arg MAVEN_MIRROR_URL=$MAVEN_MIRROR_URL --build-arg HTTP_PROXY=$HTTP_PROXY \
-    --build-arg HTTPS_PROXY=$HTTPS_PROXY --build-arg NO_PROXY=$NO_PROXY \
-    --dockerfile $CI_PROJECT_DIR/Dockerfile \
-    --destination $CI_REGISTRY/$CI_REGISTRY_PATH/$CI_COMMIT_REF_SLUG:$CI_APPLICATION_TAG
   }
 
   #Takes one argument: the chart museum server (tst or prd)
