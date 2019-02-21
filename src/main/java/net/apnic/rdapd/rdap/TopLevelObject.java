@@ -15,7 +15,8 @@ import java.util.stream.Stream;
 public class TopLevelObject {
     private static final Set<String> SERVER_CONFORMANCE = Stream.of(
             "rdap_level_0",
-            "history_version_0"
+            "history_version_0",
+            "cidr0"
     ).collect(Collectors.toSet());
 
     private final Set<String> rdapConformance;
