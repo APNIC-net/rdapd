@@ -145,6 +145,7 @@ public class LoaderConfiguration
 
     @Bean
     @ConditionalOnProperty(value="snapshot.file")
+    // NOTE: Tom Miller advised that this feature is not working
     Endpoint<Boolean> snapshotEndpoint(@Value("${snapshot.file}") String snapshotFile) {
         return new Endpoint<Boolean>() {
             @Override
