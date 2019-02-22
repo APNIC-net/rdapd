@@ -126,7 +126,7 @@ public class IpRouteControllerTest
         assertThat(json.get("cidr0_cidrs"), notNullValue());
         assertThat(json.get("cidr0_cidrs").size(), is(1));
         assertThat(json.get("cidr0_cidrs").get(0).get("v4prefix").textValue(), is("10.0.0.0"));
-        assertThat(json.get("cidr0_cidrs").get(0).get("length").textValue(), is("8"));
+        assertThat(json.get("cidr0_cidrs").get(0).get("length").intValue(), is(8));
     }
 
     @Test
@@ -148,6 +148,6 @@ public class IpRouteControllerTest
         assertThat(json.get("cidr0_cidrs"), notNullValue());
         assertThat(json.get("cidr0_cidrs").size(), is(1));
         assertThat(json.get("cidr0_cidrs").get(0).get("v6prefix").textValue(), is("2001:db8::"));
-        assertThat(json.get("cidr0_cidrs").get(0).get("length").textValue(), is("32"));
+        assertThat(json.get("cidr0_cidrs").get(0).get("length").intValue(), is(32));
     }
 }

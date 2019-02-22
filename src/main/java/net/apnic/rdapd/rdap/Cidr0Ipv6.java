@@ -6,9 +6,9 @@ package net.apnic.rdapd.rdap;
  */
 public class Cidr0Ipv6 implements Cidr0Object {
     private final String v6prefix;
-    private final String length;
+    private final int length;
 
-    public Cidr0Ipv6(String v6prefix, String length) {
+    public Cidr0Ipv6(String v6prefix, int length) {
         this.v6prefix = v6prefix;
         this.length = length;
     }
@@ -17,7 +17,7 @@ public class Cidr0Ipv6 implements Cidr0Object {
         return v6prefix;
     }
 
-    public String getLength() {
+    public int getLength() {
         return length;
     }
 }
