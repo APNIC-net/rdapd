@@ -114,11 +114,11 @@ public class IpNetwork extends GenericObject {
      */
     @JsonProperty("cidr0_cidrs")
     public Cidr0Object[] getCidr0Cidrs() {
-        BiFunction<String, String, Cidr0Object> cons =
+        BiFunction<String, Integer, Cidr0Object> cons =
                 ipInterval.low().getAddressFamily() == IP.AddressFamily.IPv4
                         ? Cidr0Ipv4::new
                         : Cidr0Ipv6::new;
-        return new Cidr0Object[] {cons.apply(ipInterval.low().toString(), Integer.toString(ipInterval.prefixSize()))};
+        return new Cidr0Object[] {cons.apply(ipInterval.low().toString(), ipInterval.prefixSize())};
     }
 
     public String toString()
