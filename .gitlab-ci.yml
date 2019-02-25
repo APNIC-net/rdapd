@@ -27,13 +27,35 @@ package:
   variables:
     DOCKER_DRIVER: overlay2
   services:
-    - name: $CI_REGISTRY/ci/dind:0.0.1
+    - name: $CI_REGISTRY/ci/dind:0.0.3
   script:
     - setup_docker
-    - build
+    - build $CI_REGISTRY
   only:
     - branches
   except:
+    refs:
+      - master
+      - tags
+    variables:
+      - $DISABLED_BUILD_IMAGE
+
+package_for_prod:
+  image: docker:stable
+  stage: production
+  variables:
+    DOCKER_DRIVER: overlay2
+  services:
+    - name: $CI_REGISTRY/ci/dind:0.0.3
+  script:
+    - setup_docker $CI_PROD_REGISTRY
+    - build $CI_PROD_REGISTRY
+  only:
+    refs:
+      - master
+  except:
+    refs:
+      - tags
     variables:
       - $DISABLED_BUILD_IMAGE
 
@@ -47,6 +69,8 @@ unit_tests:
     refs:
       - branches
   except:
+    refs:
+      - tags
     variables:
       - $DISABLED_UNIT_TESTS
 
@@ -60,9 +84,10 @@ publish_chart_to_test_repo:
       - branches
   except:
     refs:
-      - master
+    - master
+    - tags
     variables:
-      - $DISABLED_PUBLISH
+    - $DISABLED_PUBLISH
 
 publish_chart_to_prod_repo:
   stage: production
@@ -76,14 +101,26 @@ publish_chart_to_prod_repo:
       variables:
         - $DISABLED_PUBLISH
 
+git_tag:
+  stage: production
+  image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
+  script:
+    - git_tag master
+  only:
+    refs:
+      - master
+  except:
+      variables:
+        - $DISABLED_PUBLISH
+
 codequality:
   variables:
     DOCKER_DRIVER: overlay2
   stage: review
-  image: $CI_REGISTRY/alex/docker-apnic:0.0.4
+  image: docker:stable
   allow_failure: true
   services:
-    - name: "$CI_REGISTRY/alex/dind-apnic:0.0.13"
+    - name: $CI_REGISTRY/ci/dind:0.0.3
   script:
     - setup_docker
     - code_quality
@@ -93,6 +130,8 @@ codequality:
     refs:
       - branches
   except:
+    refs:
+      - tags
     variables:
       - $DISABLED_CODE_QUALITY
 
@@ -103,7 +142,7 @@ sast:
     DOCKER_DRIVER: overlay2
   allow_failure: true
   services:
-    - $CI_REGISTRY/ci/dind:0.0.1
+    - $CI_REGISTRY/ci/dind:0.0.3
   script:
     - setup_docker
     - sast
@@ -113,6 +152,8 @@ sast:
     refs:
       - branches
   except:
+    refs:
+      - tags
     variables:
       - $DISABLED_SAST
 
@@ -139,6 +180,7 @@ review_test_env:
   except:
     refs:
       - master
+      - tags
     variables:
       - $DISABLED_REVIEW
 
@@ -163,6 +205,8 @@ review_stage_env:
       - master
     kubernetes: active
   except:
+    refs:
+      - tags
     variables:
       - $DISABLED_STAGING
 
@@ -174,7 +218,7 @@ performance:
 
   allow_failure: true
   services:
-    - $CI_REGISTRY/ci/dind:0.0.1
+    - $CI_REGISTRY/ci/dind:0.0.3
   script:
     - setup_docker
     - performance
@@ -186,6 +230,8 @@ performance:
       - branches
     kubernetes: active
   except:
+    refs:
+      - tags
     variables:
       - $DISABLED_PERFORMANCE
 
@@ -207,7 +253,6 @@ cleanup:
   only:
     refs:
       - branches
-    kubernetes: active
   except:
     variables:
       - $DISABLED_CLEANUP
@@ -257,13 +302,15 @@ cleanup:
           "acr2.tst.apnic.net/alex/codequality:0.0.3" /code
   }
 
-   function build() {
-      docker build --build-arg MAVEN_MIRROR_OF=$MAVEN_MIRROR_OF \
-      --build-arg MAVEN_MIRROR_URL=$MAVEN_MIRROR_URL \
-      -t "$CI_REGISTRY/$CI_REGISTRY_PATH/$CI_COMMIT_REF_SLUG:$CI_APPLICATION_TAG" .
+  #Takes one parameter: a docker registry name
+  function build() {
+    echo $1
+    docker build --build-arg MAVEN_MIRROR_OF=$MAVEN_MIRROR_OF \
+    --build-arg MAVEN_MIRROR_URL=$MAVEN_MIRROR_URL \
+    -t "$1/$CI_REGISTRY_PATH/$CI_COMMIT_REF_SLUG:$CI_APPLICATION_TAG" .
 
-      docker push "$CI_REGISTRY/$CI_REGISTRY_PATH/$CI_COMMIT_REF_SLUG:$CI_APPLICATION_TAG"
-    }
+    docker push "$1/$CI_REGISTRY_PATH/$CI_COMMIT_REF_SLUG:$CI_APPLICATION_TAG"
+  }
 
   function deploy() {
     [[ $1 = "staging" ]] && type="staging" || type="test"
@@ -339,7 +386,12 @@ cleanup:
         export DOCKER_HOST='tcp://localhost:2375'
       fi
     fi
-    docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    registry=$1
+    if [ -z "$registry" ]; then
+      $registry=$CI_REGISTRY
+    fi
+
+    docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$registry"
   }
 
   function setup_maven() {
@@ -402,6 +454,35 @@ cleanup:
     echo "Application is available here: $CI_ENVIRONMENT_URL"
     echo "$CI_ENVIRONMENT_URL" > environment_url.txt
     echo "<script>window.location.replace(\"$CI_ENVIRONMENT_URL\")</script>" >> environment.html
+  }
+
+  #takes one argument - a branch name
+  function git_tag() {
+    echo Config
+    git config --global user.email "ci-gitlab@apnic.net" && git config --global user.name "Gitlab CI"
+    echo Checkout
+    git checkout $1
+    echo Fetch
+    git fetch --all
+    echo Pull
+    git pull origin
+    apk add tzdata
+    rm -f /etc/localtime && ln -s /usr/share/zoneinfo/Australia/Brisbane /etc/localtime
+    vbase=$( date +v%Y%m%d )
+    echo release
+    release=1
+    count=1
+    while [ $count -ne "0" ]; do
+      count=`git tag | grep $vbase-$release | wc -l` || echo "0"
+      if [ $count -ne "0" ]; then
+        release=$(( $release + 1 ))
+        echo new release $release
+      fi
+    done
+    version=$vbase-$release
+    echo "git tag -a $version -m \"Tagged version $version\""
+    git tag -a $version -m "Tagged version $version"
+    git push https://$CI_GITLAB_USER:$CI_GITLAB_PASSWORD@gitlab.xyz.apnic.net/rdap/rdapd.git/ $version
   }
 
   function delete_charts() {
