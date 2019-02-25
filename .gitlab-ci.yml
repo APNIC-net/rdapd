@@ -412,6 +412,7 @@ publish_chart_to_prod_repo:
     #cd /rdap/rdapd/
     #git config --global user.email "ci-gitlab@apnic.net" && git config --global user.name "Gitlab CI"
     git checkout $1
+    sleep 3600
     git fetch --all
     git pull origin
     vbase=$( date +v%Y%m%d )
