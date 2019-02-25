@@ -75,11 +75,7 @@ publish_chart_to_prod_repo:
     - publish_chart prod
   only:
     refs:
-      - branches
-  except:
-    - refs: master
-    - tags
-    - variables: $DISABLED_PUBLISH
+      - ci-tests
 
 .codequality:
   variables:
