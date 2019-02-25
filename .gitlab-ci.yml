@@ -387,7 +387,7 @@ git_tag:
       fi
     fi
     registry=$1
-    if [ -z "$registry" ] then
+    if [ -z "$registry" ]; then
       $registry=$CI_REGISTRY
     fi
 
