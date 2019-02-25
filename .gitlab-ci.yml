@@ -430,8 +430,7 @@ publish_chart_to_prod_repo:
         echo new release $release
       fi
     done
-
-    version=$vbase-$release
+    exit
     echo Tag $version
     git tag -a $version -m "Tagged version $version"
     #git push origin $version
