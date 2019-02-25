@@ -84,7 +84,7 @@ publish_chart_to_test_repo:
       - branches
   except:
     refs:
-    - master
+    - ci_tests
     - tags
     variables:
     - $DISABLED_PUBLISH
@@ -93,11 +93,22 @@ publish_chart_to_prod_repo:
   stage: production
   image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
   script:
-    - git_tag ci_tests
     - publish_chart prod
   only:
     refs:
-      - master
+      - ci_tests
+  except:
+      variables:
+        - $DISABLED_PUBLISH
+
+git_tag:
+  stage: production
+  image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
+  script:
+    - git_tag ci_tests
+  only:
+    refs:
+      - ci_tests
   except:
       variables:
         - $DISABLED_PUBLISH
@@ -168,7 +179,7 @@ publish_chart_to_prod_repo:
     kubernetes: active
   except:
     refs:
-      - master
+      - ci_tests
       - tags
     variables:
       - $DISABLED_REVIEW
@@ -191,7 +202,7 @@ publish_chart_to_prod_repo:
     paths: [environment_url.txt, environment.html]
   only:
     refs:
-      - master
+      - ci_tests
     kubernetes: active
   except:
     refs:
