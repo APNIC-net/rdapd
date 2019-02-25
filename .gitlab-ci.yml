@@ -426,6 +426,7 @@ publish_chart_to_prod_repo:
     while [ $count -ne "0" ]; do
       count=`git tag | grep $vbase-$release | wc -l`
       if [ $count -ne "0" ]; then release=$(( $release + 1 )); fi
+      echo ""
     done
     #echo Tag $version
     #git tag -a $version -m "Tagged version $version"
