@@ -65,7 +65,7 @@ stages:
     - variables: $DISABLED_PUBLISH
 
 publish_chart_to_prod_repo:
-  stage: test
+  stage: production
   image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
   script:
     - apk --update add openssh-client
@@ -75,7 +75,7 @@ publish_chart_to_prod_repo:
     - publish_chart prod
   only:
     refs:
-      - ci-tests
+      - ci_tests
 
 .codequality:
   variables:
