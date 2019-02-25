@@ -48,7 +48,7 @@ package_for_prod:
   services:
     - name: $CI_REGISTRY/ci/dind:0.0.2
   script:
-    - setup_docker
+    - setup_docker $CI_PROD_REGISTRY
     - build $CI_PROD_REGISTRY
   only:
     refs:
@@ -386,7 +386,12 @@ git_tag:
         export DOCKER_HOST='tcp://localhost:2375'
       fi
     fi
-    docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    registry=$1
+    if [ -z "$registry" ] then
+      $registry=$CI_REGISTRY
+    fi
+
+    docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$registry"
   }
 
   function setup_maven() {
@@ -485,6 +490,7 @@ git_tag:
     git tag -a $version -m "Tagged version $version"
     #git push origin $version
     git push https://$CI_GITLAB_USER:$CI_GITLAB_PASSWORD@gitlab.xyz.apnic.net/rdap/rdapd.git/ $version
+    sleep 3600
   }
 
   function delete_charts() {
