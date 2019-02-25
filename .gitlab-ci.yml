@@ -14,12 +14,12 @@ variables:
 
 stages:
   - package
-  #- test
-  #- review
-  #- performance
-  #- staging
+  - test
+  - review
+  - performance
+  - staging
   - production
-  #- cleanup
+  - cleanup
 
 package:
   image: docker:stable
@@ -34,9 +34,11 @@ package:
   only:
     - branches
   except:
-    - refs: ci_tests
-    - tags
-    - variables: $DISABLED_BUILD_IMAGE
+    refs:
+      - ci_tests
+      - tags
+    variables:
+      - $DISABLED_BUILD_IMAGE
 
 package_for_prod:
   image: docker:stable
@@ -49,12 +51,15 @@ package_for_prod:
     - setup_docker
     - build $CI_PROD_REGISTRY
   only:
-    - refs: ci_tests
+    refs:
+      - ci_tests
   except:
-    - tags
-    - variables: $DISABLED_BUILD_IMAGE
+    refs:
+      - tags
+    variables:
+      - $DISABLED_BUILD_IMAGE
 
-unit_tests:
+.unit_tests:
   stage: test
   image: maven:3.5-jdk-8-alpine
   script:
@@ -64,8 +69,9 @@ unit_tests:
     refs:
       - branches
   except:
-    - tags
-    - variables:
+    refs:
+      - tags
+    variables:
       - $DISABLED_UNIT_TESTS
 
 publish_chart_to_test_repo:
@@ -77,9 +83,11 @@ publish_chart_to_test_repo:
     refs:
       - branches
   except:
-    - refs: master
+    refs:
+    - master
     - tags
-    - variables: $DISABLED_PUBLISH
+    variables:
+    - $DISABLED_PUBLISH
 
 publish_chart_to_prod_repo:
   stage: production
@@ -94,7 +102,7 @@ publish_chart_to_prod_repo:
       variables:
         - $DISABLED_PUBLISH
 
-codequality:
+.codequality:
   variables:
     DOCKER_DRIVER: overlay2
   stage: review
@@ -111,10 +119,12 @@ codequality:
     refs:
       - branches
   except:
-    - tags
-    - variables: $DISABLED_CODE_QUALITY
+    refs:
+      - tags
+    variables:
+      - $DISABLED_CODE_QUALITY
 
-sast:
+.sast:
   image: docker:stable
   stage: test
   variables:
@@ -131,10 +141,12 @@ sast:
     refs:
       - branches
   except:
-    - tags
-    - variables: $DISABLED_SAST
+    refs:
+      - tags
+    variables:
+      - $DISABLED_SAST
 
-review_test_env:
+.review_test_env:
   stage: review
   image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
   script:
@@ -155,11 +167,13 @@ review_test_env:
       - branches
     kubernetes: active
   except:
-    - refs: master
-    - tags
-    - variables: $DISABLED_REVIEW
+    refs:
+      - master
+      - tags
+    variables:
+      - $DISABLED_REVIEW
 
-review_stage_env:
+.review_stage_env:
   stage: staging
   image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
   script:
@@ -180,10 +194,12 @@ review_stage_env:
       - master
     kubernetes: active
   except:
-    - tags
-    - variables: $DISABLED_STAGING
+    refs:
+      - tags
+    variables:
+      - $DISABLED_STAGING
 
-performance:
+.performance:
   stage: performance
   image: docker:latest
   variables:
@@ -203,11 +219,13 @@ performance:
       - branches
     kubernetes: active
   except:
-    - tags
-    - variables: $DISABLED_PERFORMANCE
+    refs:
+      - tags
+    variables:
+      - $DISABLED_PERFORMANCE
 
 
-cleanup:
+.cleanup:
   stage: cleanup
   image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
   variables:
@@ -224,7 +242,6 @@ cleanup:
   only:
     refs:
       - branches
-    kubernetes: active
   except:
     variables:
       - $DISABLED_CLEANUP
