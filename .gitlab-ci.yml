@@ -59,7 +59,7 @@ package_for_prod:
     variables:
       - $DISABLED_BUILD_IMAGE
 
-.unit_tests:
+unit_tests:
   stage: test
   image: maven:3.5-jdk-8-alpine
   script:
@@ -113,7 +113,7 @@ git_tag:
       variables:
         - $DISABLED_PUBLISH
 
-.codequality:
+codequality:
   variables:
     DOCKER_DRIVER: overlay2
   stage: review
@@ -135,7 +135,7 @@ git_tag:
     variables:
       - $DISABLED_CODE_QUALITY
 
-.sast:
+sast:
   image: docker:stable
   stage: test
   variables:
@@ -157,7 +157,7 @@ git_tag:
     variables:
       - $DISABLED_SAST
 
-.review_test_env:
+review_test_env:
   stage: review
   image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
   script:
@@ -184,7 +184,7 @@ git_tag:
     variables:
       - $DISABLED_REVIEW
 
-.review_stage_env:
+review_stage_env:
   stage: staging
   image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
   script:
@@ -210,7 +210,7 @@ git_tag:
     variables:
       - $DISABLED_STAGING
 
-.performance:
+performance:
   stage: performance
   image: docker:latest
   variables:
@@ -236,14 +236,13 @@ git_tag:
       - $DISABLED_PERFORMANCE
 
 
-.cleanup:
+cleanup:
   stage: cleanup
   image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
   variables:
     GIT_STRATEGY: none
   script:
     - configure_cluster ${CI_PROJECT_NAME}-${CI_BUILD_REF_SLUG}
-    #- initialise_helm
     - delete_charts
   environment:
     name: review/$CI_COMMIT_REF_NAME
