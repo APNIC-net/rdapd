@@ -431,8 +431,9 @@ publish_chart_to_prod_repo:
         else
             break
         fi
+        echo $release
     done
-    echo version
+    echo test
     version=$vbase-$release
     echo Tag
     git tag -a $version -m "Tagged version $version"
