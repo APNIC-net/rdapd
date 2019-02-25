@@ -410,9 +410,13 @@ publish_chart_to_prod_repo:
     #eval "$(ssh-agent -s)" && ssh-add
     #git config --global user.email "ci-gitlab@apnic.net" && git config --global user.name "Gitlab CI"
     #cd /rdap/rdapd/
+    echo Config
     git config --global user.email "ci-gitlab@apnic.net" && git config --global user.name "Gitlab CI"
+    echo Checkout
     git checkout $1
+    echo Fetch
     git fetch --all
+    echo Pull
     git pull origin
     vbase=$( date +v%Y%m%d )
     release=1
@@ -425,8 +429,10 @@ publish_chart_to_prod_repo:
         fi
     done
     version=$vbase-$release
+    echo Tag
     git tag -a $version -m "Tagged version $version"
     #git push origin $version
+    echo Push
     git push https://$CI_GITLAB_USER:$CI_GITLAB_PASSWORD@gitlab.xyz.apnic.net/rdap/rdapd.git/ $version
     echo "Tag: $version"
   }
