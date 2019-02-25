@@ -5,7 +5,7 @@
     release=1
     count=1
     while true; do
-      count=`git tag | grep $vbase-$release | wc -l` || "0"
+      count=`git tag | grep $vbase-$release | wc -l` || "1"
       if [ $count -ne "0" ]
        then release=$(( $release + 1 ))
       else
