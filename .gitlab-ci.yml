@@ -27,7 +27,7 @@ package:
   variables:
     DOCKER_DRIVER: overlay2
   services:
-    - name: $CI_REGISTRY/ci/dind:0.0.1
+    - name: $CI_REGISTRY/ci/dind:0.0.2
   script:
     - setup_docker
     - build $CI_REGISTRY
@@ -42,11 +42,11 @@ package:
 
 package_for_prod:
   image: docker:stable
-  stage: package
+  stage: production
   variables:
     DOCKER_DRIVER: overlay2
   services:
-    - name: $CI_REGISTRY/ci/dind:0.0.1
+    - name: $CI_REGISTRY/ci/dind:0.0.2
   script:
     - setup_docker
     - build $CI_PROD_REGISTRY
@@ -117,10 +117,10 @@ git_tag:
   variables:
     DOCKER_DRIVER: overlay2
   stage: review
-  image: $CI_REGISTRY/alex/docker-apnic:0.0.4
+  image: docker:stable
   allow_failure: true
   services:
-    - name: "$CI_REGISTRY/alex/dind-apnic:0.0.13"
+    - name: $CI_REGISTRY/ci/dind:0.0.2
   script:
     - setup_docker
     - code_quality
@@ -142,7 +142,7 @@ git_tag:
     DOCKER_DRIVER: overlay2
   allow_failure: true
   services:
-    - $CI_REGISTRY/ci/dind:0.0.1
+    - $CI_REGISTRY/ci/dind:0.0.2
   script:
     - setup_docker
     - sast
@@ -218,7 +218,7 @@ git_tag:
 
   allow_failure: true
   services:
-    - $CI_REGISTRY/ci/dind:0.0.1
+    - $CI_REGISTRY/ci/dind:0.0.2
   script:
     - setup_docker
     - performance
@@ -304,6 +304,7 @@ git_tag:
 
   #Takes one parameter: a docker registry name
   function build() {
+    echo $1
     docker build --build-arg MAVEN_MIRROR_OF=$MAVEN_MIRROR_OF \
     --build-arg MAVEN_MIRROR_URL=$MAVEN_MIRROR_URL \
     -t "$1/$CI_REGISTRY_PATH/$CI_COMMIT_REF_SLUG:$CI_APPLICATION_TAG" .
