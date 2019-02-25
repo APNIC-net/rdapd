@@ -474,7 +474,7 @@ git_tag:
     echo Pull
     git pull origin
     apk add tzdata
-
+    rm -f /etc/localtime && ln -s /usr/share/zoneinfo/Australia/Brisbane /etc/localtime
     vbase=$( date +v%Y%m%d )
     echo release
     release=1
