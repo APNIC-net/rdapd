@@ -423,13 +423,12 @@ publish_chart_to_prod_repo:
     echo release
     release=1
     count="1"
-    echo $count
+    echo Count [$count]
     while $count -ne "0"; do
-      echo $count
+      echo Count [$count]
       count=`git tag | grep $vbase-$release | wc -l`
       if [ $count -ne "0" ]; then
         release=$(( $release + 1 ))
-        echo $count - $release
     fi
     done
     echo test
