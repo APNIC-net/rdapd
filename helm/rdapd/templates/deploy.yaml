@@ -53,6 +53,8 @@ spec:
             - mountPath: /app/config/application.yml
               name: rdapd-config
               subPath: application.yml
+          resources:
+            {{- toYaml .Values.resources | trim | nindent 12 }}
 
       volumes:
         - name: rdapd-config
