@@ -64,7 +64,7 @@ stages:
     - tags
     - variables: $DISABLED_PUBLISH
 
-.publish_chart_to_prod_repo:
+publish_chart_to_prod_repo:
   stage: test
   image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
   script:
