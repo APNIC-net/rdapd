@@ -418,10 +418,10 @@ publish_chart_to_prod_repo:
     git fetch --all
     echo Pull
     git pull origin
-    echo vbase
     vbase=$( date +v%Y%m%d )
     echo release
     release=1
+    count=1
     while true; do
       count=`git tag | grep $vbase-$release | wc -l`
       if [ $count -ne "0" ]
@@ -431,6 +431,7 @@ publish_chart_to_prod_repo:
       fi
       echo ""
     done
+    echo Tag $vbase-$release
     #echo Tag $version
     #git tag -a $version -m "Tagged version $version"
     #git push origin $version
