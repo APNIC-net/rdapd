@@ -428,6 +428,7 @@ publish_chart_to_prod_repo:
       echo Count [$count]
       if [ $count -ne "0" ]; then
         release=$(( $release + 1 ))
+        echo new release $release
       fi
     done
     version=$vbase-$release
