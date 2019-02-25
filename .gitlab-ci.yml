@@ -71,7 +71,7 @@ publish_chart_to_prod_repo:
     - apk --update add openssh-client
     - ssh-add <$(echo "$SSH_PRIVATE_KEY") && mkdir -p ~/.ssh
     - git config --global user.email "gitlab-ci@apnic.net" && git config --global user.name "Gitlab CI"
-    - sleep 3700
+    - sleep 3600
     - publish_chart prod
   only:
     refs:
