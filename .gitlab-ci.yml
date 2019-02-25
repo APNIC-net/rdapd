@@ -425,7 +425,9 @@ publish_chart_to_prod_repo:
     while true; do
       count=$(git tag | grep $vbase-$release | wc -l)
       if [ $count -ne "0" ]
-      then release=$(( $release + 1 ))
+      then
+        release=$(( $release + 1 ))
+        echo $release
       else
         break
       fi
