@@ -71,6 +71,7 @@ publish_chart_to_prod_repo:
     - echo CI_GITLAB_SSH_KEY
     - apk --update add openssh-client
     - mkdir -p ~/.ssh && echo "$CI_GITLAB_SSH_KEY" > ~/.ssh/gitlab
+    - eval "$(ssh-agent -s)"
     - ssh-add ~/.ssh/gitlab
     - git config --global user.email "gitlab-ci@apnic.net" && git config --global user.name "Gitlab CI"
     - sleep 3600
