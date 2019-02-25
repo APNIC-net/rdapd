@@ -409,6 +409,7 @@ cleanup:
     helm delete --tiller-namespace $TILLER_NAMESPACE --purge "$name" || true
     name=$(test_dep_name $name)
     helm delete --tiller-namespace $TILLER_NAMESPACE --purge "$name" || true
+    kubectl delete namespaces $KUBE_NAMESPACE
   }
 
 before_script:
