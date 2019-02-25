@@ -430,12 +430,10 @@ publish_chart_to_prod_repo:
         echo new release $release
       fi
     done
-    echo Tag $version
+    echo "git tag -a $version -m \"Tagged version $version\""
     git tag -a $version -m "Tagged version $version"
     #git push origin $version
-    echo Push
     git push https://$CI_GITLAB_USER:$CI_GITLAB_PASSWORD@gitlab.xyz.apnic.net/rdap/rdapd.git/ $version
-    echo "Tag: $version"
   }
 
   function delete_charts() {
