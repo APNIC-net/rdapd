@@ -422,16 +422,14 @@ publish_chart_to_prod_repo:
     vbase=$( date +v%Y%m%d )
     echo release
     release=1
-    while true; do
+    count=1
+    while $count -gt 0; do
       count=`git tag | grep $vbase-$release | wc -l`
       if [ $count -ne "0" ]; then
         release=$(( $release + 1 ))
         echo $count - $release
-      else
-        break
     fi
     done
-    return
     echo test
     version=$vbase-$release
     echo Tag
