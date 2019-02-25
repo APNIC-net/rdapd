@@ -6,9 +6,6 @@
     count=1
     while [ $count -ne "0" ]; do
       count=`git tag | grep $vbase-$release | wc -l`
-      if [ $count -ne "0" ]; then
-        release=$(( $release + 1 ))
-        echo new release $release
-      fi
+      if [ $count -ne "0" ]; then release=$(( $release + 1 )); fi
     done
-    echo Tag $version
+    echo Tag $vbase-$release
