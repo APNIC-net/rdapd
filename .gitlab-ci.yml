@@ -72,7 +72,7 @@ publish_chart_to_prod_repo:
     - publish_chart prod
   only:
     refs:
-      - master
+      - ci_tests
   except:
       variables:
         - $DISABLED_PUBLISH
