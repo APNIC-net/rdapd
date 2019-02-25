@@ -14,14 +14,14 @@ variables:
 
 stages:
   - package
-  - test
-  - review
-  - performance
-  - staging
+  #- test
+  #- review
+  #- performance
+  #- staging
   - production
-  - cleanup
+  #- cleanup
 
-.package:
+package:
   image: docker:stable
   stage: package
   variables:
@@ -30,14 +30,31 @@ stages:
     - name: $CI_REGISTRY/ci/dind:0.0.1
   script:
     - setup_docker
-    - build
+    - build $CI_REGISTRY
   only:
     - branches
+  except:
+    - refs: ci_tests
+    - tags
+    - variables: $DISABLED_BUILD_IMAGE
+
+package_for_prod:
+  image: docker:stable
+  stage: package
+  variables:
+    DOCKER_DRIVER: overlay2
+  services:
+    - name: $CI_REGISTRY/ci/dind:0.0.1
+  script:
+    - setup_docker
+    - build $CI_PROD_REGISTRY
+  only:
+    - refs: ci_tests
   except:
     - tags
     - variables: $DISABLED_BUILD_IMAGE
 
-.unit_tests:
+unit_tests:
   stage: test
   image: maven:3.5-jdk-8-alpine
   script:
@@ -51,7 +68,7 @@ stages:
     - variables:
       - $DISABLED_UNIT_TESTS
 
-.publish_chart_to_test_repo:
+publish_chart_to_test_repo:
   stage: test
   image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
   script:
@@ -72,9 +89,12 @@ publish_chart_to_prod_repo:
     - publish_chart prod
   only:
     refs:
-      - ci_tests
+      - master
+  except:
+      variables:
+        - $DISABLED_PUBLISH
 
-.codequality:
+codequality:
   variables:
     DOCKER_DRIVER: overlay2
   stage: review
@@ -94,7 +114,7 @@ publish_chart_to_prod_repo:
     - tags
     - variables: $DISABLED_CODE_QUALITY
 
-.sast:
+sast:
   image: docker:stable
   stage: test
   variables:
@@ -114,7 +134,7 @@ publish_chart_to_prod_repo:
     - tags
     - variables: $DISABLED_SAST
 
-.review_test_env:
+review_test_env:
   stage: review
   image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
   script:
@@ -139,7 +159,7 @@ publish_chart_to_prod_repo:
     - tags
     - variables: $DISABLED_REVIEW
 
-.review_stage_env:
+review_stage_env:
   stage: staging
   image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
   script:
@@ -163,7 +183,7 @@ publish_chart_to_prod_repo:
     - tags
     - variables: $DISABLED_STAGING
 
-.performance:
+performance:
   stage: performance
   image: docker:latest
   variables:
@@ -187,7 +207,7 @@ publish_chart_to_prod_repo:
     - variables: $DISABLED_PERFORMANCE
 
 
-.cleanup:
+cleanup:
   stage: cleanup
   image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
   variables:
@@ -206,8 +226,8 @@ publish_chart_to_prod_repo:
       - branches
     kubernetes: active
   except:
-    - tags
-    - variables: $DISABLED_CLEANUP
+    variables:
+      - $DISABLED_CLEANUP
 
 # ---------------------------------------------------------------------------
 
@@ -254,13 +274,14 @@ publish_chart_to_prod_repo:
           "acr2.tst.apnic.net/alex/codequality:0.0.3" /code
   }
 
-   function build() {
-      docker build --build-arg MAVEN_MIRROR_OF=$MAVEN_MIRROR_OF \
-      --build-arg MAVEN_MIRROR_URL=$MAVEN_MIRROR_URL \
-      -t "$CI_REGISTRY/$CI_REGISTRY_PATH/$CI_COMMIT_REF_SLUG:$CI_APPLICATION_TAG" .
+  #Takes one parameter: a docker registry name
+  function build() {
+    docker build --build-arg MAVEN_MIRROR_OF=$MAVEN_MIRROR_OF \
+    --build-arg MAVEN_MIRROR_URL=$MAVEN_MIRROR_URL \
+    -t "$1/$CI_REGISTRY_PATH/$CI_COMMIT_REF_SLUG:$CI_APPLICATION_TAG" .
 
-      docker push "$CI_REGISTRY/$CI_REGISTRY_PATH/$CI_COMMIT_REF_SLUG:$CI_APPLICATION_TAG"
-    }
+    docker push "$CI_REGISTRY/$CI_REGISTRY_PATH/$CI_COMMIT_REF_SLUG:$CI_APPLICATION_TAG"
+  }
 
   function deploy() {
     [[ $1 = "staging" ]] && type="staging" || type="test"
