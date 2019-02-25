@@ -34,8 +34,8 @@ stages:
   only:
     - branches
   except:
-    variables:
-      - $DISABLED_BUILD_IMAGE
+    - tags
+    - variables: $DISABLED_BUILD_IMAGE
 
 .unit_tests:
   stage: test
@@ -47,7 +47,8 @@ stages:
     refs:
       - branches
   except:
-    variables:
+    - tags
+    - variables:
       - $DISABLED_UNIT_TESTS
 
 .publish_chart_to_test_repo:
@@ -59,23 +60,25 @@ stages:
     refs:
       - branches
   except:
-    refs:
-      - master
-    variables:
-      - $DISABLED_PUBLISH
+    - refs: master
+    - tags
+    - variables: $DISABLED_PUBLISH
 
-publish_chart_to_prod_repo:
-  stage: production
+.publish_chart_to_prod_repo:
+  stage: test
   image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
   script:
+    - apk --update add openssh-client
+    - ssh-add <(echo "$SSH_PRIVATE_KEY") && mkdir -p ~/.ssh
     - sleep 3600
     - publish_chart prod
   only:
     refs:
-      - ci_tests
+      - branches
   except:
-      variables:
-        - $DISABLED_PUBLISH
+    - refs: master
+    - tags
+    - variables: $DISABLED_PUBLISH
 
 .codequality:
   variables:
@@ -94,8 +97,8 @@ publish_chart_to_prod_repo:
     refs:
       - branches
   except:
-    variables:
-      - $DISABLED_CODE_QUALITY
+    - tags
+    - variables: $DISABLED_CODE_QUALITY
 
 .sast:
   image: docker:stable
@@ -114,8 +117,8 @@ publish_chart_to_prod_repo:
     refs:
       - branches
   except:
-    variables:
-      - $DISABLED_SAST
+    - tags
+    - variables: $DISABLED_SAST
 
 .review_test_env:
   stage: review
@@ -138,10 +141,9 @@ publish_chart_to_prod_repo:
       - branches
     kubernetes: active
   except:
-    refs:
-      - master
-    variables:
-      - $DISABLED_REVIEW
+    - refs: master
+    - tags
+    - variables: $DISABLED_REVIEW
 
 .review_stage_env:
   stage: staging
@@ -164,8 +166,8 @@ publish_chart_to_prod_repo:
       - master
     kubernetes: active
   except:
-    variables:
-      - $DISABLED_STAGING
+    - tags
+    - variables: $DISABLED_STAGING
 
 .performance:
   stage: performance
@@ -187,8 +189,8 @@ publish_chart_to_prod_repo:
       - branches
     kubernetes: active
   except:
-    variables:
-      - $DISABLED_PERFORMANCE
+    - tags
+    - variables: $DISABLED_PERFORMANCE
 
 
 .cleanup:
@@ -210,8 +212,8 @@ publish_chart_to_prod_repo:
       - branches
     kubernetes: active
   except:
-    variables:
-      - $DISABLED_CLEANUP
+    - tags
+    - variables: $DISABLED_CLEANUP
 
 # ---------------------------------------------------------------------------
 
