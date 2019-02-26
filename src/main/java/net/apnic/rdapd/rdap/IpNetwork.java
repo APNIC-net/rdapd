@@ -6,8 +6,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import net.apnic.rdapd.history.ObjectKey;
 import net.apnic.rdapd.types.IP;
 import net.apnic.rdapd.types.IpInterval;
+import net.ripe.ipresource.IpAddress;
+import net.ripe.ipresource.IpRange;
 
+import java.util.List;
 import java.util.function.BiFunction;
+import java.util.stream.Collectors;
 
 /**
  * IpNetwork RDAP object.
@@ -113,12 +117,16 @@ public class IpNetwork extends GenericObject {
      * <a href="https://gitlab.nro.net/ecg/draft-rdap-cidr">CIDR Expressions in RDAP</a>.
      */
     @JsonProperty("cidr0_cidrs")
-    public Cidr0Object[] getCidr0Cidrs() {
+    public List<Cidr0Object> getCidr0Cidrs() {
         BiFunction<String, Integer, Cidr0Object> cons =
                 ipInterval.low().getAddressFamily() == IP.AddressFamily.IPv4
                         ? Cidr0Ipv4::new
                         : Cidr0Ipv6::new;
-        return new Cidr0Object[] {cons.apply(ipInterval.low().toString(), ipInterval.prefixSize())};
+        IpRange range = IpRange.range(IpAddress.parse(ipInterval.low().toString()),
+                IpAddress.parse(ipInterval.high().toString()));
+        return range.splitToPrefixes().stream()
+                .map(r -> cons.apply(r.getStart().toString(), r.getPrefixLength()))
+                .collect(Collectors.toList());
     }
 
     public String toString()
