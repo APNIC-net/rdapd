@@ -7,6 +7,7 @@ import net.apnic.rdapd.history.ObjectKey;
 import net.apnic.rdapd.ip.IpService;
 import net.apnic.rdapd.rdap.IpNetwork;
 import net.apnic.rdapd.types.Parsing;
+import net.apnic.rdapd.types.Tuple;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,12 +19,14 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static net.apnic.rdapd.rdap.controller.RDAPControllerTesting.isRDAP;
 import static net.apnic.rdapd.rdap.controller.RDAPControllerTesting.isRDAPHeader;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Matchers.any;
@@ -127,6 +130,40 @@ public class IpRouteControllerTest
         assertThat(json.get("cidr0_cidrs").size(), is(1));
         assertThat(json.get("cidr0_cidrs").get(0).get("v4prefix").textValue(), is("10.0.0.0"));
         assertThat(json.get("cidr0_cidrs").get(0).get("length").intValue(), is(8));
+    }
+
+    @Test
+    public void testCidr0Ipv4WithMultipleCidrEntries() throws Exception {
+        given(ipService.find(any())).willReturn(
+                Optional.of(new IpNetwork(
+                        new ObjectKey(ObjectClass.IP_NETWORK, "10.0.0.1 - 10.0.0.255"),
+                        Parsing.parseInterval("10.0.0.1 - 10.0.0.255"))));
+
+        MvcResult mvcResult = mvc.perform(get("/ip/10.0.0.1"))
+                .andExpect(status().isOk())
+                .andExpect(isRDAP())
+                .andReturn();
+
+        String content = mvcResult.getResponse().getContentAsString();
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode json = mapper.readTree(content);
+
+        assertThat(json.get("cidr0_cidrs"), notNullValue());
+        assertThat(json.get("cidr0_cidrs").size(), is(8));
+
+        List<Tuple<String, Integer>> jsonPrefixes =
+                StreamSupport.stream(json.get("cidr0_cidrs").spliterator(), false)
+                        .map(node -> Tuple.of(node.get("v4prefix").textValue(), node.get("length").intValue()))
+                        .collect(Collectors.toList());
+
+        assertThat(jsonPrefixes, hasItem(Tuple.of("10.0.0.1", 32)));
+        assertThat(jsonPrefixes, hasItem(Tuple.of("10.0.0.2", 31)));
+        assertThat(jsonPrefixes, hasItem(Tuple.of("10.0.0.4", 30)));
+        assertThat(jsonPrefixes, hasItem(Tuple.of("10.0.0.8", 29)));
+        assertThat(jsonPrefixes, hasItem(Tuple.of("10.0.0.16", 28)));
+        assertThat(jsonPrefixes, hasItem(Tuple.of("10.0.0.32", 27)));
+        assertThat(jsonPrefixes, hasItem(Tuple.of("10.0.0.64", 26)));
+        assertThat(jsonPrefixes, hasItem(Tuple.of("10.0.0.128", 25)));
     }
 
     @Test

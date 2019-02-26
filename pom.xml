@@ -98,6 +98,11 @@
             <artifactId>java-ipv6</artifactId>
             <version>0.16</version>
         </dependency>
+        <dependency>
+            <groupId>net.ripe.ipresource</groupId>
+            <artifactId>ipresource</artifactId>
+            <version>1.46</version>
+        </dependency>
 
         <!-- Persistent data structures, ported from Scala, specifically HAMT map -->
         <dependency>

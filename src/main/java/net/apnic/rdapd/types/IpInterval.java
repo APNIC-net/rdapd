@@ -42,6 +42,7 @@ public class IpInterval implements Interval<IP>, Serializable {
         return high;
     }
 
+    // TODO: FIX - this only works for rounded-up intervals (i.e. won't work for "10.0.0.50 - 10.0.0.255")
     public String toCIDRString()
     {
         return low().toString() + CIDR_DELIMITER + prefixSize();
