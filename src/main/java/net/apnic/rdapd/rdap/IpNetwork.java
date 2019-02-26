@@ -6,8 +6,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import net.apnic.rdapd.history.ObjectKey;
 import net.apnic.rdapd.types.IP;
 import net.apnic.rdapd.types.IpInterval;
-import net.ripe.ipresource.IpAddress;
-import net.ripe.ipresource.IpRange;
 
 import java.util.List;
 import java.util.function.BiFunction;
@@ -122,10 +120,8 @@ public class IpNetwork extends GenericObject {
                 ipInterval.low().getAddressFamily() == IP.AddressFamily.IPv4
                         ? Cidr0Ipv4::new
                         : Cidr0Ipv6::new;
-        IpRange range = IpRange.range(IpAddress.parse(ipInterval.low().toString()),
-                IpAddress.parse(ipInterval.high().toString()));
-        return range.splitToPrefixes().stream()
-                .map(r -> cons.apply(r.getStart().toString(), r.getPrefixLength()))
+        return ipInterval.splitToRoundedIntervals().stream()
+                .map(interval -> cons.apply(interval.low().toString(), interval.prefixSize()))
                 .collect(Collectors.toList());
     }
 
