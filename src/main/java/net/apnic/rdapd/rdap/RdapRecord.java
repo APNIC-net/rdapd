@@ -1,5 +1,7 @@
 package net.apnic.rdapd.rdap;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import net.apnic.rdapd.history.Revision;
 
 import java.time.ZoneOffset;
@@ -27,10 +29,12 @@ public class RdapRecord {
                 ).orElse(null), revision.getContents());
     }
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'")
     public ZonedDateTime getApplicableFrom() {
         return applicableFrom;
     }
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'")
     public ZonedDateTime getApplicableUntil() {
         return applicableUntil;
     }

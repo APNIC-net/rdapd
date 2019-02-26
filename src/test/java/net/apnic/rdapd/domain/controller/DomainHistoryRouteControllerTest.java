@@ -55,11 +55,13 @@ public class DomainHistoryRouteControllerTest
 
         mvc.perform(get("/history/domain/1.2.3.10.in-addr.arpa"))
             .andExpect(status().isOk())
-            .andExpect(RDAPControllerTesting.isRDAP());
+            .andExpect(RDAPControllerTesting.isRDAP())
+            .andExpect(RDAPControllerTesting.isRDAPHistoryResult());
 
         mvc.perform(get("/history/domain/0.2.e.0.1.0.0.2.ip6.arpa"))
             .andExpect(status().isOk())
-            .andExpect(RDAPControllerTesting.isRDAP());
+            .andExpect(RDAPControllerTesting.isRDAP())
+            .andExpect(RDAPControllerTesting.isRDAPHistoryResult());
     }
 
     @Test
