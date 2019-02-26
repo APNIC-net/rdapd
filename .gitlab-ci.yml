@@ -18,8 +18,8 @@ stages:
   - review
   - performance
   - staging
-  - production
   - cleanup
+  - production
 
 package:
   image: docker:stable
@@ -35,7 +35,6 @@ package:
     - branches
   except:
     refs:
-      - master
       - tags
     variables:
       - $DISABLED_BUILD_IMAGE
@@ -243,7 +242,6 @@ cleanup:
     GIT_STRATEGY: none
   script:
     - configure_cluster ${CI_PROJECT_NAME}-${CI_BUILD_REF_SLUG}
-    #- initialise_helm
     - delete_charts
   environment:
     name: review/$CI_COMMIT_REF_NAME
@@ -388,9 +386,8 @@ cleanup:
     fi
     registry=$1
     if [ -z "$registry" ]; then
-      $registry=$CI_REGISTRY
+      registry="$CI_REGISTRY"
     fi
-
     docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$registry"
   }
 
