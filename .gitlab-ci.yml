@@ -385,11 +385,9 @@ cleanup:
       fi
     fi
     registry=$1
-    echo Argument $registry
     if [ -z "$registry" ]; then
       registry="$CI_REGISTRY"
     fi
-    echo Registry $registry
     docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$registry"
   }
 
