@@ -35,7 +35,6 @@ package:
     - branches
   except:
     refs:
-      - ci_tests
       - tags
     variables:
       - $DISABLED_BUILD_IMAGE
