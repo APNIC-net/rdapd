@@ -18,8 +18,8 @@ stages:
   - review
   - performance
   - staging
-  - production
   - cleanup
+  - production
 
 package:
   image: docker:stable
