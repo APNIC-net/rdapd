@@ -388,7 +388,7 @@ cleanup:
     if [ -z "$registry" ]; then
       $registry=$CI_REGISTRY
     fi
-
+    echo $registry
     docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$registry"
   }
 
