@@ -460,32 +460,25 @@ git_tag:
     echo "$CI_GITLAB_SSH_KEY" > ~/.ssh/id_rsa
     chmod 400 ~/.ssh/id_rsa
     eval "$(ssh-agent -s)" && ssh-add
-    sleep 3600
     git config --global user.email "gitlab-ci@apnic.net" && git config --global user.name "Gitlab CI"
-    cd /tmp
-    echo Checkout
-    git clone
+    git remote set-url origin git@gitlab.xyz.apnic.net:rdap/rdapd.git
     git checkout $1
-    echo Fetch
     git fetch --all
-    echo Pull
     git pull origin
     apk add tzdata
     rm -f /etc/localtime && ln -s /usr/share/zoneinfo/Australia/Brisbane /etc/localtime
     vbase=$( date +v%Y%m%d )
-    echo release
     release=1
     count=1
     while [ $count -ne "0" ]; do
       count=`git tag | grep $vbase-$release | wc -l` || echo "0"
       if [ $count -ne "0" ]; then
         release=$(( $release + 1 ))
-        echo new release $release
       fi
     done
     version=$vbase-$release
-    echo "git tag -a $version -m \"Tagged version $version\""
     git tag -a $version -m "Tagged version $version"
+    sleep 3600
     git push origin $version
     #git push https://$CI_GITLAB_USER:$CI_GITLAB_PASSWORD@gitlab.xyz.apnic.net/rdap/rdapd.git/ $version
   }
