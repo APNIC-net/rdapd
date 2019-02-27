@@ -478,7 +478,6 @@ git_tag:
     version=$vbase-$release
     git tag -a $version -m "Tagged version $version"
     git remote set-url origin git@gitlab.xyz.apnic.net:rdap/rdapd.git
-    sleep 3600
     git push origin $version
     #git push https://$CI_GITLAB_USER:$CI_GITLAB_PASSWORD@gitlab.xyz.apnic.net/rdap/rdapd.git/ $version
   }
