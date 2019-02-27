@@ -460,11 +460,11 @@ git_tag:
     echo "$CI_GITLAB_SSH_KEY" > ~/.ssh/id_rsa
     chmod 400 ~/.ssh/id_rsa
     eval "$(ssh-agent -s)" && ssh-add
-    git config --global user.email "ci-gitlab@apnic.net" && git config --global user.name "Gitlab CI"
-    cd /rdap/rdapd/
-    #echo Config
-    #git config --global user.email "ci-gitlab@apnic.net" && git config --global user.name "Gitlab CI"
+    sleep 3600
+    git config --global user.email "gitlab-ci@apnic.net" && git config --global user.name "Gitlab CI"
+    cd /tmp
     echo Checkout
+    git clone
     git checkout $1
     echo Fetch
     git fetch --all
