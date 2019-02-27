@@ -10,7 +10,7 @@ import java.io.Serializable;
 import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class IpInterval implements Interval<IP>, Serializable {
@@ -60,11 +60,11 @@ public class IpInterval implements Interval<IP>, Serializable {
     }
 
     /**
-     * Splits this interval to rounded intervals that can be represented by the CIDR notation. If the interval is already
-     * rounded it will return a {@link List} containing a copy of the same interval.
-     * @return a {@link List} containing rounded intervals
+     * Splits this interval to prefixes (that can be represented by the CIDR notation). If the interval is already a
+     * prefix, it will return a {@link Set} containing a copy of the same interval.
+     * @return a {@link Set} with the prefixes contained in the interval
      */
-    public List<IpInterval> splitToRoundedIntervals() {
+    public Set<IpInterval> splitToPrefixes() {
         IpAddress low, high;
 
         if (low().getAddressFamily() == IP.AddressFamily.IPv4) {
@@ -87,7 +87,7 @@ public class IpInterval implements Interval<IP>, Serializable {
                             throw new RuntimeException(e);
                         }
                     })
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
     }
 
     @Override

@@ -120,7 +120,7 @@ public class IpNetwork extends GenericObject {
                 ipInterval.low().getAddressFamily() == IP.AddressFamily.IPv4
                         ? Cidr0Ipv4::new
                         : Cidr0Ipv6::new;
-        return ipInterval.splitToRoundedIntervals().stream()
+        return ipInterval.splitToPrefixes().stream()
                 .map(interval -> cons.apply(interval.low().toString(), interval.prefixSize()))
                 .collect(Collectors.toList());
     }
