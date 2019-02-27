@@ -461,7 +461,6 @@ git_tag:
     chmod 400 ~/.ssh/id_rsa
     eval "$(ssh-agent -s)" && ssh-add
     git config --global user.email "gitlab-ci@apnic.net" && git config --global user.name "Gitlab CI"
-    git remote set-url origin git@gitlab.xyz.apnic.net:rdap/rdapd.git
     git checkout $1
     git fetch --all
     git pull origin
@@ -478,6 +477,7 @@ git_tag:
     done
     version=$vbase-$release
     git tag -a $version -m "Tagged version $version"
+    git remote set-url origin git@gitlab.xyz.apnic.net:rdap/rdapd.git
     sleep 3600
     git push origin $version
     #git push https://$CI_GITLAB_USER:$CI_GITLAB_PASSWORD@gitlab.xyz.apnic.net/rdap/rdapd.git/ $version
