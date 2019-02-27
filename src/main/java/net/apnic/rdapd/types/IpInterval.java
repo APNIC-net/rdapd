@@ -60,11 +60,11 @@ public class IpInterval implements Interval<IP>, Serializable {
     }
 
     /**
-     * Splits this interval to prefixes (that can be represented by the CIDR notation). If the interval is already a
-     * prefix, it will return a {@link Set} containing a copy of the same interval.
+     * Returns the set of prefixes contained in this interval (that can be represented by the CIDR notation). If the
+     * interval is already a prefix, it will return a set containing a copy of the same interval.
      * @return a {@link Set} with the prefixes contained in the interval
      */
-    public Set<IpInterval> splitToPrefixes() {
+    public Set<IpInterval> prefixes() {
         IpAddress low, high;
 
         if (low().getAddressFamily() == IP.AddressFamily.IPv4) {
