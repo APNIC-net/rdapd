@@ -1,17 +1,20 @@
 package net.apnic.rdapd.rdap;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import net.apnic.rdapd.history.ObjectKey;
 import net.apnic.rdapd.types.IP;
 import net.apnic.rdapd.types.IpInterval;
 
+import java.util.List;
+import java.util.function.BiFunction;
+import java.util.stream.Collectors;
+
 /**
  * IpNetwork RDAP object.
  */
-public class IpNetwork
-    extends GenericObject
-{
+public class IpNetwork extends GenericObject {
     private final IpInterval ipInterval;
     private String type;
 
@@ -105,6 +108,22 @@ public class IpNetwork
     public void setType(String type)
     {
         this.type = type;
+    }
+
+    /**
+     * Provides the CIDR representation for the resource block according to NRO's
+     * <a href="https://gitlab.nro.net/ecg/draft-rdap-cidr">CIDR Expressions in RDAP</a>.
+     */
+    @JsonProperty("cidr0_cidrs")
+    public List<Cidr0Object> getCidr0Cidrs() {
+        BiFunction<String, Integer, Cidr0Object> cons =
+                ipInterval.low().getAddressFamily() == IP.AddressFamily.IPv4
+                        ? Cidr0Ipv4::new
+                        : Cidr0Ipv6::new;
+        return ipInterval.prefixes()
+                .stream()
+                .map(interval -> cons.apply(interval.low().toString(), interval.prefixSize()))
+                .collect(Collectors.toList());
     }
 
     public String toString()
