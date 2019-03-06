@@ -83,10 +83,10 @@ publish_chart_to_test_repo:
       - branches
   except:
     refs:
-    - master
-    - tags
+      - master
+      - tags
     variables:
-    - $DISABLED_PUBLISH
+      - $DISABLED_PUBLISH
 
 publish_chart_to_prod_repo:
   stage: production
@@ -97,8 +97,8 @@ publish_chart_to_prod_repo:
     refs:
       - master
   except:
-      variables:
-        - $DISABLED_PUBLISH
+    variables:
+      - $DISABLED_PUBLISH
 
 git_tag:
   stage: production
@@ -109,8 +109,8 @@ git_tag:
     refs:
       - master
   except:
-      variables:
-        - $DISABLED_PUBLISH
+    variables:
+      - $DISABLED_PUBLISH
 
 codequality:
   variables:
@@ -223,7 +223,7 @@ performance:
     - performance
   artifacts:
     paths:
-    - performance.json
+      - performance.json
   only:
     refs:
       - branches
