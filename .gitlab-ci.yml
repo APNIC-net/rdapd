@@ -102,7 +102,7 @@ stages:
 
 git_tag:
   stage: production
-  image: git:latest
+  image: git
   script:
     - git_tag ci_tests
   only:
