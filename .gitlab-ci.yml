@@ -183,7 +183,7 @@ git_tag:
     variables:
       - $DISABLED_REVIEW
 
-.review_stage_env:
+review_stage_env:
   stage: staging
   image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.2
   script:
