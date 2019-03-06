@@ -303,7 +303,6 @@ cleanup:
 
   #Takes one parameter: a docker registry name
   function build() {
-    echo $1
     docker build --build-arg MAVEN_MIRROR_OF=$MAVEN_MIRROR_OF \
     --build-arg MAVEN_MIRROR_URL=$MAVEN_MIRROR_URL \
     -t "$1/$CI_REGISTRY_PATH/$CI_COMMIT_REF_SLUG:$CI_APPLICATION_TAG" .
