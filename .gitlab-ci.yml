@@ -1,4 +1,5 @@
 image: alpine:latest
+image: alpine:latest
 
 variables:
   POSTGRES_USER: user
@@ -297,7 +298,7 @@ cleanup:
   docker run --env SOURCE_CODE="$(pwd)" \
           --volume $(pwd):/code \
           --volume /var/run/docker.sock:/var/run/docker.sock \
-          "acr2.tst.apnic.net/ci/codequality:0.0.3" /code
+          "$CI_REGISTRY/ci/codequality:0.0.3" /code
   }
 
   #Takes one parameter: a docker registry name
@@ -477,8 +478,8 @@ cleanup:
     done
     version=$vbase-$release
     git tag -a $version -m "Tagged version $version"
-    git remote set-url origin git@gitlab.xyz.apnic.net:rdap/rdapd.git
-    ssh-keyscan gitlab.xyz.apnic.net >> ~/.ssh/known_hosts
+    git remote set-url origin git@${CI_REPOSITORY_URL##*@}
+    ssh-keyscan $CI_GITLAB_SERVER >> ~/.ssh/known_hosts
     git push origin $version
   }
 
