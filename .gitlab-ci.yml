@@ -235,7 +235,7 @@ review_stage_env:
       - $DISABLED_PERFORMANCE
 
 
-.cleanup:
+cleanup:
   stage: cleanup
   image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.2
   variables:
