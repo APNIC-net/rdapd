@@ -75,7 +75,7 @@ stages:
 
 .publish_chart_to_test_repo:
   stage: test
-  image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
+  image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.2
   script:
     - publish_chart tst
   only:
@@ -90,7 +90,7 @@ stages:
 
 .publish_chart_to_prod_repo:
   stage: production
-  image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
+  image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.2
   script:
     - publish_chart prod
   only:
@@ -102,7 +102,7 @@ stages:
 
 git_tag:
   stage: production
-  image: $CI_REGISTRY/ci/alpine-git:latest
+  image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.2
   script:
     - git_tag ci_tests
   only:
@@ -158,7 +158,7 @@ git_tag:
 
 .review_test_env:
   stage: review
-  image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
+  image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.2
   script:
     - configure_cluster ${CI_PROJECT_NAME}-${CI_BUILD_REF_SLUG}
     - initialise_helm
@@ -185,7 +185,7 @@ git_tag:
 
 .review_stage_env:
   stage: staging
-  image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
+  image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.2
   script:
     - configure_cluster ${CI_PROJECT_NAME}-${CI_BUILD_REF_SLUG}
     - initialise_helm
@@ -237,7 +237,7 @@ git_tag:
 
 .cleanup:
   stage: cleanup
-  image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
+  image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.2
   variables:
     GIT_STRATEGY: none
   script:
