@@ -297,7 +297,7 @@ cleanup:
   docker run --env SOURCE_CODE="$(pwd)" \
           --volume $(pwd):/code \
           --volume /var/run/docker.sock:/var/run/docker.sock \
-          "acr2.tst.apnic.net/alex/codequality:0.0.3" /code
+          "acr2.tst.apnic.net/ci/codequality:0.0.3" /code
   }
 
   #Takes one parameter: a docker registry name
