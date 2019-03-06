@@ -21,7 +21,7 @@ stages:
   - cleanup
   - production
 
-.package:
+package:
   image: docker:stable
   stage: package
   variables:
@@ -39,7 +39,7 @@ stages:
     variables:
       - $DISABLED_BUILD_IMAGE
 
-.package_for_prod:
+package_for_prod:
   image: docker:stable
   stage: production
   variables:
