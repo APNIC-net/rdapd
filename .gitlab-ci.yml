@@ -159,7 +159,7 @@ review_test_env:
     - deploy
     - persist_environment_url
   environment:
-    name: review/$CI_COMMIT_REF_NAME
+    name: $CI_COMMIT_REF_NAME
     url: $CI_ENVIRONMENT_SLUG.tst.xyz.apnic.net
     on_stop: stop_environment
   artifacts:
@@ -182,7 +182,7 @@ review_stage_env:
     - deploy staging
     - persist_environment_url
   environment:
-    name: review/$CI_COMMIT_REF_NAME
+    name: $CI_COMMIT_REF_NAME
     url: rdapd.tst.xyz.apnic.net
     on_stop: stop_environment
   artifacts:
@@ -232,7 +232,7 @@ stop_environment:
     - kubectl delete namespaces $KUBE_NAMESPACE || true
     - delete_image_from_test_registry
   environment:
-    name: review/$CI_COMMIT_REF_NAME
+    name: $CI_COMMIT_REF_NAME
     action: stop
   when: manual
   only:
