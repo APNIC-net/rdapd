@@ -14,3 +14,8 @@ rdapd:
 service:
   type: NodePort
   port: 8080
+ingress:
+    hosts:
+      - rdapd.tst.xyz.apnic.net
+    enabled: true
+    class: traefik
