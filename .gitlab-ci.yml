@@ -18,7 +18,7 @@ stages:
   - stop_environment
   - production
 
-.package:
+package:
   image: $CI_PROD_REGISTRY/ci/ci-tools/master:$CI_TOOLS_VERSION
   stage: package
   variables:
