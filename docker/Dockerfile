@@ -1,34 +1,14 @@
-FROM maven:3.5-jdk-8-alpine
+FROM acr2.apnic.net/ci/alpine-jdk-maven:1.0.0
 
-ARG MAVEN_MIRROR_OF="-"
-ARG MAVEN_MIRROR_URL=""
+ENV APP_DIR=/app/
 
-COPY maven_settings.xml /root/.m2/settings.xml
+COPY "@project.artifactId@-@project.version@.@project.packaging@" $APP_DIR
+COPY entrypoint.sh $APP_DIR
+RUN chmod 0744 $APP_DIR/entrypoint.sh
 
-ENV APP_DIR=/app
-ENV BUILD_DIR=/build
-ENV RESOURCE_DIR=$BUILD_DIR/target/classes
+WORKDIR $APP_DIR
 
 EXPOSE 8080
 EXPOSE 8081
 
-WORKDIR $BUILD_DIR
-COPY pom.xml ./
-# Download a large number of dependencies early, such that source file changes don't require this step to re-run
-RUN mvn package clean --fail-never
-
-COPY src/ ./src/
-RUN mvn package -DskipDocker -Dmaven.test.skip=true && \
-    mkdir -p $APP_DIR/config && \
-    cp target/*.jar $APP_DIR && \
-    cp target/docker-extras/entrypoint.sh $APP_DIR && \
-    chmod 0744 $APP_DIR/entrypoint.sh && \
-    cp $RESOURCE_DIR/*.yml $APP_DIR/config && \
-    rm -rf $BUILD_DIR ${M2_HOME}
-
-WORKDIR $APP_DIR
-RUN adduser -S rdapd && \
-    chown -R rdapd /app
-
-USER rdapd
-ENTRYPOINT ["./entrypoint.sh"]
+CMD ["./entrypoint.sh"]
