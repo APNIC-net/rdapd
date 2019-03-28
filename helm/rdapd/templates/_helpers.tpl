@@ -25,4 +25,8 @@ Template for outputing the gitlabUrl
 {{- define "gitlabUrl" -}}
 {{- .Values.gitlabUrl | quote -}}
 {{- end -}}
+{{- define "application.chart" -}}
+{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
 

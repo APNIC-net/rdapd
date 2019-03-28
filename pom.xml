@@ -266,12 +266,10 @@
                             <goal>copy-resources</goal>
                         </goals>
                         <configuration>
-                            <!-- NOTE: We CANNOT use target/docker as that's being used by the docker-maven-plugin -->
-                            <!-- Recursive copy is not a good thing! -->
-                            <outputDirectory>${project.build.directory}/docker-extras/</outputDirectory>
+                            <outputDirectory>${project.build.directory}/</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>src/main/docker/</directory>
+                                    <directory>docker/</directory>
                                     <filtering>true</filtering>
                                 </resource>
                             </resources>
