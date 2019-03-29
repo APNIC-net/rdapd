@@ -70,8 +70,10 @@ review_test_env:
   script:
     - configure_helm
     - deploy_alloc_schema_chart
-    - alloc_schema_info="kubectl exec -it -n ${KUBE_NAMESPACE} ${pod_name} -- mysql whoisdb <<< \"show tables;\""
     - test_app_deploy
+    - echo "How to connect to database: "
+    - echo "kubectl exec -it -n ${KUBE_NAMESPACE} ${TEST_CHART_POD_NAME} -- mysql whoisdb <<< show tables;"
+
   environment:
     name: $CI_COMMIT_REF_NAME
     url: $CI_ENVIRONMENT_SLUG.${CI_PROJECT_NAME}.tst.xyz.apnic.net
