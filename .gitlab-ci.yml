@@ -71,7 +71,7 @@ review_test_env:
     - configure_helm
     - deploy_test_chart name=${CI_ENVIRONMENT_SLUG}-tst-env "test"
     - test_app_deploy
-    - echo "How to connect to database: "
+    - echo "How to connect to database "
     - echo "kubectl exec -it -n ${KUBE_NAMESPACE} ${TEST_CHART_POD_NAME} -- mysql whoisdb <<< show tables;"
 
   environment:
