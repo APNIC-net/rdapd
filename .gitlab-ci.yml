@@ -43,7 +43,7 @@ docker_image:
     - branches
   except:
     refs:
-      - master
+      - ci-tests
       - tags
 
 docker_prod_image:
@@ -56,9 +56,9 @@ docker_prod_image:
   script:
     - setup_docker
     - cd target
-    - build
+    - build ${CI_TEST_REGISTRY}
   only:
-    - master
+    - ci-tests
   except:
     refs:
       - tags
@@ -69,9 +69,11 @@ review_test_env:
   image: $CI_TOOLS_IMAGE
   script:
     - configure_helm
-    - deploy_alloc_schema_chart
-    - alloc_schema_info="kubectl exec -it -n ${KUBE_NAMESPACE} ${pod_name} -- mysql whoisdb <<< \"show tables;\""
+    - deploy_test_chart ${CI_ENVIRONMENT_SLUG}-tst-env "test"
     - test_app_deploy
+    - echo "How to connect to database "
+    - echo "kubectl exec -it -n ${KUBE_NAMESPACE} ${TEST_CHART_POD_NAME} -- mysql whoisdb <<< show tables;"
+
   environment:
     name: $CI_COMMIT_REF_NAME
     url: $CI_ENVIRONMENT_SLUG.${CI_PROJECT_NAME}.tst.xyz.apnic.net
@@ -82,7 +84,7 @@ review_test_env:
   except:
     refs:
       - tags
-      - master
+      - ci-tests
     variables:
       - $DISABLED_REVIEW
 
@@ -98,7 +100,7 @@ review_prod_env:
     on_stop: stop_environment
   only:
     refs:
-      - master
+      - ci-tests
   except:
     refs:
       - tags
@@ -123,10 +125,10 @@ publish_chart_to_prod_repo:
   stage: production
   image: $CI_TOOLS_IMAGE
   script:
-    - publish_chart prod
+    - publish_chart tst
   only:
     refs:
-      - master
+      - ci-tests
   except:
       variables:
         - $DISABLED_PUBLISH
@@ -138,7 +140,7 @@ git_tag:
     - git_tag ci_tests
   only:
     refs:
-      - master
+      - ci-tests
   except:
       variables:
         - $DISABLED_PUBLISH
