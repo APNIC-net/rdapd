@@ -1,58 +1,115 @@
 image: alpine:latest
 
 variables:
-  POSTGRES_USER: user
-  POSTGRES_PASSWORD: testing-password
-  POSTGRES_ENABLED: "true"
-  POSTGRES_DB: $CI_ENVIRONMENT_SLUG
-  KUBERNETES_VERSION: 1.9.1
-  HELM_VERSION: 2.8.2
-  CODECLIMATE_VERSION: 0.72.0
   HTTP_PROXY: ${HTTP_PROXY}
   HTTPS_PROXY: ${HTTPS_PROXY}
   NO_PROXY: ${NO_PROXY}
 
 stages:
-  - package
   - test
+  - docker_image
+  - publish_to_test
   - review
-  - performance
-  - staging
-  - production
+  - stage
   - cleanup
+  - production
 
-package:
-  image: docker:stable
-  stage: package
-  variables:
-    DOCKER_DRIVER: overlay2
-  services:
-    - name: $CI_REGISTRY/ci/dind:0.0.1
-  script:
-    - setup_docker
-    - build
-  only:
-    - branches
-  except:
-    variables:
-      - $DISABLED_BUILD_IMAGE
-
-unit_tests:
+package_and_tests:
   stage: test
-  image: maven:3.5-jdk-8-alpine
+  image: $CI_PROD_REGISTRY/ci/alpine-jdk-maven:1.0.0
   script:
-    - setup_maven
-    - mvn test
+    - mvn package
+  artifacts:
+    paths: ["target/*.jar", "target/Dockerfile", "target/entrypoint.sh"]
   only:
     refs:
       - branches
   except:
+    refs:
+      - tags
+
+docker_image:
+  image: $CI_TOOLS_IMAGE
+  stage: docker_image
+  variables:
+    DOCKER_DRIVER: overlay2
+  services:
+    - name: $CI_PROD_REGISTRY/ci/dind:1.0.0
+  script:
+    - setup_docker
+    - cd target
+    - build
+  only:
+    - branches
+  except:
+    refs:
+      - master
+      - tags
+
+docker_prod_image:
+  image: $CI_TOOLS_IMAGE
+  stage: docker_image
+  variables:
+    DOCKER_DRIVER: overlay2
+  services:
+    - name: $CI_PROD_REGISTRY/ci/dind:1.0.0
+  script:
+    - setup_docker
+    - cd target
+    - build ${CI_PROD_REGISTRY}
+  only:
+    - master
+  except:
+    refs:
+      - tags
+
+
+review_test_env:
+  stage: review
+  image: $CI_TOOLS_IMAGE
+  script:
+    - configure_helm
+    - deploy_test_chart ${CI_ENVIRONMENT_SLUG}-tst-env "test"
+    - test_environment_deploy
+    - echo "How to connect to database "
+    - echo "kubectl exec -it -n ${KUBE_NAMESPACE} ${TEST_CHART_POD_NAME} -- mysql whoisdb <<< show tables;"
+
+  environment:
+    name: $CI_COMMIT_REF_NAME
+    url: $CI_ENVIRONMENT_SLUG.${CI_PROJECT_NAME}.tst.xyz.apnic.net
+    on_stop: stop_environment
+  only:
+    refs:
+      - branches
+  except:
+    refs:
+      - tags
+      - master
     variables:
-      - $DISABLED_UNIT_TESTS
+      - $DISABLED_REVIEW
+
+review_prod_env:
+  stage: review
+  image: $CI_TOOLS_IMAGE
+  script:
+    - configure_helm
+    - staging_environment_deploy
+  environment:
+    name: $CI_COMMIT_REF_NAME
+    url: ${CI_PROJECT_NAME}.tst.xyz.apnic.net
+    on_stop: stop_environment
+  only:
+    refs:
+      - master
+  except:
+    refs:
+      - tags
+    variables:
+      - $DISABLED_REVIEW
 
 publish_chart_to_test_repo:
   stage: test
-  image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
+  image: $CI_TOOLS_IMAGE
   script:
     - publish_chart tst
   only:
@@ -60,15 +117,15 @@ publish_chart_to_test_repo:
       - branches
   except:
     refs:
-      - master
+    - tags
     variables:
-      - $DISABLED_PUBLISH
+    - $DISABLED_PUBLISH
 
 publish_chart_to_prod_repo:
   stage: production
-  image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
+  image: $CI_TOOLS_IMAGE
   script:
-    - publish_chart prod
+    - publish_chart prd
   only:
     refs:
       - master
@@ -76,341 +133,45 @@ publish_chart_to_prod_repo:
       variables:
         - $DISABLED_PUBLISH
 
-codequality:
-  variables:
-    DOCKER_DRIVER: overlay2
-  stage: review
-  image: $CI_REGISTRY/alex/docker-apnic:0.0.4
-  allow_failure: true
-  services:
-    - name: "$CI_REGISTRY/alex/dind-apnic:0.0.13"
+git_tag:
+  stage: production
+  image: $CI_TOOLS_IMAGE
   script:
-    - setup_docker
-    - code_quality
-  artifacts:
-    paths: [gl-code-quality-report.json]
-  only:
-    refs:
-      - branches
-  except:
-    variables:
-      - $DISABLED_CODE_QUALITY
-
-sast:
-  image: docker:stable
-  stage: test
-  variables:
-    DOCKER_DRIVER: overlay2
-  allow_failure: true
-  services:
-    - $CI_REGISTRY/ci/dind:0.0.1
-  script:
-    - setup_docker
-    - sast
-  artifacts:
-    paths: [gl-sast-container-report.json]
-  only:
-    refs:
-      - branches
-  except:
-    variables:
-      - $DISABLED_SAST
-
-review_test_env:
-  stage: review
-  image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
-  script:
-    - configure_cluster ${CI_PROJECT_NAME}-${CI_BUILD_REF_SLUG}
-    - initialise_helm
-    - ensure_namespace
-    - create_secret
-    - deploy
-    - persist_environment_url
-  environment:
-    name: review/$CI_COMMIT_REF_NAME
-    url: ${TEST_CLUSTER_SERVER}/api/v1/namespaces/${CI_PROJECT_NAME}-${CI_BUILD_REF_SLUG}/services/${CI_ENVIRONMENT_SLUG}-rdapd:8080/proxy/
-    on_stop: cleanup
-  artifacts:
-    paths: [environment_url.txt, environment.html]
-  only:
-    refs:
-      - branches
-    kubernetes: active
-  except:
-    refs:
-      - master
-    variables:
-      - $DISABLED_REVIEW
-
-review_stage_env:
-  stage: staging
-  image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
-  script:
-    - configure_cluster ${CI_PROJECT_NAME}-${CI_BUILD_REF_SLUG}
-    - initialise_helm
-    - ensure_namespace
-    - create_secret
-    - deploy staging
-    - persist_environment_url
-  environment:
-    name: review/$CI_COMMIT_REF_NAME
-    url: ${TEST_CLUSTER_SERVER}/api/v1/namespaces/${CI_PROJECT_NAME}-${CI_BUILD_REF_SLUG}/services/${CI_ENVIRONMENT_SLUG}-rdapd:8080/proxy/
-    on_stop: cleanup
-  artifacts:
-    paths: [environment_url.txt, environment.html]
+    - git_tag
   only:
     refs:
       - master
-    kubernetes: active
   except:
-    variables:
-      - $DISABLED_STAGING
+      variables:
+        - $DISABLED_PUBLISH
 
-performance:
-  stage: performance
-  image: docker:latest
-  variables:
-    DOCKER_DRIVER: overlay2
-
-  allow_failure: true
-  services:
-    - $CI_REGISTRY/ci/dind:0.0.1
-  script:
-    - setup_docker
-    - performance
-  artifacts:
-    paths:
-    - performance.json
-  only:
-    refs:
-      - branches
-    kubernetes: active
-  except:
-    variables:
-      - $DISABLED_PERFORMANCE
-
-
-cleanup:
+stop_environment:
   stage: cleanup
-  image: $CI_REGISTRY/ci/alpine-kubectl-helm:1.0.1
+  image: $CI_TOOLS_IMAGE
+  allow_failure: false
   variables:
     GIT_STRATEGY: none
   script:
-    - configure_cluster ${CI_PROJECT_NAME}-${CI_BUILD_REF_SLUG}
-    #- initialise_helm
-    - delete_charts
+    - clear_test_environment
   environment:
-    name: review/$CI_COMMIT_REF_NAME
+    name: $CI_COMMIT_REF_NAME
     action: stop
   when: manual
-  allow_failure: true
   only:
     refs:
       - branches
-    kubernetes: active
   except:
+    refs:
+      - tags
     variables:
-      - $DISABLED_CLEANUP
+      - $DISABLED_STOP_ENV
 
 # ---------------------------------------------------------------------------
 
 .auto_devops: &auto_devops |
-  # Auto DevOps variables and functions
   [[ "$TRACE" ]] && set -x
-  auto_database_url=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${CI_ENVIRONMENT_SLUG}-postgres:5432/${POSTGRES_DB}
-  export DATABASE_URL=${DATABASE_URL-$auto_database_url}
-  export CI_APPLICATION_REPOSITORY=$CI_REGISTRY_IMAGE/$CI_COMMIT_REF_SLUG
-  export CI_APPLICATION_TAG=$CI_PIPELINE_ID.$CI_COMMIT_SHA
-  export CI_CONTAINER_NAME=ci_job_build_${CI_JOB_ID}
-  export KUBE_NAMESPACE=${CI_PROJECT_NAME}-${CI_BUILD_REF_SLUG}
-  export TILLER_NAMESPACE=tiller
-  export SP_VERSION=$(echo "$CI_SERVER_VERSION" | sed 's/^\([0-9]*\)\.\([0-9]*\).*/\1-\2-stable/')
-
-  function sast() {
-    case "$CI_SERVER_VERSION" in
-      *-ee)
-
-        # Deprecation notice for CONFIDENCE_LEVEL variable
-        if [ -z "$SAST_CONFIDENCE_LEVEL" -a "$CONFIDENCE_LEVEL" ]; then
-          SAST_CONFIDENCE_LEVEL="$CONFIDENCE_LEVEL"
-          echo "WARNING: CONFIDENCE_LEVEL is deprecated and MUST be replaced with SAST_CONFIDENCE_LEVEL"
-        fi
-
-        mkdir .m2
-        cp maven_settings.xml .m2
-        docker run --env SAST_CONFIDENCE_LEVEL="${SAST_CONFIDENCE_LEVEL:-3}" \
-                   --volume "$(pwd):/code" \
-                   --volume $(pwd)/.m2/:/root/.m2 \
-                   --volume /var/run/docker.sock:/var/run/docker.sock \
-                   "registry.gitlab.com/gitlab-org/security-products/sast:$SP_VERSION" /app/bin/run /code
-        ;;
-      *)
-        echo "GitLab EE is required"
-        ;;
-    esac
-  }
-
-  function code_quality() {
-  docker run --env SOURCE_CODE="$(pwd)" \
-          --volume $(pwd):/code \
-          --volume /var/run/docker.sock:/var/run/docker.sock \
-          "acr2.tst.apnic.net/alex/codequality:0.0.3" /code
-  }
-
-   function build() {
-      docker build --build-arg MAVEN_MIRROR_OF=$MAVEN_MIRROR_OF \
-      --build-arg MAVEN_MIRROR_URL=$MAVEN_MIRROR_URL \
-      -t "$CI_REGISTRY/$CI_REGISTRY_PATH/$CI_COMMIT_REF_SLUG:$CI_APPLICATION_TAG" .
-
-      docker push "$CI_REGISTRY/$CI_REGISTRY_PATH/$CI_COMMIT_REF_SLUG:$CI_APPLICATION_TAG"
-    }
-
-  function deploy() {
-    [[ $1 = "staging" ]] && type="staging" || type="test"
-    name=$(get_name)
-    replicas="1"
-
-    if [[ "$type" == "test" ]]; then
-      test_name="$(test_dep_name $name)"
-      postgres_enabled="$POSTGRES_ENABLED"
-      echo "Starting test chart install"
-
-
-      echo "Deleting $test_name"
-      helm delete --tiller-namespace $TILLER_NAMESPACE --purge "$test_name" || true
-
-      helm upgrade --install \
-        --tiller-namespace=$TILLER_NAMESPACE \
-        --force \
-        --wait \
-        --namespace="$KUBE_NAMESPACE" \
-        --version="$CI_PIPELINE_ID-$CI_JOB_ID" \
-        $test_name \
-        helm/test/
-     fi
-
-    echo "Starting rdapd chart install"
-    echo "Deleting $name"
-    helm delete --tiller-namespace $TILLER_NAMESPACE --purge "$name" || true
-    helm upgrade --install \
-      --tiller-namespace=$TILLER_NAMESPACE \
-      --force \
-      --wait \
-      --set releaseOverride="$CI_ENVIRONMENT_SLUG" \
-      --set image.repository="$CI_REGISTRY/$CI_REGISTRY_PATH/$CI_COMMIT_REF_SLUG" \
-      --set image.tag="$CI_APPLICATION_TAG" \
-      --set image.pullPolicy=IfNotPresent \
-      --set application.database_url="$DATABASE_URL" \
-      --set replicaCount="$replicas" \
-      --set postgresql.enabled="$postgres_enabled" \
-      --set postgresql.nameOverride="postgres" \
-      --set postgresql.postgresUser="$POSTGRES_USER" \
-      --set postgresql.postgresPassword="$POSTGRES_PASSWORD" \
-      --set postgresql.postgresDatabase="$POSTGRES_DB" \
-      --namespace="$KUBE_NAMESPACE" \
-      --version="$CI_PIPELINE_ID-$CI_JOB_ID" \
-      --values=helm/$type-env-values.yaml \
-      "$name" \
-      helm/rdapd/
-  }
-
-  function configure_cluster() {
-    echo "Configuring cluster"
-    echo $TEST_CLUSTER_CA_BUNDLE > test_cluster_ca.crt
-    kubectl config set-cluster --kubeconfig=ci ci --server=$TEST_CLUSTER_SERVER --insecure-skip-tls-verify=true
-    kubectl config set-context  --kubeconfig=ci ci --namespace=$1 --cluster=ci --user=ci
-    kubectl config set-credentials --kubeconfig=ci ci --token=$KUBE_TOKEN
-    kubectl config use-context --kubeconfig=ci ci
-    export  KUBECONFIG=ci
-  }
-
-  function test_dep_name() {
-    local name=$1
-    echo "$name-test-env"
-  }
-
-  function get_name() {
-    echo $CI_ENVIRONMENT_SLUG
-  }
-
-  function setup_docker() {
-    if ! docker info &>/dev/null; then
-      if [ -z "$DOCKER_HOST" -a "$KUBERNETES_PORT" ]; then
-        export DOCKER_HOST='tcp://localhost:2375'
-      fi
-    fi
-    docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
-  }
-
-  function setup_maven() {
-    export MAVEN_MIRROR_OF=$MAVEN_MIRROR_OF
-    export MAVEN_MIRROR_URL=$MAVEN_MIRROR_URL
-    mkdir /root/.m2/
-    cp maven_settings.xml /root/.m2/settings.xml
-  }
-
-  function initialise_helm() {
-    chart_dir=helm/rdapd
-    helm init --client-only --skip-refresh
-    helm dependency update "$chart_dir/"
-    helm dependency build "$chart_dir/"
-  }
-
-  function ensure_namespace() {
-    kubectl describe namespace "$KUBE_NAMESPACE" || kubectl create namespace "$KUBE_NAMESPACE"
-  }
-
-  #Takes one argument: the chart museum server (tst or prd)
-  function publish_chart() {
-    helm package --version $CI_BUILD_ID helm/rdapd
-    response=$(curl -s --data-binary "@rdapd-$CI_BUILD_ID.tgz" $CHART_API_URI/api/$1/charts)
-    echo $response
-    if [[ $response != "{\"saved\":true}" ]]; then
-      return 1
-    fi
-  }
-
-  function create_secret() {
-    echo "Create secret..."
-
-    kubectl create secret -n "$KUBE_NAMESPACE" \
-      docker-registry gitlab-registry \
-      --docker-server="$CI_REGISTRY" \
-      --docker-username="$CI_REGISTRY_USER" \
-      --docker-password="$CI_REGISTRY_PASSWORD" \
-      --docker-email="$GITLAB_USER_EMAIL" \
-      -o yaml --dry-run | kubectl replace -n "$KUBE_NAMESPACE" --force -f -
-  }
-
-  function performance() {
-    export CI_ENVIRONMENT_URL=$(cat environment_url.txt)
-    mkdir gitlab-exporter
-    apk update && apk add curl
-    curl -s -o gitlab-exporter/index.js https://gitlab.com/gitlab-org/gl-performance/raw/10-3/index.js --proxy $HTTPS_PROXY
-    mkdir sitespeed-results
-    if [ -f .gitlab-urls.txt ]
-    then
-      sed -i -e 's@^@'"$CI_ENVIRONMENT_URL"'@' .gitlab-urls.txt
-      docker run --shm-size=1g --rm -v "$(pwd)":/sitespeed.io sitespeedio/sitespeed.io:6.0.3 --plugins.add ./gitlab-exporter --outputFolder sitespeed-results .gitlab-urls.txt
-    else
-      docker run --shm-size=1g --rm -v "$(pwd)":/sitespeed.io sitespeedio/sitespeed.io:6.0.3 --plugins.add ./gitlab-exporter --outputFolder sitespeed-results "$CI_ENVIRONMENT_URL"
-    fi
-    mv sitespeed-results/data/performance.json performance.json
-  }
-
-  function persist_environment_url() {
-    echo "Application is available here: $CI_ENVIRONMENT_URL"
-    echo "$CI_ENVIRONMENT_URL" > environment_url.txt
-    echo "<script>window.location.replace(\"$CI_ENVIRONMENT_URL\")</script>" >> environment.html
-  }
-
-  function delete_charts() {
-    name=$(get_name)
-    helm delete --tiller-namespace $TILLER_NAMESPACE --purge "$name" || true
-    name=$(test_dep_name $name)
-    helm delete --tiller-namespace $TILLER_NAMESPACE --purge "$name" || true
-    kubectl delete namespaces $KUBE_NAMESPACE
-  }
+  [[ "$DEBUG_SLEEP" ]] && sleep $DEBUG_SLEEP
+  source /ci-utils.sh || true
 
 before_script:
   - *auto_devops

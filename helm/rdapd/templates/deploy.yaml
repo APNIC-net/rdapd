@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: {{ template "fullname" . }}
   labels:
-    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    chart: {{ template "application.chart" . }}
     app: {{ template "fullname" . }}
     heritage: {{ .Release.Service }}
     release: {{ .Release.Name }}
@@ -11,14 +11,14 @@ spec:
   replicas: 1
   selector:
     matchlabels:
-      chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+      chart: {{ template "application.chart" . }}
       app: {{ template "fullname" . }}
       heritage: {{ .Release.Service }}
       release: {{ .Release.Name }}
   template:
     metadata:
       labels:
-        chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+        chart: {{ template "application.chart" . }}
         app: {{ template "fullname" . }}
         heritage: {{ .Release.Service }}
         release: {{ .Release.Name }}
@@ -53,8 +53,6 @@ spec:
             - mountPath: /app/config/application.yml
               name: rdapd-config
               subPath: application.yml
-          resources:
-            {{- toYaml .Values.resources | trim | nindent 12 }}
 
       volumes:
         - name: rdapd-config
