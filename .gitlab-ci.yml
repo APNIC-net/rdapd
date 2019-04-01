@@ -56,7 +56,7 @@ docker_prod_image:
   script:
     - setup_docker
     - cd target
-    - build
+    - build ${CI_PROD_REGISTRY}
   only:
     - master
   except:
@@ -70,7 +70,7 @@ review_test_env:
   script:
     - configure_helm
     - deploy_test_chart ${CI_ENVIRONMENT_SLUG}-tst-env "test"
-    - test_app_deploy
+    - test_environment_deploy
     - echo "How to connect to database "
     - echo "kubectl exec -it -n ${KUBE_NAMESPACE} ${TEST_CHART_POD_NAME} -- mysql whoisdb <<< show tables;"
 
@@ -93,7 +93,7 @@ review_prod_env:
   image: $CI_TOOLS_IMAGE
   script:
     - configure_helm
-    - staging_app_deploy
+    - staging_environment_deploy
   environment:
     name: $CI_COMMIT_REF_NAME
     url: ${CI_PROJECT_NAME}.tst.xyz.apnic.net
