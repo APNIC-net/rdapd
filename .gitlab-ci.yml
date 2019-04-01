@@ -137,7 +137,7 @@ git_tag:
   stage: production
   image: $CI_TOOLS_IMAGE
   script:
-    - git_tag ci_tests
+    - git_tag
   only:
     refs:
       - master
