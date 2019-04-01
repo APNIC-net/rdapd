@@ -43,7 +43,7 @@ docker_image:
     - branches
   except:
     refs:
-      - ci-tests
+      - master
       - tags
 
 docker_prod_image:
@@ -58,7 +58,7 @@ docker_prod_image:
     - cd target
     - build ${CI_TEST_REGISTRY}
   only:
-    - ci-tests
+    - master
   except:
     refs:
       - tags
@@ -84,7 +84,7 @@ review_test_env:
   except:
     refs:
       - tags
-      - ci-tests
+      - master
     variables:
       - $DISABLED_REVIEW
 
@@ -100,7 +100,7 @@ review_prod_env:
     on_stop: stop_environment
   only:
     refs:
-      - ci-tests
+      - master
   except:
     refs:
       - tags
@@ -128,7 +128,7 @@ publish_chart_to_prod_repo:
     - publish_chart tst
   only:
     refs:
-      - ci-tests
+      - master
   except:
       variables:
         - $DISABLED_PUBLISH
@@ -140,7 +140,7 @@ git_tag:
     - git_tag ci_tests
   only:
     refs:
-      - ci-tests
+      - master
   except:
       variables:
         - $DISABLED_PUBLISH
