@@ -125,7 +125,7 @@ publish_chart_to_prod_repo:
   stage: production
   image: $CI_TOOLS_IMAGE
   script:
-    - publish_chart prod
+    - publish_chart prd
   only:
     refs:
       - master
