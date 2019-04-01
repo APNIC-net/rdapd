@@ -1,4 +1,4 @@
-FROM acr2.apnic.net/ci/alpine-jdk-maven:1.0.0
+FROM acr2.apnic.net/base/openjdk-jre-headless:8
 
 ENV APP_DIR=/app/
 
