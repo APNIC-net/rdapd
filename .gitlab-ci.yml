@@ -11,7 +11,7 @@ stages:
   - publish_to_test
   - review
   - stage
-  - stop
+  - cleanup
   - production
 
 package_and_tests:
@@ -146,7 +146,7 @@ git_tag:
         - $DISABLED_PUBLISH
 
 stop_environment:
-  stage: stop
+  stage: cleanup
   image: $CI_TOOLS_IMAGE
   allow_failure: false
   variables:
