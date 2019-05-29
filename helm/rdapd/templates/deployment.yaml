@@ -1,0 +1,101 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "application.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "application.name" . }}
+    helm.sh/chart: {{ include "application.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchlabels:
+      app.kubernetes.io/name: {{ include "application.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- with .Values.strategy }}
+    strategy:
+      {{- . | toYaml | nindent 6 }}
+    {{- end }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "application.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: {{ .Values.image.repository }}:{{ default "latest" .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: RDAPD_DB_HOST
+              value: {{ .Values.rdapd.whoisDB.host | quote }}
+            - name: RDAPD_DB_NAME
+              value: {{ .Values.rdapd.whoisDB.db | quote }}
+            - name: RDAPD_DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}
+                  key: rdapd-whoisdb-username
+            - name: RDAPD_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}
+                  key: rdapd-whoisdb-password
+            - name: JAVA_OPTS
+              value: {{ .Values.java.opts | quote }}
+            - name: JVM_INIT_MEM
+              value: {{ .Values.java.mem.init}}
+            - name: JVM_MAX_MEM
+              value: {{ .Values.java.mem.max }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+            - name: http-manage
+              containerPort: 8081
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /app/config/application.yml
+              name: rdapd-config
+              subPath: application.yml
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http-manage
+              scheme: HTTP
+            failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+            successThreshold: {{ .Values.livenessProbe.successThreshold }}
+            timeoutSeconds: {{.Values.livenessProbe.timeoutSeconds }}
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http-manage
+              scheme: HTTP
+            failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+            successThreshold: {{ .Values.readinessProbe.successThreshold }}
+            timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+          resources:
+            {{ toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{ toYaml . | nindent 8 }}
+        {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      volumes:
+        - name: rdapd-config
+          configMap:
+            name: {{ .Release.Name }}
