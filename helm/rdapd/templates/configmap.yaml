@@ -1,12 +1,12 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Release.Name }}-rdapd
+  name: {{ template "application.fullname" . }}
   labels:
-    chart: {{ template "application.chart" . }}
-    app: {{ template "fullname" . }}
-    heritage: {{ .Release.Service }}
-    release: {{ .Release.Name }}
+    app.kubernetes.io/name: {{ include "application.name" . }}
+    helm.sh/chart: {{ include "application.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
 data:
   application.yml: |2
 
