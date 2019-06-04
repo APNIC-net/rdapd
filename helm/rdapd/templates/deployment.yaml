@@ -3,15 +3,15 @@ kind: Deployment
 metadata:
   name: {{ template "application.fullname" . }}
   labels:
-    app.kubernetes.io/name: {{ include "application.name" . }}
-    helm.sh/chart: {{ include "application.chart" . }}
+    app.kubernetes.io/name: {{ template "application.fullname" . }}
+    helm.sh/chart: {{ template "application.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
-    matchlabels:
-      app.kubernetes.io/name: {{ include "application.name" . }}
+    matchLabels:
+      app.kubernetes.io/name: {{ template "application.fullname" . }}
       app.kubernetes.io/instance: {{ .Release.Name }}
     {{- with .Values.strategy }}
     strategy:
@@ -20,7 +20,7 @@ spec:
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: {{ include "application.name" . }}
+        app.kubernetes.io/name: {{ template "application.fullname" . }}
         app.kubernetes.io/instance: {{ .Release.Name }}
       annotations:
         checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
@@ -37,12 +37,12 @@ spec:
             - name: RDAPD_DB_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Release.Name }}
+                  name: {{ template "application.fullname" . }}
                   key: rdapd-whoisdb-username
             - name: RDAPD_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Release.Name }}
+                  name: {{ template "application.fullname" . }}
                   key: rdapd-whoisdb-password
             - name: JAVA_OPTS
               value: {{ .Values.java.opts | quote }}
@@ -82,7 +82,7 @@ spec:
             successThreshold: {{ .Values.readinessProbe.successThreshold }}
             timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
           resources:
-            {{ toYaml .Values.resources | nindent 12 }}
+{{ toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{ toYaml . | nindent 8 }}
@@ -98,4 +98,4 @@ spec:
       volumes:
         - name: rdapd-config
           configMap:
-            name: {{ .Release.Name }}
+            name: {{ template "application.fullname" . }}

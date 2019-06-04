@@ -20,3 +20,22 @@ ingress:
       - rdapd.tst.xyz.apnic.net
     enabled: true
     class: traefik
+resources:
+  requests:
+    memory: "1024Mi"
+    cpu: "250m"
+  limits:
+    memory: "4096Mi"
+    cpu: "500m"
+livenessProbe:
+  failureThreshold: 3
+  successThreshold: 1
+  periodSeconds: 30
+  initialDelaySeconds: 60
+  timeoutSeconds: 15
+readinessProbe:
+  failureThreshold: 3
+  periodSeconds: 30
+  initialDelaySeconds: 60
+  timeoutSeconds: 15
+  successThreshold: 1
