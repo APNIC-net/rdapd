@@ -10,15 +10,15 @@ image:
   pullPolicy: IfNotPresent
 
 livenessProbe:
-  failureThreshold: 3
+  failureThreshold: 5
   successThreshold: 1
-  periodSeconds: 30
-  initialDelaySeconds: 1800
+  periodSeconds: 180
+  initialDelaySeconds: 180
   timeoutSeconds: 15
 readinessProbe:
-  failureThreshold: 3
-  periodSeconds: 30
-  initialDelaySeconds: 1800
+  failureThreshold: 5
+  periodSeconds: 180
+  initialDelaySeconds: 180
   timeoutSeconds: 15
   successThreshold: 1
 
