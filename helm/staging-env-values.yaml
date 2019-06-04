@@ -20,8 +20,9 @@ ingress:
     enabled: true
     class: traefik
 resources:
-  cpu: 100m
-  memory: 4096Mi
   requests:
-    cpu: 4096m
-    memory: 256Mi
+    memory: "1024Mi"
+    cpu: "250m"
+  limits:
+    memory: "4096Mi"
+    cpu: "500m"
