@@ -85,3 +85,11 @@ database:
     type: ClusterIP
     port: 3306
     # nodePort: 32000
+  resources:
+    requests:
+      memory: "1024Mi"
+      cpu: "250m"
+    limits:
+      memory: "1024Mi"
+      cpu: "500m"
+

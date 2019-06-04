@@ -4,9 +4,9 @@ kind: PodDisruptionBudget
 metadata:
   name: {{ template "application.fullname" . }}
   labels:
-    app.kubernetes.io/name: {{ include "application.name" . }}
-    helm.sh/chart: {{ include "application.chart" . }}
+    app.kubernetes.io/name: {{ template "application.fullname" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
+    helm.sh/chart: {{ template "application.chart" . }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
 spec:
 {{- if .Values.podDisruptionBudget.minAvailable }}
@@ -17,6 +17,6 @@ spec:
 {{- end }}
   selector:
     matchLabels:
-      app.kubernetes.io/name: {{ include "application.name" . }}
+      app.kubernetes.io/name: {{ template "application.fullname" . }}
       app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
