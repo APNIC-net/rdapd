@@ -1,27 +1,24 @@
 {{- if .Values.ingress.enabled -}}
-{{- $fullName := include "fullname" . -}}
-{{- $servicePort := .Values.service.port -}}
-{{- $ingressPath := .Values.ingress.path -}}
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: {{ $fullName }}
+  name: {{ template "application.fullname" . }}
   labels:
-    chart: {{ template "application.chart" . }}
-    app: {{ template "fullname" . }}
-    heritage: {{ .Release.Service }}
-    release: {{ .Release.Name }}
-{{- with .Values.ingress.annotations }}
+    app.kubernetes.io/name: {{ template "application.fullname" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    helm.sh/chart: {{ template "application.chart" . }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+  {{- with .Values.ingress.annotations }}
   annotations:
-{{ toYaml . | indent 4 }}
-{{- end }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
   rules:
     - host: {{ .Values.ingress.host | quote }}
       http:
         paths:
           - backend:
-              serviceName: {{ template "fullname" . }}
+              serviceName: {{ template "application.fullname" . }}
               servicePort: {{ .Values.service.port }}
             path: /
 {{- end }}

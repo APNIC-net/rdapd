@@ -19,3 +19,9 @@ ingress:
       - rdapd.tst.xyz.apnic.net
     enabled: true
     class: traefik
+resources:
+  cpu: 100m
+  memory: 4096Mi
+  requests:
+    cpu: 4096m
+    memory: 256Mi
