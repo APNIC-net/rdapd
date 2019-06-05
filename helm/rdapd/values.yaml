@@ -12,13 +12,13 @@ image:
 livenessProbe:
   failureThreshold: 3
   successThreshold: 1
-  periodSeconds: 1200
-  initialDelaySeconds: 1200
+  periodSeconds: 60
+  initialDelaySeconds: 3600
   timeoutSeconds: 15
 readinessProbe:
   failureThreshold: 3
-  periodSeconds: 1200
-  initialDelaySeconds: 1200
+  periodSeconds: 60
+  initialDelaySeconds: 3500
   timeoutSeconds: 15
   successThreshold: 1
 
