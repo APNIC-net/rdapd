@@ -88,7 +88,7 @@ review_test_env:
     variables:
       - $DISABLED_REVIEW
 
-review_prod_env:
+.review_prod_env:
   stage: review
   image: $CI_TOOLS_IMAGE
   script:
