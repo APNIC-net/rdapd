@@ -81,8 +81,7 @@ spec:
             periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
             successThreshold: {{ .Values.readinessProbe.successThreshold }}
             timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
-          resources:
-{{ toYaml .Values.resources | nindent 12 }}
+          resources: {{ toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{ toYaml . | nindent 8 }}
