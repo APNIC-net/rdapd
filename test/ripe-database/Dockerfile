@@ -1,5 +1,6 @@
+FROM mysql:5.6
 
-FROM mysql:latest
+ENV MYSQL_ALLOW_EMPTY_PASSWORD=yes
 
 ADD ./mysql/mysqld.cnf /etc/mysql/mysql.conf.d/mysqld.cnf
 ADD ./health-check /usr/local/bin/health-check
@@ -13,4 +14,3 @@ HEALTHCHECK --timeout=30s \
             --interval=15s \
             --retries=4 \
             CMD health-check
-
