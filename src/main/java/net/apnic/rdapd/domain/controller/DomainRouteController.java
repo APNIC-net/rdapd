@@ -35,8 +35,9 @@ import java.util.function.BiFunction;
 public class DomainRouteController
 {
     private final static Logger LOGGER = LoggerFactory.getLogger(DomainRouteController.class);
-    private final static String IPV4_RDNS_DOMAIN_ROOT = "in-addr.arpa";
-    private final static String IPV6_RDNS_DOMAIN_ROOT = "ip6.arpa";
+    private final static String RDNS_DOMAIN_ROOT = ".arpa";
+    private final static String IPV4_RDNS_DOMAIN_ROOT = "in-addr" + RDNS_DOMAIN_ROOT;
+    private final static String IPV6_RDNS_DOMAIN_ROOT = "ip6" + RDNS_DOMAIN_ROOT;
 
     private final ObjectIndex objectIndex;
     private final RDAPControllerUtil rdapControllerUtil;
@@ -75,7 +76,7 @@ public class DomainRouteController
     }
 
     private Optional<RdapObject> getRdapObjForEqualsOrLeastSpecific(String handle) {
-        if (isDomainRoot(handle)) {
+        if (!handle.endsWith(RDNS_DOMAIN_ROOT) || isDomainRoot(handle)) {
             return Optional.empty();
         } else {
             Optional<RdapObject> maybeRdapObj = objectIndex.historyForObject(new ObjectKey(ObjectClass.DOMAIN, handle))
