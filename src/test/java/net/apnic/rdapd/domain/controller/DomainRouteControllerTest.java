@@ -171,4 +171,32 @@ public class DomainRouteControllerTest
                 .andExpect(RDAPControllerTesting.isRDAP())
                 .andExpect(jsonPath("$.errorCode", is(404)));
     }
+
+    @Test
+    public void testInvalidQueries() throws Exception {
+        given(objectIndex.historyForObject(any(ObjectKey.class))).willReturn(Optional.empty());
+
+        mvc.perform(get("/domain/"))
+                .andExpect(status().isNotFound());
+
+        mvc.perform(get("/domain/ "))
+                .andExpect(status().isNotFound())
+                .andExpect(RDAPControllerTesting.isRDAP())
+                .andExpect(jsonPath("$.errorCode", is(404)));
+
+        mvc.perform(get("/domain/com"))
+                .andExpect(status().isNotFound())
+                .andExpect(RDAPControllerTesting.isRDAP())
+                .andExpect(jsonPath("$.errorCode", is(404)));
+
+        mvc.perform(get("/domain/apnic.net"))
+                .andExpect(status().isNotFound())
+                .andExpect(RDAPControllerTesting.isRDAP())
+                .andExpect(jsonPath("$.errorCode", is(404)));
+
+        mvc.perform(get("/domain/apnic.net."))
+                .andExpect(status().isNotFound())
+                .andExpect(RDAPControllerTesting.isRDAP())
+                .andExpect(jsonPath("$.errorCode", is(404)));
+    }
 }
