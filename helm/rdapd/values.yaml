@@ -13,20 +13,19 @@ livenessProbe:
   failureThreshold: 3
   successThreshold: 1
   periodSeconds: 60
-  initialDelaySeconds: 3600
-  timeoutSeconds: 15
+  initialDelaySeconds: 45
+  timeoutSeconds: 45
 readinessProbe:
   failureThreshold: 3
   successThreshold: 1
   periodSeconds: 60
-  initialDelaySeconds: 3600
-  timeoutSeconds: 15
+  initialDelaySeconds: 60
+  timeoutSeconds: 45
 
-strategy: {}
+updateStrategy: {}
   # type: RollingUpdate
   # rollingUpdate:
-  #   maxSurge: 0
-  #   maxUnavailable: 1
+  #   partition: 0
 
 podDisruptionBudget:
   enabled: false
