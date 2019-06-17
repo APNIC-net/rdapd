@@ -66,9 +66,9 @@ affinity: {}
 
 ingress:
   enabled: false
-  annotations: {}
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
+  annotations:
+    certmanager.k8s.io/cluster-issuer: kluster
+    kubernetes.io/ingress.class: traefik
   paths: []
   hosts:
     - chart-example.local
