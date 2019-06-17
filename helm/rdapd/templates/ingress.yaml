@@ -21,4 +21,8 @@ spec:
               serviceName: {{ template "application.fullname" . }}
               servicePort: {{ .Values.service.port }}
             path: /
+  tls:
+    - hosts:
+        - {{ .Values.ingress.host | quote }}
+      secretName: {{ template "application.fullname" . }}-tls
 {{- end }}
