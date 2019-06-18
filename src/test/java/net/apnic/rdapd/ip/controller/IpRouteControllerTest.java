@@ -167,13 +167,13 @@ public class IpRouteControllerTest
     }
 
     @Test
-    public void testCidr0HighIpv4WithMultipleCidrEntries() throws Exception {
+    public void testCidr0HighIpv4() throws Exception {
         given(ipService.find(any())).willReturn(
                 Optional.of(new IpNetwork(
-                        new ObjectKey(ObjectClass.IP_NETWORK, "202.75.0.1 - 202.75.0.255"),
-                        Parsing.parseInterval("202.75.0.1 - 202.75.0.255"))));
+                        new ObjectKey(ObjectClass.IP_NETWORK, "202.75.0.0 - 202.75.0.255"),
+                        Parsing.parseInterval("202.75.0.0 - 202.75.0.255"))));
 
-        MvcResult mvcResult = mvc.perform(get("/ip/202.75.0.1"))
+        MvcResult mvcResult = mvc.perform(get("/ip/202.75.0.0"))
                 .andExpect(status().isOk())
                 .andExpect(isRDAP())
                 .andReturn();
@@ -183,21 +183,9 @@ public class IpRouteControllerTest
         JsonNode json = mapper.readTree(content);
 
         assertThat(json.get("cidr0_cidrs"), notNullValue());
-        assertThat(json.get("cidr0_cidrs").size(), is(8));
-
-        List<Tuple<String, Integer>> jsonPrefixes =
-                StreamSupport.stream(json.get("cidr0_cidrs").spliterator(), false)
-                        .map(node -> Tuple.of(node.get("v4prefix").textValue(), node.get("length").intValue()))
-                        .collect(Collectors.toList());
-
-        assertThat(jsonPrefixes, hasItem(Tuple.of("202.75.0.1", 32)));
-        assertThat(jsonPrefixes, hasItem(Tuple.of("202.75.0.2", 31)));
-        assertThat(jsonPrefixes, hasItem(Tuple.of("202.75.0.4", 30)));
-        assertThat(jsonPrefixes, hasItem(Tuple.of("202.75.0.8", 29)));
-        assertThat(jsonPrefixes, hasItem(Tuple.of("202.75.0.16", 28)));
-        assertThat(jsonPrefixes, hasItem(Tuple.of("202.75.0.32", 27)));
-        assertThat(jsonPrefixes, hasItem(Tuple.of("202.75.0.64", 26)));
-        assertThat(jsonPrefixes, hasItem(Tuple.of("202.75.0.128", 25)));
+        assertThat(json.get("cidr0_cidrs").size(), is(1));
+        assertThat(json.get("cidr0_cidrs").get(0).get("v4prefix").textValue(), is("202.75.0.0"));
+        assertThat(json.get("cidr0_cidrs").get(0).get("length").intValue(), is(24));
     }
 
     @Test
