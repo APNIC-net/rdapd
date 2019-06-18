@@ -214,7 +214,7 @@ public class IpRouteControllerTest
     public void testCidr0HighIpv6() throws Exception {
         given(ipService.find(any())).willReturn(
                 Optional.of(new IpNetwork(
-                        new ObjectKey(ObjectClass.IP_NETWORK, "ffee:db8:: - 2001:db8:0:ffff:ffff:ffff:ffff:ffff"),
+                        new ObjectKey(ObjectClass.IP_NETWORK, "ffee:db8:: - ffee:db8:0:ffff:ffff:ffff:ffff:ffff"),
                         Parsing.parseInterval("ffee:db8::/32"))));
 
         MvcResult mvcResult = mvc.perform(get("/ip/ffee:db8::"))
