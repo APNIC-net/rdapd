@@ -65,11 +65,13 @@ public class IpInterval implements Interval<IP>, Serializable {
      * @return a {@link Set} with the prefixes contained in the interval
      */
     public Set<IpInterval> prefixes() {
-        IpAddress low, high;
+        final IpAddress low, high;
+        final boolean isIPv4 = low().getAddressFamily() == IP.AddressFamily.IPv4;
 
-        if (low().getAddressFamily() == IP.AddressFamily.IPv4) {
-            low = new Ipv4Address(new BigInteger(low().getAddress().getAddress()).longValue());
-            high = new Ipv4Address(new BigInteger(high().getAddress().getAddress()).longValue());
+
+        if (isIPv4) {
+            low = new Ipv4Address(new BigInteger(1, low().getAddress().getAddress()).longValue());
+            high = new Ipv4Address(new BigInteger(1, high().getAddress().getAddress()).longValue());
         } else { // IPv6
             low = new Ipv6Address(new BigInteger(low().getAddress().getAddress()));
             high = new Ipv6Address(new BigInteger(high().getAddress().getAddress()));
@@ -80,8 +82,7 @@ public class IpInterval implements Interval<IP>, Serializable {
                 .map(r -> {
                         try {
                             return new IpInterval(
-                                    new IP(InetAddress.getByAddress(r.getStart().getValue().toByteArray())),
-                                    r.getPrefixLength());
+                                    new IP(InetAddress.getByName(r.getStart().toString())), r.getPrefixLength());
                         } catch (UnknownHostException e) {
                             // only valid prefixes will be provided, so this exception won't be happening
                             throw new RuntimeException(e);

@@ -167,6 +167,28 @@ public class IpRouteControllerTest
     }
 
     @Test
+    public void testCidr0HighIpv4() throws Exception {
+        given(ipService.find(any())).willReturn(
+                Optional.of(new IpNetwork(
+                        new ObjectKey(ObjectClass.IP_NETWORK, "202.75.0.0 - 202.75.0.255"),
+                        Parsing.parseInterval("202.75.0.0 - 202.75.0.255"))));
+
+        MvcResult mvcResult = mvc.perform(get("/ip/202.75.0.0"))
+                .andExpect(status().isOk())
+                .andExpect(isRDAP())
+                .andReturn();
+
+        String content = mvcResult.getResponse().getContentAsString();
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode json = mapper.readTree(content);
+
+        assertThat(json.get("cidr0_cidrs"), notNullValue());
+        assertThat(json.get("cidr0_cidrs").size(), is(1));
+        assertThat(json.get("cidr0_cidrs").get(0).get("v4prefix").textValue(), is("202.75.0.0"));
+        assertThat(json.get("cidr0_cidrs").get(0).get("length").intValue(), is(24));
+    }
+
+    @Test
     public void testCidr0Ipv6() throws Exception {
         given(ipService.find(any())).willReturn(
                 Optional.of(new IpNetwork(
@@ -185,6 +207,28 @@ public class IpRouteControllerTest
         assertThat(json.get("cidr0_cidrs"), notNullValue());
         assertThat(json.get("cidr0_cidrs").size(), is(1));
         assertThat(json.get("cidr0_cidrs").get(0).get("v6prefix").textValue(), is("2001:db8::"));
+        assertThat(json.get("cidr0_cidrs").get(0).get("length").intValue(), is(32));
+    }
+
+    @Test
+    public void testCidr0HighIpv6() throws Exception {
+        given(ipService.find(any())).willReturn(
+                Optional.of(new IpNetwork(
+                        new ObjectKey(ObjectClass.IP_NETWORK, "ffee:db8:: - ffee:db8:0:ffff:ffff:ffff:ffff:ffff"),
+                        Parsing.parseInterval("ffee:db8::/32"))));
+
+        MvcResult mvcResult = mvc.perform(get("/ip/ffee:db8::"))
+                .andExpect(status().isOk())
+                .andExpect(isRDAP())
+                .andReturn();
+
+        String content = mvcResult.getResponse().getContentAsString();
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode json = mapper.readTree(content);
+
+        assertThat(json.get("cidr0_cidrs"), notNullValue());
+        assertThat(json.get("cidr0_cidrs").size(), is(1));
+        assertThat(json.get("cidr0_cidrs").get(0).get("v6prefix").textValue(), is("ffee:db8::"));
         assertThat(json.get("cidr0_cidrs").get(0).get("length").intValue(), is(32));
     }
 }

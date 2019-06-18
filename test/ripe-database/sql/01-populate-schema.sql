@@ -213,7 +213,18 @@ tech-c:         BWE2-AP
 auth:           MD5-PW 2d892959d6eb9efcf0b551bfe46e6908
 mnt-by:         MAINT-EXAMPLE-2-AP
 changed:        tony.stark@example2.noexist 20101108
-source:         APNIC', 'IRT-EXAMPLE-2-AU');
+source:         APNIC', 'IRT-EXAMPLE-2-AU'),
+
+(19, 1, 1329434477, 5, 'inet6num:        ffee:200:102::/48
+netname:      EXAMP3IPV6
+country:      AU
+admin-c:      TSE2-AP
+tech-c:       EX2-AP
+status:       ASSIGNED NON-PORTABLE
+mnt-by:       MAINT-EXAMPLE-2-AP
+mnt-irt:      IRT-EXAMPLE-2-AU
+changed:      admin@example2.noexist 20170321
+source:       APNIC', 'ffee:200:102::/48');
 
 INSERT INTO rdapd_test.serials (thread_id, serial_id, object_id, sequence_id,
                                  atlast, operation)
@@ -235,5 +246,6 @@ VALUES
 (0, 15, 14, 1, 0, 0),
 (0, 16, 14, 1, 0, 0),
 (0, 17, 14, 1, 0, 0),
-(0, 18, 14, 1, 0, 0);
+(0, 18, 14, 1, 0, 0),
+(0, 19, 14, 1, 0, 0);
 
