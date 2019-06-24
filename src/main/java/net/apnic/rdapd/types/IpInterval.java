@@ -73,8 +73,8 @@ public class IpInterval implements Interval<IP>, Serializable {
             low = new Ipv4Address(new BigInteger(1, low().getAddress().getAddress()).longValue());
             high = new Ipv4Address(new BigInteger(1, high().getAddress().getAddress()).longValue());
         } else { // IPv6
-            low = new Ipv6Address(new BigInteger(low().getAddress().getAddress()));
-            high = new Ipv6Address(new BigInteger(high().getAddress().getAddress()));
+            low = new Ipv6Address(new BigInteger(1, low().getAddress().getAddress()));
+            high = new Ipv6Address(new BigInteger(1, high().getAddress().getAddress()));
         }
 
         return IpRange.range(low, high)

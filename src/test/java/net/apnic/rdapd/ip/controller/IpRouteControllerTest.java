@@ -189,6 +189,28 @@ public class IpRouteControllerTest
     }
 
     @Test
+    public void testCidr0RootIpv4() throws Exception {
+        given(ipService.find(any())).willReturn(
+                Optional.of(new IpNetwork(
+                        new ObjectKey(ObjectClass.IP_NETWORK, "0.0.0.0 - 255.255.255.255"),
+                        Parsing.parseInterval("0.0.0.0 - 255.255.255.255"))));
+
+        MvcResult mvcResult = mvc.perform(get("/ip/0.0.0.0/0"))
+                .andExpect(status().isOk())
+                .andExpect(isRDAP())
+                .andReturn();
+
+        String content = mvcResult.getResponse().getContentAsString();
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode json = mapper.readTree(content);
+
+        assertThat(json.get("cidr0_cidrs"), notNullValue());
+        assertThat(json.get("cidr0_cidrs").size(), is(1));
+        assertThat(json.get("cidr0_cidrs").get(0).get("v4prefix").textValue(), is("0.0.0.0"));
+        assertThat(json.get("cidr0_cidrs").get(0).get("length").intValue(), is(0));
+    }
+
+    @Test
     public void testCidr0Ipv6() throws Exception {
         given(ipService.find(any())).willReturn(
                 Optional.of(new IpNetwork(
@@ -230,5 +252,27 @@ public class IpRouteControllerTest
         assertThat(json.get("cidr0_cidrs").size(), is(1));
         assertThat(json.get("cidr0_cidrs").get(0).get("v6prefix").textValue(), is("ffee:db8::"));
         assertThat(json.get("cidr0_cidrs").get(0).get("length").intValue(), is(32));
+    }
+
+    @Test
+    public void testCidr0RootIpv6() throws Exception {
+        given(ipService.find(any())).willReturn(
+                Optional.of(new IpNetwork(
+                        new ObjectKey(ObjectClass.IP_NETWORK, ":: - ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff"),
+                        Parsing.parseInterval("::/0"))));
+
+        MvcResult mvcResult = mvc.perform(get("/ip/::/0"))
+                .andExpect(status().isOk())
+                .andExpect(isRDAP())
+                .andReturn();
+
+        String content = mvcResult.getResponse().getContentAsString();
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode json = mapper.readTree(content);
+
+        assertThat(json.get("cidr0_cidrs"), notNullValue());
+        assertThat(json.get("cidr0_cidrs").size(), is(1));
+        assertThat(json.get("cidr0_cidrs").get(0).get("v6prefix").textValue(), is("::"));
+        assertThat(json.get("cidr0_cidrs").get(0).get("length").intValue(), is(0));
     }
 }
