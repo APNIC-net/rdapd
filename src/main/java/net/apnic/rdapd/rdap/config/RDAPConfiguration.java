@@ -12,6 +12,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 
+import net.apnic.rdapd.rdap.TopLevelObject;
 import net.apnic.rdapd.rdap.controller.RDAPResponseMaker;
 import net.apnic.rdapd.rdap.json.LinkSerializer;
 import net.apnic.rdapd.rdap.json.RelatedEntityFilter;
@@ -46,6 +47,7 @@ public class RDAPConfiguration
     private List<ConfigNotice> configNotices = null;
     private List<Notice> defaultNotices = null;
     private String defaultPort43 = null;
+    private boolean historyEndpointsEnabled = true;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -58,6 +60,7 @@ public class RDAPConfiguration
         objectMapper.registerModule(module);
         objectMapper.setFilters(new SimpleFilterProvider()
             .addFilter("relatedEntitiesFilter", new RelatedEntityFilter()));
+        TopLevelObject.setHistoryConformance(historyEndpointsEnabled);
     }
 
     /**
@@ -196,5 +199,9 @@ public class RDAPConfiguration
     public void setPort43(String port43)
     {
         this.defaultPort43 = port43;
+    }
+
+    public void setHistoryEndpointsEnabled(boolean enabled) {
+        this.historyEndpointsEnabled = enabled;
     }
 }

@@ -22,6 +22,10 @@ rdap:
   # Port43 value for RDAP responses.
   port43: null
 
+  # Enables history endpoints (https://github.com/APNIC-net/rdap-history).
+  # If this setting is omitted, history endpoints will be active.
+  historyEndpointsEnabled: true
+
 # Database infomation for a database that matches the RIPE schema.
 database:
   host: localhost
