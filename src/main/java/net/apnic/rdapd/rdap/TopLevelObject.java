@@ -13,9 +13,9 @@ import java.util.stream.Stream;
  * A top level RDAP response, containing server notices and conformance.
  */
 public class TopLevelObject {
+    private static final String HISTORY_VERSION_O = "history_version_0";
     private static final Set<String> SERVER_CONFORMANCE = Stream.of(
             "rdap_level_0",
-            "history_version_0",
             "cidr0"
     ).collect(Collectors.toSet());
 
@@ -82,5 +82,13 @@ public class TopLevelObject {
                 notices,
                 port43,
                 object);
+    }
+
+    public static void setHistoryConformance(boolean enabled) {
+        if (enabled) {
+            SERVER_CONFORMANCE.add(HISTORY_VERSION_O);
+        } else {
+            SERVER_CONFORMANCE.remove(HISTORY_VERSION_O);
+        }
     }
 }
