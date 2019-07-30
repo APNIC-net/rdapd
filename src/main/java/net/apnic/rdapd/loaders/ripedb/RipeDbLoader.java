@@ -1,4 +1,4 @@
-package net.apnic.rdapd.loaders;
+package net.apnic.rdapd.loaders.ripedb;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -34,18 +34,6 @@ public class RipeDbLoader implements Loader {
         this.operations = jdbcOperations;
     }
 
-    private static ObjectKey objectKeyForResultKey(ObjectClass type, String pkey)
-    {
-        if(type == ObjectClass.AUT_NUM)
-        {
-            return new ObjectKey(type, pkey.replaceAll("[aA][sS]", ""));
-        }
-        else
-        {
-            return new ObjectKey(type, pkey);
-        }
-    }
-
     private static void resultSetToRdap(ResultSet rs, RevisionConsumer consumer)
         throws SQLException
     {
@@ -57,8 +45,7 @@ public class RipeDbLoader implements Loader {
             if (objectClass != null)
             {
                 byte[] contents = rs.getBytes("object");
-                ObjectKey objectKey = objectKeyForResultKey(objectClass,
-                    rs.getString("pkey"));
+                ObjectKey objectKey = new ObjectKey(objectClass, rs.getString("pkey"));
 
                 consumer.accept(objectKey, new Revision(
                     fromStamp(rs.getLong("timestamp")), null,

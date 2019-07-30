@@ -1,4 +1,4 @@
-package net.apnic.rdapd.loaders.config;
+package net.apnic.rdapd.loaders.ripedb;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -16,8 +16,6 @@ import java.util.zip.InflaterInputStream;
 import javax.annotation.PostConstruct;
 
 import net.apnic.rdapd.history.History;
-import net.apnic.rdapd.loaders.health.LoaderHealthIndicator;
-import net.apnic.rdapd.loaders.RipeDbLoader;
 import net.apnic.rdapd.progress.Bar;
 import net.apnic.rdapd.search.SearchEngine;
 
@@ -34,12 +32,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 
 @Configuration
 @EnableScheduling
+@Profile("!rpsl-data")
 public class LoaderConfiguration
 {
     private final static Logger LOGGER = LoggerFactory.getLogger(LoaderConfiguration.class);

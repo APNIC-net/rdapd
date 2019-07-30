@@ -1,4 +1,4 @@
-package net.apnic.rdapd.loaders;
+package net.apnic.rdapd.loaders.ripedb;
 
 public class RipeDbLoaderUtil
 {
