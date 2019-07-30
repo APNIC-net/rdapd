@@ -1,4 +1,4 @@
-package net.apnic.rdapd.loaders.health;
+package net.apnic.rdapd.loaders.ripedb;
 
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;

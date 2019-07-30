@@ -46,6 +46,16 @@ spec:
                 secretKeyRef:
                   name: {{ template "application.fullname" . }}
                   key: rdapd-whoisdb-password
+            - name: RDAPD_HISTORY_ENDPOINTS_ENABLED
+              value: {{ default "true" .Values.rdapd.historyEndpointsEnabled  | quote }}
+            {{- with .Values.rdapd.rpslData }}
+            - name: SPRING_PROFILES_ACTIVE
+              value: "rpsl-data"
+            - name: RDAP_RPSL_DATA_URI
+              value: {{ .uri | quote }}
+            - name: RDAP_RPSL_DATA_UPDATE_CRON_EXPR
+              value: {{ .updateCronExpr | quote }}
+            {{- end }}
             {{- with .Values.javaOpts }}
             - name: JAVA_OPTS
               value: {{ . | quote }}

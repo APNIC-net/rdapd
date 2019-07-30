@@ -34,6 +34,10 @@ data:
               rel: "terms-of-service"
               type: "text/html"
 
+      # Enables history endpoints (https://github.com/APNIC-net/rdap-history).
+      # If this setting is omitted, history endpoints will be active.
+      historyEndpointsEnabled: ${RDAPD_HISTORY_ENDPOINTS_ENABLED}
+
       # Port43 value for RDAP responses
       port43: whois.apnic.net
 
@@ -47,3 +51,11 @@ data:
 
     management:
       port: 8081
+
+    rpslData:
+      # FTP URI for the RPSL dump file.
+      # E.g.: "ftp://user:password@ftp.apnic.net/pub/incoming/krnic/krnic.db.tar.gz"
+      uri: ${RDAP_RPSL_DATA_URI}
+      # Cron expression for loading RPSL data (Spring format - i.e. includes seconds).
+      updateCronExpr: ${RDAP_RPSL_DATA_UPDATE_CRON_EXPR}
+
