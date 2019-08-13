@@ -1,0 +1,21 @@
+person:         AS Manager 1
+address:        Gyeonggi-do Giheung-gu
+address:        46, Giheungdanji-ro Halla Human Resources Development Center
+country:        KR
+phone:          +82-31-0000-0000
+e-mail:         email1@example.com
+nic-hdl:        AM5691-KR
+mnt-by:         MNT-KRNIC-AP
+changed:        hostmaster@nic.or.kr 20190725
+source:         KRNIC
+
+person:         AS Manager 2
+address:        Seoul Yongsan-gu
+address:
+country:        KR
+phone:          +82-2-0000-0000
+e-mail:         email2@example.com
+nic-hdl:        AM5693-KR
+mnt-by:         MNT-KRNIC-AP
+changed:        hostmaster@nic.or.kr 20190725
+source:         KRNIC

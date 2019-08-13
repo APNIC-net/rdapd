@@ -1,0 +1,24 @@
+inetnum:        1.11.0.0 - 1.11.255.255
+netname:        CJ-HELLOVISION-KR
+descr:          CJ Hello Co., Ltd.
+country:        KR
+admin-c:        YK571-KR
+tech-c:         YK571-KR
+status:         ALLOCATED PORTABLE
+mnt-by:         MNT-KRNIC-AP
+mnt-irt:        IRT-KRNIC-KR
+changed:        hostmaster@nic.or.kr 20190725
+source:         KRNIC
+
+inetnum:        1.16.0.0 - 1.16.63.255
+netname:        DAOU-KR
+descr:          DAOU TECHNOLOGY
+country:        KR
+admin-c:        IM3083-KR
+tech-c:         IM3083-KR
+status:         ALLOCATED PORTABLE
+mnt-by:         MNT-KRNIC-AP
+mnt-irt:        IRT-KRNIC-KR
+changed:        hostmaster@nic.or.kr 20190725
+source:         KRNIC
+
