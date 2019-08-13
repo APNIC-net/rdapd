@@ -1,0 +1,29 @@
+aut-num:        AS10034
+as-name:        GARAK-AS-KR-KR
+descr:          SEOUL AGRICULTURAL   MARINE PRODUCTS CORP.
+country:        KR
+import:         from 9318 action pref=100 accept ANY
+import:         from 3786 action pref=100 accept ANY
+export:         to 9318 announce NEW
+export:         to 3786 announce NEW
+admin-c:        LH4164-KR
+tech-c:         LH4164-KR
+mnt-by:         MNT-KRNIC-AP
+mnt-irt:        IRT-KRNIC-KR
+changed:        hostmaster@nic.or.kr 20190725
+source:         KRNIC
+
+aut-num:        AS10035
+as-name:        HYUNDAIDEPT-AS-KR-KR
+descr:          Hyundai Department Store Co., Ltd.
+country:        KR
+import:         from 4766 action pref=200 accept ANY
+import:         from 9318 action pref=100 accept ANY
+export:         to 4766 announce NEW
+export:         to 9318 announce NEW
+admin-c:        WG4564-KR
+tech-c:         BH4564-KR
+mnt-by:         MNT-KRNIC-AP
+mnt-irt:        IRT-KRNIC-KR
+changed:        hostmaster@nic.or.kr 20190725
+source:         KRNIC

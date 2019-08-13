@@ -106,7 +106,11 @@ public class RpslLoader {
             throw (e instanceof RuntimeException ? (RuntimeException) e : new RuntimeException(e));
         } finally {
             if (localFile != null && localFile.exists()) {
-                localFile.delete();
+                boolean deletionSucceded = localFile.delete();
+
+                if (!deletionSucceded) {
+                    LOGGER.warn("Error deleting temporary file: " + localFile.getPath());
+                }
             }
         }
 
@@ -175,6 +179,8 @@ public class RpslLoader {
             return "tgz";
         } else if (fileName.endsWith(".gz")) {
             return "gz";
+        } else if (fileName.endsWith(".db")) {
+            return "file";
         } else {
             throw new IllegalArgumentException("Can't find scheme for file: " + fileName);
         }
@@ -189,7 +195,7 @@ public class RpslLoader {
 
         OBJ_CLASS_TO_KEY_PATTERN = new HashMap<>();
         OBJ_CLASS_TO_KEY_PATTERN.put(ObjectClass.ENTITY, Pattern.compile("(?:^|\n)(?:nic-hdl:(?:\\s)+)(.*)(?:\n)"));
-        OBJ_CLASS_TO_KEY_PATTERN.put(ObjectClass.AUT_NUM, Pattern.compile("^(?:aut-num:(:?\\s)+)(.*)(?:\n)"));
+        OBJ_CLASS_TO_KEY_PATTERN.put(ObjectClass.AUT_NUM, Pattern.compile("^(?:aut-num:(?:\\s)+)(.*)(?:\n)"));
         OBJ_CLASS_TO_KEY_PATTERN.put(ObjectClass.IP_NETWORK, Pattern.compile("^(?:inet(?:6)?num:(?:\\s)+)(.*)(?:\n)"));
     }
 }
