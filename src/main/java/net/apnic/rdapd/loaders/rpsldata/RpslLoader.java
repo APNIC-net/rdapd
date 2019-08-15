@@ -66,7 +66,7 @@ public class RpslLoader {
         File localFile = null;
 
         try {
-            // We could not use Apache Commons VSF to retrieve the file from FTP, that would be ideal since it would
+            // We could not use Apache Commons VFS to retrieve the file from FTP, that would be ideal since it would
             // allow the URI to be completely protocol agnostic including the compressing method.
             try {
                 LOGGER.info("Processing file: {}", rpslConfig.getUri());
@@ -81,7 +81,7 @@ public class RpslLoader {
                     md5 = DigestUtils.md5Hex(localFileIS);
                 }
             } catch (IOException e) {
-                LOGGER.error("Error retrieving RPSL file from FTP.", e);
+                LOGGER.error("Error retrieving RPSL file.", e);
                 throw new RuntimeException(e);
             }
 
@@ -140,10 +140,6 @@ public class RpslLoader {
                 }
 
                 ObjectClass objectClass = ATTR_TO_CLASS_MAP.get(firstAttributeMatcher.group(1));
-
-                if (objectClass == null) {
-                    System.out.println("here");
-                }
                 Matcher keyMatcher = OBJ_CLASS_TO_KEY_PATTERN.get(objectClass).matcher(sanitisedMatch);
 
                 if (!keyMatcher.find()) {
