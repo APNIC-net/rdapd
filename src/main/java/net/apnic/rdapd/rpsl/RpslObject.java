@@ -1,7 +1,9 @@
 package net.apnic.rdapd.rpsl;
 
 import net.apnic.rdapd.types.Tuple;
+import org.apache.commons.codec.Charsets;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -11,9 +13,25 @@ import java.util.stream.Collectors;
  */
 public class RpslObject {
     private final List<Tuple<String, String>> attributes;
+    private final List<String> comments;
 
     public RpslObject(byte[] rpsl) {
-        attributes = RpslParser.parseObject(rpsl);
+        this(new String(rpsl, Charsets.UTF_8));
+    }
+
+    public RpslObject(String rpsl) {
+        attributes = new ArrayList<>();
+        comments = new ArrayList<>();
+        List<RpslParser.RpslLineEntry> rpslLineEntries = RpslParser.parseObjectWithComments(rpsl);
+        rpslLineEntries.forEach(e -> {
+            if (e instanceof RpslParser.RpslAttributeEntry) {
+                attributes.add(((RpslParser.RpslAttributeEntry) e).attribute);
+            } else if (e instanceof RpslParser.RpslComment) {
+                comments.add(((RpslParser.RpslComment) e).comment);
+            } else {
+                throw new IllegalArgumentException("Unsupported RpslLineEntry type.");
+            }
+        });
     }
 
     /**
@@ -54,4 +72,11 @@ public class RpslObject {
         return attributes.get(0);
     }
 
+    /**
+     * Get all line comments included in the object.
+     * @return a {@link List} of comments
+     */
+    public List<String> getComments() {
+        return comments;
+    }
 }
