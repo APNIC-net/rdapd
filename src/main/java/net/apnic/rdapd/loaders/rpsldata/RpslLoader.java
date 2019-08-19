@@ -5,6 +5,7 @@ import net.apnic.rdapd.history.ObjectClass;
 import net.apnic.rdapd.history.ObjectKey;
 import net.apnic.rdapd.history.Revision;
 import net.apnic.rdapd.rdap.RdapObject;
+import net.apnic.rdapd.rpsl.RpslObject;
 import net.apnic.rdapd.rpsl.rdap.RpslToRdap;
 import org.apache.commons.codec.Charsets;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -25,8 +26,8 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.time.ZonedDateTime;
 import java.util.*;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 @EnableScheduling
 @Profile("rpsl-data")
@@ -34,10 +35,7 @@ import java.util.regex.Pattern;
 public class RpslLoader {
     private final static Logger LOGGER = LoggerFactory.getLogger(RpslLoader.class);
     private static final Pattern RPSL_OBJECT_PATTERN = Pattern.compile("((.+)\n)+", Pattern.MULTILINE);
-    private static final Pattern FIRST_ATTR_PATTERN = Pattern.compile("((\\w|-)*):");
-    private static final Pattern RPSL_COMMENT_PATTERN = Pattern.compile("^#(.)*\n", Pattern.MULTILINE);
     private static final Map<String, ObjectClass> ATTR_TO_CLASS_MAP;
-    private static final Map<ObjectClass, Pattern> OBJ_CLASS_TO_KEY_PATTERN;
 
     private final History history;
     private final RpslConfig rpslConfig;
@@ -124,38 +122,24 @@ public class RpslLoader {
         try {
             Scanner scanner = new Scanner(dbFileObj.getContent().getInputStream(), Charsets.UTF_8.toString());
             String match;
+            ObjectKey key;
+            RdapObject rdapObject;
 
             while ((match = scanner.findWithinHorizon(RPSL_OBJECT_PATTERN, 0) ) != null) {
-                String sanitisedMatch = RPSL_COMMENT_PATTERN.matcher(match).replaceAll("");
-
-                if (sanitisedMatch.isEmpty()) {
+                if (match.isEmpty()) {
                     continue;
                 }
 
-                Matcher firstAttributeMatcher = FIRST_ATTR_PATTERN.matcher(sanitisedMatch);
-
-                if (!firstAttributeMatcher.find()) {
-                    LOGGER.error("Can't find first attribute for RPSL object:\n{}", match);
-                    throw new RuntimeException("Error loading RPSL data.");
-                }
-
-                ObjectClass objectClass = ATTR_TO_CLASS_MAP.get(firstAttributeMatcher.group(1));
-                Matcher keyMatcher = OBJ_CLASS_TO_KEY_PATTERN.get(objectClass).matcher(sanitisedMatch);
-
-                if (!keyMatcher.find()) {
-                    LOGGER.error("Can't find object key for RPSL object:\n{}", match);
-                    throw new RuntimeException("Error loading RPSL data.");
-                }
-
-                ObjectKey key = new ObjectKey(objectClass, keyMatcher.group(1));
-                RdapObject rdapObject;
-
                 try {
-                    rdapObject = RpslToRdap.rpslToRdap(key, sanitisedMatch.getBytes(Charsets.UTF_8));
-                } catch (RuntimeException ex) {  // unfortunately this is what is thrown by the method
+                    RpslObject rpslObject = new RpslObject(match);
+                    ObjectClass objectClass = ATTR_TO_CLASS_MAP.get(rpslObject.getPrimaryAttribute().first());
+                    String objectName = getObjectName(rpslObject, objectClass).orElseThrow(
+                            () -> new IllegalArgumentException("Error retrieving object name."));
+                    key = new ObjectKey(objectClass, objectName);
+                    rdapObject = RpslToRdap.rpslToRdap(key, rpslObject);
+                } catch (RuntimeException ex) {  // unfortunately this is what is thrown by the parser method
                     if (ex.getCause() instanceof ParserException) {
-                        LOGGER.warn("Error parsing RPSL object:" + key.toString()
-                                + ". This object will be ignored.", ex);
+                        LOGGER.warn("Error parsing RPSL object:\n" + match + "\n\nThis object will be ignored.", ex);
                         continue;
                     } else {
                         throw ex;  // rethrow
@@ -167,6 +151,19 @@ public class RpslLoader {
             }
         } catch (FileSystemException e) {
             throw new RuntimeException(e);  // to be logged by the invoker above
+        }
+    }
+
+    private Optional<String> getObjectName(RpslObject rpslObject, ObjectClass objectClass) {
+        switch (objectClass) {
+            case ENTITY: return rpslObject.getAttributeFirstValue("nic-hdl");
+            case IP_NETWORK: return Stream.of("inetnum", "inet6num")
+                    .map(rpslObject::getAttributeFirstValue)
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
+                    .findFirst();
+            case AUT_NUM: return rpslObject.getAttributeFirstValue("aut-num");
+            default: throw new IllegalArgumentException("Object class not supported: " + objectClass.name());
         }
     }
 
@@ -188,10 +185,5 @@ public class RpslLoader {
         ATTR_TO_CLASS_MAP.put("aut-num", ObjectClass.AUT_NUM);
         ATTR_TO_CLASS_MAP.put("inetnum", ObjectClass.IP_NETWORK);
         ATTR_TO_CLASS_MAP.put("inet6num", ObjectClass.IP_NETWORK);
-
-        OBJ_CLASS_TO_KEY_PATTERN = new HashMap<>();
-        OBJ_CLASS_TO_KEY_PATTERN.put(ObjectClass.ENTITY, Pattern.compile("(?:^|\n)(?:nic-hdl:(?:\\s)+)(.*)(?:\n)"));
-        OBJ_CLASS_TO_KEY_PATTERN.put(ObjectClass.AUT_NUM, Pattern.compile("^(?:aut-num:(?:\\s)+)(.*)(?:\n)"));
-        OBJ_CLASS_TO_KEY_PATTERN.put(ObjectClass.IP_NETWORK, Pattern.compile("^(?:inet(?:6)?num:(?:\\s)+)(.*)(?:\n)"));
     }
 }
