@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -30,6 +29,7 @@ public abstract class GenericObject
     private String name = null;
     private Collection<RelatedEntity> relatedEntities;
     private ArrayNode remarks = null;
+    private List<Link> links;
 
     /**
      * Creates a new GenericObject with the supplied key.
@@ -94,11 +94,15 @@ public abstract class GenericObject
         return getObjectKey().getObjectName();
     }
 
-    public List<Link> getLinks()
-    {
-        return Arrays.asList(
-            new RelativeLink("self", getObjectType().getPathSegment() + "/" + getPathHandle(),
-                RdapConstants.RDAP_MEDIA_TYPE.toString()));
+    public List<Link> getLinks() {
+        if (links == null) {
+            // support legacy code
+            return Collections.singletonList(
+                    new RelativeLink("self", getObjectType().getPathSegment() + "/" + getPathHandle(),
+                            RdapConstants.RDAP_MEDIA_TYPE.toString()));
+        } else {
+            return links;
+        }
     }
 
     /**

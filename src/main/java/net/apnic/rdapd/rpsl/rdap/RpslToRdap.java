@@ -6,16 +6,9 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.EnumSet;
+import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -32,6 +25,7 @@ import net.apnic.rdapd.rdap.RelatedEntity;
 import net.apnic.rdapd.rdap.Role;
 import net.apnic.rdapd.rdap.VCard;
 import net.apnic.rdapd.rdap.VCardAttribute;
+import net.apnic.rdapd.rpsl.Macro;
 import net.apnic.rdapd.rpsl.RpslObject;
 import net.apnic.rdapd.types.IpInterval;
 import net.apnic.rdapd.types.Parsing;
@@ -177,13 +171,20 @@ public class RpslToRdap
 
     private static Entity entityFromRpsl(GenericObject entity, RpslObject rpslObject) {
         Entity rval = (Entity) entity;
-        VCard vCard = new VCard();
-        EnumSet.allOf(RpslVCardAttribute.class)
-            .stream()
-            .flatMap(a -> a.getProperty(rpslObject))
-            .forEach(vCard::addAttribute);
         rval.setRelatedEntities(getRelatedEntities(rpslObject));
-        rval.setVCard(vCard);
+
+        if (Macro.anyMatches(rpslObject.getComments(), Macro.NO_VCARD)) {
+            rval.setVCard(null);
+        } else {
+            VCard vCard = new VCard();
+            EnumSet.allOf(RpslVCardAttribute.class)
+                    .stream()
+                    .flatMap(a -> a.getProperty(rpslObject))
+                    .forEach(vCard::addAttribute);
+            rval.setVCard(vCard);
+        }
+
+        // TODO: create links
         rval.setEvents(getEvents(rpslObject));
         rval.setRemarks(getRemarks(rpslObject));
 
