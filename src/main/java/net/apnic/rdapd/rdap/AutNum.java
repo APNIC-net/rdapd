@@ -85,7 +85,7 @@ public class AutNum
 
     public void setASNInterval(String startAutnum, String endAutnum)
     {
-        setASNInterval(Long.parseLong(startAutnum), Long.parseLong(endAutnum));
+        setASNInterval(asnStringToLong(startAutnum), asnStringToLong(endAutnum));
     }
 
     public void setASNInterval(long startAutnum, long endAutnum)
@@ -103,6 +103,10 @@ public class AutNum
     public void setHandle(String handle)
     {
         this.handle = handle;
+    }
+
+    private static Long asnStringToLong(String autnum) {
+        return Long.parseLong(autnum.replaceAll("[aA][sS]", ""));
     }
 
     /**

@@ -45,6 +45,13 @@ rdapd:
     db: ""
     username: "root"
     password: ""
+  historyEndpointsEnabled: true
+  # rpslData:
+  # # FTP URI for the RPSL dump file.
+  # # E.g.: "ftp://user:password@ftp.apnic.net/pub/incoming/krnic/krnic.db.tar.gz"
+  #   uri: ""
+  # # Cron expression for loading RPSL data (Spring format - i.e. includes seconds).
+  #   updateCronExpr: 0 0 * * * *
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious

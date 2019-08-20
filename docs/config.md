@@ -22,6 +22,10 @@ rdap:
   # Port43 value for RDAP responses.
   port43: null
 
+  # Enables history endpoints (https://github.com/APNIC-net/rdap-history).
+  # If this setting is omitted, history endpoints will be active.
+  historyEndpointsEnabled: true
+
 # Database infomation for a database that matches the RIPE schema.
 database:
   host: localhost
@@ -34,6 +38,15 @@ spring:
     url: "jdbc:mysql://${database.host}:3306/${database.database}?useunicode=true&characterencoding=utf8&charactersetresults=utf8&useSSL=false"
     username: "${database.username}"
     password: "${database.password}"
+    
+# Configuration for loading data from RPSL dump files.
+# Notice that you need to activate the "rpsl-data" spring profile to enable loading from RPSL data.
+rpslData:
+  # FTP URI for the RPSL dump file.
+  # E.g.: "ftp://user:password@ftp.apnic.net/pub/incoming/krnic/krnic.db.tar.gz"
+  uri: "ftp://template:password@ftp.apnic.net/pub/incoming/krnic/krnic.db.tar.gz"
+  # Cron expression for loading RPSL data (Spring format - i.e. includes seconds).
+  updateCronExpr: 0 0 * * * *
 
 management:
   port: 8081

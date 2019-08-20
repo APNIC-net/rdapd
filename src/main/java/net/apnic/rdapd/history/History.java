@@ -257,6 +257,17 @@ public final class History implements Externalizable, ObjectIndex {
             .filter(x -> x != null);
     }
 
+    /**
+     * Overwrite this history state with the one provided.
+     * @param history the {@link History} containing the state to overwrite the current instance
+     */
+    public synchronized void overwriteHistory(History history) {
+        autnumTree = history.autnumTree;
+        histories = history.histories;
+        ipNetworkTree = history.ipNetworkTree;
+        relatedIndex = history.relatedIndex;
+    }
+
     /* ---------------------------------------------------------------------- */
     /* Boring bits below.  Serialization via Externalizable */
     /* ---------------------------------------------------------------------- */

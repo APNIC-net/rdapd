@@ -1,6 +1,6 @@
 
 {
-    "baseUrl": "http://rdap:8080",
+    "baseUrl": "http://test.rdapd.svc.tst.apnic.int",
     "objectClasses": {
         "autnum": {
             "supported": true,

@@ -1,30 +1,29 @@
 package net.apnic.rdapd.ip.controller;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Collectors;
-import javax.servlet.http.HttpServletRequest;
-
 import net.apnic.rdapd.error.MalformedRequestException;
 import net.apnic.rdapd.history.ObjectHistory;
 import net.apnic.rdapd.intervaltree.IntervalTree;
+import net.apnic.rdapd.rdap.TopLevelObject;
 import net.apnic.rdapd.rdap.controller.RDAPControllerUtil;
 import net.apnic.rdapd.rdap.controller.RDAPResponseMaker;
-import net.apnic.rdapd.rdap.TopLevelObject;
 import net.apnic.rdapd.types.IP;
 import net.apnic.rdapd.types.IpInterval;
 import net.apnic.rdapd.types.Parsing;
 import net.apnic.rdapd.types.Tuple;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.HandlerMapping;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Rest controller for the RDAP /history/ip path segment.
@@ -33,6 +32,7 @@ import org.springframework.web.servlet.HandlerMapping;
  */
 @RestController
 @RequestMapping("/history/ip")
+@ConditionalOnProperty(value = "rdap.historyEndpointsEnabled", matchIfMissing = true)
 public class IpHistoryRouteController
 {
     private final static Logger LOGGER = LoggerFactory.getLogger(IpHistoryRouteController.class);

@@ -1,4 +1,4 @@
-package net.apnic.rdapd.loaders;
+package net.apnic.rdapd.loaders.ripedb;
 
 import net.apnic.rdapd.history.ObjectKey;
 import net.apnic.rdapd.history.Revision;
