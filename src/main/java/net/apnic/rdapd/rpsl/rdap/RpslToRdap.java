@@ -14,22 +14,14 @@ import java.util.stream.Stream;
 
 import net.apnic.rdapd.history.ObjectClass;
 import net.apnic.rdapd.history.ObjectKey;
-import net.apnic.rdapd.rdap.AutNum;
-import net.apnic.rdapd.rdap.Domain;
-import net.apnic.rdapd.rdap.Entity;
-import net.apnic.rdapd.rdap.Event;
-import net.apnic.rdapd.rdap.GenericObject;
-import net.apnic.rdapd.rdap.IpNetwork;
-import net.apnic.rdapd.rdap.RdapObject;
-import net.apnic.rdapd.rdap.RelatedEntity;
-import net.apnic.rdapd.rdap.Role;
-import net.apnic.rdapd.rdap.VCard;
-import net.apnic.rdapd.rdap.VCardAttribute;
+import net.apnic.rdapd.rdap.*;
 import net.apnic.rdapd.rpsl.Macro;
 import net.apnic.rdapd.rpsl.RpslObject;
 import net.apnic.rdapd.types.IpInterval;
 import net.apnic.rdapd.types.Parsing;
 import net.apnic.rdapd.types.Tuple;
+
+import static net.apnic.rdapd.rpsl.Macro.LinkProperties.*;
 
 /**
  * Utility class for converting raw RPSL data into RDAP objects.
@@ -184,7 +176,14 @@ public class RpslToRdap
             rval.setVCard(vCard);
         }
 
-        // TODO: create links
+        List<Properties> linkMacroProps = Macro.getMacroProperties(rpslObject.getComments(), Macro.LINK);
+
+        if (!linkMacroProps.isEmpty()) {
+            rval.setLinks(linkMacroProps.stream()
+                    .map(RpslToRdap::linkfromMacroProps)
+                    .collect(Collectors.toList()));
+        }
+
         rval.setEvents(getEvents(rpslObject));
         rval.setRemarks(getRemarks(rpslObject));
 
@@ -331,5 +330,14 @@ public class RpslToRdap
         }
 
         return processRpslObjectFunction.apply(rval, rpslObject);
+    }
+
+    private static Link linkfromMacroProps(Properties props) {
+        return new Link(
+                props.getProperty(REL.getName()),
+                props.getProperty(HREF.getName()),
+                props.getProperty(TYPE.getName()),
+                props.getProperty(HREFLANG.getName())
+        );
     }
 }

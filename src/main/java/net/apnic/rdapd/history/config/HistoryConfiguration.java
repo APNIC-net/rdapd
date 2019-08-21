@@ -1,11 +1,5 @@
 package net.apnic.rdapd.history.config;
 
-import java.util.Optional;
-import java.util.function.BinaryOperator;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.stream.Stream;
-
 import net.apnic.rdapd.autnum.ASN;
 import net.apnic.rdapd.autnum.ASNInterval;
 import net.apnic.rdapd.autnum.AutNumSearchService;
@@ -21,17 +15,17 @@ import net.apnic.rdapd.rdap.IpNetwork;
 import net.apnic.rdapd.types.IP;
 import net.apnic.rdapd.types.IpInterval;
 import net.apnic.rdapd.types.Tuple;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration;
-import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.Optional;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
+
 @Configuration
-@EnableAutoConfiguration(exclude =  {DataSourceAutoConfiguration.class, DataSourceTransactionManagerAutoConfiguration.class, HibernateJpaAutoConfiguration.class})
 public class HistoryConfiguration
 {
     @Bean

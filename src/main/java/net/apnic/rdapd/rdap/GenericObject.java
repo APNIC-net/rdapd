@@ -105,6 +105,10 @@ public abstract class GenericObject
         }
     }
 
+    public void setLinks(List<Link> links) {
+        this.links = links;
+    }
+
     /**
      * Returns the name set for this object.
      *
