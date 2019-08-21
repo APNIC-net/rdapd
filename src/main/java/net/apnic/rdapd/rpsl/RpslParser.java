@@ -9,6 +9,7 @@ import org.codehaus.jparsec.pattern.Patterns;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -90,7 +91,12 @@ public class RpslParser {
 
         @Override
         public boolean equals(Object obj) {
-            return (obj instanceof RpslAttributeEntry && this.attribute.equals(((RpslAttributeEntry) obj).attribute));
+            return obj instanceof RpslAttributeEntry && this.attribute.equals(((RpslAttributeEntry) obj).attribute);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(attribute);
         }
     }
 
@@ -103,7 +109,12 @@ public class RpslParser {
 
         @Override
         public boolean equals(Object obj) {
-            return (obj instanceof RpslComment && this.comment.equals(((RpslComment) obj).comment));
+            return obj instanceof RpslComment && this.comment.equals(((RpslComment) obj).comment);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(comment);
         }
     }
 }
