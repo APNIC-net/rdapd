@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.Arrays;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import net.apnic.rdapd.history.ObjectKey;
 
 /**
@@ -62,10 +63,10 @@ public class Entity
      *
      * @return VCardArray object
      */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public List<Object> getVCardArray()
     {
-        return Arrays.asList(
-            "vcard", getVCard());
+        return (vCard == null) ? null : Arrays.asList("vcard", getVCard());
     }
 
     /**

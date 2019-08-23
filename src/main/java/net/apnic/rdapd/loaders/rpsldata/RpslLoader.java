@@ -182,6 +182,7 @@ public class RpslLoader {
     static {
         ATTR_TO_CLASS_MAP = new HashMap<>();
         ATTR_TO_CLASS_MAP.put("person", ObjectClass.ENTITY);
+        ATTR_TO_CLASS_MAP.put("role", ObjectClass.ENTITY);
         ATTR_TO_CLASS_MAP.put("aut-num", ObjectClass.AUT_NUM);
         ATTR_TO_CLASS_MAP.put("inetnum", ObjectClass.IP_NETWORK);
         ATTR_TO_CLASS_MAP.put("inet6num", ObjectClass.IP_NETWORK);
