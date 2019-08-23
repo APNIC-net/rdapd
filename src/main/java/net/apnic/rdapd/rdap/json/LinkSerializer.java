@@ -33,6 +33,11 @@ public class LinkSerializer
                 RequestContext.getReferenceWithSpec(value.getHref()) :
                 value.getHref());
         gen.writeStringField("type", value.getType());
+
+        if (value.getHreflang() != null) {
+            gen.writeStringField("hreflang", value.getHreflang());
+        }
+
         gen.writeEndObject();
     }
 }
