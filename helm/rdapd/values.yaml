@@ -32,6 +32,14 @@ podDisruptionBudget:
   minAvailable: 1
 # maxUnavailable: 1
 
+proxy:
+  enabled: false
+  httpHost: ""
+  httpPort: ""
+  httpsHost: ""
+  httpsPort: ""
+  noProxy: []
+
 # Allow extra JVM options to be set
 javaOpts: ~
 
