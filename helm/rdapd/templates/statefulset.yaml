@@ -56,9 +56,19 @@ spec:
             - name: RDAP_RPSL_DATA_UPDATE_CRON_EXPR
               value: {{ .updateCronExpr | quote }}
             {{- end }}
-            {{- with .Values.javaOpts }}
+            {{- if (or .Values.javaOpts .Values.proxy.enabled) }}
             - name: JAVA_OPTS
-              value: {{ . | quote }}
+              value: >-2
+                {{- if .Values.proxy.enabled }}
+                -Dhttp.proxyHost={{ .Values.proxy.httpHost }}
+                -Dhttp.proxyPort={{ .Values.proxy.httpPort }}
+                -Dhttps.proxyHost={{ .Values.proxy.httpsHost }}
+                -Dhttps.proxyPort={{ .Values.proxy.httpsPort }}
+                -Dhttp.nonProxyHosts={{ join "|" .Values.proxy.noProxy }}
+                {{- end }}
+                {{- with .Values.javaOpts }}
+                {{ . }}
+                {{- end }}
             {{- end }}
           ports:
             - name: http
