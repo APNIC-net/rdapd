@@ -27,7 +27,6 @@ import java.net.URLConnection;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 @EnableScheduling
 @Profile("rpsl-data")
@@ -132,8 +131,16 @@ public class RpslLoader {
 
                 try {
                     RpslObject rpslObject = new RpslObject(match);
-                    ObjectClass objectClass = ATTR_TO_CLASS_MAP.get(rpslObject.getPrimaryAttribute().first());
-                    String objectName = getObjectName(rpslObject, objectClass).orElseThrow(
+                    String primaryAttributeKey = rpslObject.getPrimaryAttribute().first();
+                    ObjectClass objectClass = ATTR_TO_CLASS_MAP.get(primaryAttributeKey);
+
+                    if (objectClass == null) {
+                        LOGGER.warn("Object class for RPSL object not supported. this Object will be ignored:\n" +
+                                match);
+                        continue;
+                    }
+
+                    String objectName = getObjectName(rpslObject, primaryAttributeKey).orElseThrow(
                             () -> new IllegalArgumentException("Error retrieving object name."));
                     key = new ObjectKey(objectClass, objectName);
                     rdapObject = RpslToRdap.rpslToRdap(key, rpslObject);
@@ -154,16 +161,15 @@ public class RpslLoader {
         }
     }
 
-    private Optional<String> getObjectName(RpslObject rpslObject, ObjectClass objectClass) {
-        switch (objectClass) {
-            case ENTITY: return rpslObject.getAttributeFirstValue("nic-hdl");
-            case IP_NETWORK: return Stream.of("inetnum", "inet6num")
-                    .map(rpslObject::getAttributeFirstValue)
-                    .filter(Optional::isPresent)
-                    .map(Optional::get)
-                    .findFirst();
-            case AUT_NUM: return rpslObject.getAttributeFirstValue("aut-num");
-            default: throw new IllegalArgumentException("Object class not supported: " + objectClass.name());
+    private Optional<String> getObjectName(RpslObject rpslObject, String primaryAttributeKey) {
+        switch (primaryAttributeKey) {
+            case "role":
+            case "person": return rpslObject.getAttributeFirstValue("nic-hdl");
+            case "irt": return rpslObject.getAttributeFirstValue("irt");
+            case "inetnum": return rpslObject.getAttributeFirstValue("inetnum");
+            case "inet6num": return rpslObject.getAttributeFirstValue("inet6num");
+            case "aut-num": return rpslObject.getAttributeFirstValue("aut-num");
+            default: throw new IllegalArgumentException("Attribute key not supported: " + primaryAttributeKey);
         }
     }
 
@@ -183,6 +189,7 @@ public class RpslLoader {
         ATTR_TO_CLASS_MAP = new HashMap<>();
         ATTR_TO_CLASS_MAP.put("person", ObjectClass.ENTITY);
         ATTR_TO_CLASS_MAP.put("role", ObjectClass.ENTITY);
+        ATTR_TO_CLASS_MAP.put("irt", ObjectClass.ENTITY);
         ATTR_TO_CLASS_MAP.put("aut-num", ObjectClass.AUT_NUM);
         ATTR_TO_CLASS_MAP.put("inetnum", ObjectClass.IP_NETWORK);
         ATTR_TO_CLASS_MAP.put("inet6num", ObjectClass.IP_NETWORK);
