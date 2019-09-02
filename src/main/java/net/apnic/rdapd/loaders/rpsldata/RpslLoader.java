@@ -28,6 +28,10 @@ import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.regex.Pattern;
 
+/**
+ * Loads RPSl data from a file. It provided an alternative to the database loader
+ * ({@link net.apnic.rdapd.loaders.ripedb.RipeDbLoader}) with the downside of not supporting domains.
+ */
 @EnableScheduling
 @Profile("rpsl-data")
 @Component
