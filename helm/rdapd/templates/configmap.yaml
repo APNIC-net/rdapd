@@ -22,17 +22,7 @@ data:
       #     rel: #ref value as per RDAP spec
       #     type: #type of link
       notices:
-        - title: Source
-          description:
-            - Objects returned came from source
-            - APNIC
-        - title: Terms and Conditions
-          description:
-            - This is the APNIC WHOIS Database query service. The objects are in RDAP format.
-          links:
-            - href: "http://www.apnic.net/db/dbcopyright.html"
-              rel: "terms-of-service"
-              type: "text/html"
+        {{- toYaml .Values.rdapd.notices | trim | nindent 8 }}
 
       # Enables history endpoints (https://github.com/APNIC-net/rdap-history).
       # If this setting is omitted, history endpoints will be active.

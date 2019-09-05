@@ -32,6 +32,14 @@ podDisruptionBudget:
   minAvailable: 1
 # maxUnavailable: 1
 
+proxy:
+  enabled: false
+  httpHost: ""
+  httpPort: ""
+  httpsHost: ""
+  httpsPort: ""
+  noProxy: []
+
 # Allow extra JVM options to be set
 javaOpts: ~
 
@@ -46,6 +54,26 @@ rdapd:
     username: "root"
     password: ""
   historyEndpointsEnabled: true
+  # A list of default notices that get appended to each RDAP response from this
+  # server. Notice objects take the following structure.
+  # title: # Title of the notice
+  # description: # List of string describing the notice
+  # links: # List of link objects in the folloing form.
+  #   - href: # href value as per RDAP spec
+  #     rel: #ref value as per RDAP spec
+  #     type: #type of link
+  notices:
+    - title: Source
+      description:
+        - Objects returned came from source
+        - APNIC
+    - title: Terms and Conditions
+      description:
+        - This is the APNIC WHOIS Database query service. The objects are in RDAP format.
+      links:
+        - href: "http://www.apnic.net/db/dbcopyright.html"
+          rel: "terms-of-service"
+          type: "text/html"
   # rpslData:
   # # FTP URI for the RPSL dump file.
   # # E.g.: "ftp://user:password@ftp.apnic.net/pub/incoming/krnic/krnic.db.tar.gz"

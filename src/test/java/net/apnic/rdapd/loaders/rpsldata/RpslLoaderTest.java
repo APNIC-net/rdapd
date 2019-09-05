@@ -22,6 +22,7 @@ public class RpslLoaderTest {
     private final static String INET6NUM2 = "2001:0230::/32";
     private final static String ENTITY1 = "AM5691-KR";
     private final static String ENTITY2 = "AM5693-KR";
+    private final static String ENTITY3 = "IRT-KRNIC-KR";
 
     @Test
     public void testAutnumLoad() {
@@ -100,9 +101,14 @@ public class RpslLoaderTest {
         assertThat(entity1Revisions.get().mostCurrent().isPresent(), is(true));
 
         Optional<ObjectHistory> entity2Revisions = history.historyForObject(new ObjectKey(ObjectClass.ENTITY,
-                                                                                          ENTITY2));
+                ENTITY2));
         assertThat(entity2Revisions.isPresent(), is(true));
         assertThat(entity2Revisions.get().mostCurrent().isPresent(), is(true));
+
+        Optional<ObjectHistory> entity3Revisions = history.historyForObject(new ObjectKey(ObjectClass.ENTITY,
+                                                                                          ENTITY3));
+        assertThat(entity3Revisions.isPresent(), is(true));
+        assertThat(entity3Revisions.get().mostCurrent().isPresent(), is(true));
     }
 
     private RpslLoader createRpslLoader(History history, String rpslFile) {

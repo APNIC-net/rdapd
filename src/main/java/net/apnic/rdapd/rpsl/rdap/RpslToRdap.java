@@ -6,36 +6,22 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.EnumSet;
+import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import net.apnic.rdapd.history.ObjectClass;
 import net.apnic.rdapd.history.ObjectKey;
-import net.apnic.rdapd.rdap.AutNum;
-import net.apnic.rdapd.rdap.Domain;
-import net.apnic.rdapd.rdap.Entity;
-import net.apnic.rdapd.rdap.Event;
-import net.apnic.rdapd.rdap.GenericObject;
-import net.apnic.rdapd.rdap.IpNetwork;
-import net.apnic.rdapd.rdap.RdapObject;
-import net.apnic.rdapd.rdap.RelatedEntity;
-import net.apnic.rdapd.rdap.Role;
-import net.apnic.rdapd.rdap.VCard;
-import net.apnic.rdapd.rdap.VCardAttribute;
+import net.apnic.rdapd.rdap.*;
+import net.apnic.rdapd.rpsl.Macro;
 import net.apnic.rdapd.rpsl.RpslObject;
 import net.apnic.rdapd.types.IpInterval;
 import net.apnic.rdapd.types.Parsing;
 import net.apnic.rdapd.types.Tuple;
+
+import static net.apnic.rdapd.rpsl.Macro.LinkProperties.*;
 
 /**
  * Utility class for converting raw RPSL data into RDAP objects.
@@ -140,33 +126,16 @@ public class RpslToRdap
         }
     }
 
-    /**
-     * @see rpslToRdap()
-     */
     @Override
     public RdapObject apply(ObjectKey key, byte[] rpsl)
     {
         return rpslToRdap(key, rpsl);
     }
 
-    /**
-     * Converts rpsl data into autnum object.
-     *
-     * @param key ObjectKey describing the object to be converted
-     * @param rpsl Raw RPSL data
-     * @return Autnum object
-     */
-    private static AutNum autnumFromRpsl(ObjectKey key, byte[] rpsl)
-    {
-        AutNum rval = new AutNum(key);
-
-        if(rpsl.length == 0)
-        {
-            return setDeletedState(rval);
-        }
-
+    private static AutNum autnumFromRpsl(GenericObject autNum, RpslObject rpslObject) {
+        AutNum rval = (AutNum) autNum;
+        ObjectKey key = rval.getObjectKey();
         Tuple<String, String> autnumSE = parseAutnumRange(key);
-        RpslObject rpslObject = new RpslObject(rpsl);
         rval.setRelatedEntities(getRelatedEntities(rpslObject));
         rval.setASNInterval(autnumSE.first(), autnumSE.second());
         rpslObject.getAttributeFirstValue("aut-num")
@@ -181,23 +150,8 @@ public class RpslToRdap
         return rval;
     }
 
-    /**
-     * Converts rpsl data into domain object
-     *
-     * @param key ObjectKey describing the object to be converted
-     * @param rpsl Raw RPSL data
-     * @return Domain object
-     */
-    private static Domain domainFromRpsl(ObjectKey key, byte[] rpsl)
-    {
-        Domain rval = new Domain(key);
-
-        if(rpsl.length == 0)
-        {
-            return setDeletedState(rval);
-        }
-
-        RpslObject rpslObject = new RpslObject(rpsl);
+    private static Domain domainFromRpsl(GenericObject domain, RpslObject rpslObject) {
+        Domain rval = (Domain) domain;
         rval.setRelatedEntities(getRelatedEntities(rpslObject));
         rpslObject.getAttribute("nserver").stream()
             .forEach(fqdn -> rval.addNameServer(fqdn));
@@ -207,30 +161,29 @@ public class RpslToRdap
         return rval;
     }
 
-    /**
-     * Entity rpsl data into entity object
-     *
-     * @param key ObjectKey describing the object to be converted
-     * @param rpsl Raw RPSL data
-     * @return Entity object
-     */
-    private static Entity entityFromRpsl(ObjectKey key, byte[] rpsl)
-    {
-        Entity rval = new Entity(key);
+    private static Entity entityFromRpsl(GenericObject entity, RpslObject rpslObject) {
+        Entity rval = (Entity) entity;
+        rval.setRelatedEntities(getRelatedEntities(rpslObject));
 
-        if(rpsl.length == 0)
-        {
-            return setDeletedState(rval);
+        if (Macro.anyMatches(rpslObject.getComments(), Macro.NO_VCARD)) {
+            rval.setVCard(null);
+        } else {
+            VCard vCard = new VCard();
+            EnumSet.allOf(RpslVCardAttribute.class)
+                    .stream()
+                    .flatMap(a -> a.getProperty(rpslObject))
+                    .forEach(vCard::addAttribute);
+            rval.setVCard(vCard);
         }
 
-        VCard vCard = new VCard();
-        RpslObject rpslObject = new RpslObject(rpsl);
-        EnumSet.allOf(RpslVCardAttribute.class)
-            .stream()
-            .flatMap(a -> a.getProperty(rpslObject))
-            .forEach(vCard::addAttribute);
-        rval.setRelatedEntities(getRelatedEntities(rpslObject));
-        rval.setVCard(vCard);
+        List<Properties> linkMacroProps = Macro.getMacroProperties(rpslObject.getComments(), Macro.LINK);
+
+        if (!linkMacroProps.isEmpty()) {
+            rval.setLinks(linkMacroProps.stream()
+                    .map(RpslToRdap::linkfromMacroProps)
+                    .collect(Collectors.toList()));
+        }
+
         rval.setEvents(getEvents(rpslObject));
         rval.setRemarks(getRemarks(rpslObject));
 
@@ -289,24 +242,8 @@ public class RpslToRdap
         return new ArrayNode(JsonNodeFactory.instance, remarks);
     }
 
-    /**
-     * Ip network rpsl data into ip network object
-     *
-     * @param key ObjectKey describing the object to be converted
-     * @param rpsl Raw RPSL data
-     * @return IpNetwork object
-     */
-    private static IpNetwork ipNetworkFromRpsl(ObjectKey key, byte[] rpsl)
-    {
-        IpInterval ipInterval = Parsing.parseInterval(key.getObjectName());
-        IpNetwork rval = new IpNetwork(key, ipInterval);
-
-        if(rpsl.length == 0)
-        {
-            return setDeletedState(rval);
-        }
-
-        RpslObject rpslObject = new RpslObject(rpsl);
+    private static IpNetwork ipNetworkFromRpsl(GenericObject ipNetwork, RpslObject rpslObject) {
+        IpNetwork rval = (IpNetwork) ipNetwork;
         rval.setRelatedEntities(getRelatedEntities(rpslObject));
         rpslObject.getAttributeFirstValue("netname")
             .ifPresent(s -> rval.setName(s));
@@ -355,25 +292,52 @@ public class RpslToRdap
      * @param rpsl Raw RPSL data
      * @return Translated RdapObject
      */
-    public static RdapObject rpslToRdap(ObjectKey key, byte[] rpsl)
-    {
-        switch(key.getObjectClass())
-        {
-        case AUT_NUM:
-            return autnumFromRpsl(key, rpsl);
+    public static RdapObject rpslToRdap(ObjectKey key, byte[] rpsl) {
+        RpslObject rpslObject = rpsl.length == 0
+                ? null
+                : new RpslObject(rpsl);
+        return rpslToRdap(key, rpslObject);
+    }
 
-        case DOMAIN:
-            return domainFromRpsl(key, rpsl);
+    public static RdapObject rpslToRdap(ObjectKey key, RpslObject rpslObject) {
+        final GenericObject rval;
+        final BiFunction<GenericObject, RpslObject, GenericObject> processRpslObjectFunction;
 
-        case ENTITY:
-            return entityFromRpsl(key, rpsl);
-
-        case IP_NETWORK:
-            return ipNetworkFromRpsl(key, rpsl);
-
-        default:
-            throw new RuntimeException("Unsupported object class " +
-                key.getObjectClass());
+        switch(key.getObjectClass()) {
+            case AUT_NUM:
+                rval = new AutNum(key);
+                processRpslObjectFunction = RpslToRdap::autnumFromRpsl;
+                break;
+            case DOMAIN:
+                rval = new Domain(key);
+                processRpslObjectFunction = RpslToRdap::domainFromRpsl;
+                break;
+            case ENTITY:
+                rval = new Entity(key);
+                processRpslObjectFunction = RpslToRdap::entityFromRpsl;
+                break;
+            case IP_NETWORK:
+                IpInterval ipInterval = Parsing.parseInterval(key.getObjectName());
+                rval = new IpNetwork(key, ipInterval);
+                processRpslObjectFunction = RpslToRdap::ipNetworkFromRpsl;
+                break;
+            default:
+                throw new RuntimeException("Unsupported object class " + key.getObjectClass());
         }
+
+        if (rpslObject == null) {
+            return setDeletedState(rval);
+        }
+
+        return processRpslObjectFunction.apply(rval, rpslObject);
+    }
+
+    private static Link linkfromMacroProps(Properties props) {
+        return new Link(
+                props.getProperty(REL.getName()),
+                props.getProperty(HREF.getName()),
+                props.getProperty(TYPE.getName()),
+                props.getProperty(HREFLANG.getName())
+        );
     }
 }
