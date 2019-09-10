@@ -37,7 +37,7 @@ import java.util.regex.Pattern;
 @Component
 public class RpslLoader {
     private final static Logger LOGGER = LoggerFactory.getLogger(RpslLoader.class);
-    private static final Pattern RPSL_OBJECT_PATTERN = Pattern.compile("((.+)\n)+", Pattern.MULTILINE);
+    private static final Pattern RPSL_OBJECT_PATTERN = Pattern.compile("(?=(^(.+)\\n)+)(^(.+)\\n)*(^\\w.+\\n)(^(.+)\\n)*", Pattern.MULTILINE);
     private static final Map<String, ObjectClass> ATTR_TO_CLASS_MAP;
 
     private final History history;

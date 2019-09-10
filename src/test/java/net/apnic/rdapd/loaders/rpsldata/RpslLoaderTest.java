@@ -111,6 +111,27 @@ public class RpslLoaderTest {
         assertThat(entity3Revisions.get().mostCurrent().isPresent(), is(true));
     }
 
+    @Test
+    public void testInetnumLoadWithComments() {
+        // Given a RPSL file with comments scattered along it
+        final History history = new History();
+        final RpslLoader rpslLoader = createRpslLoader(history, "rpsl/inetnum_with_comments.db");
+
+        // When
+        rpslLoader.initialise();
+
+        // Then
+        Optional<ObjectHistory> inetnum1Revisions = history.historyForObject(new ObjectKey(ObjectClass.IP_NETWORK,
+                INETNUM1));
+        assertThat(inetnum1Revisions.isPresent(), is(true));
+        assertThat(inetnum1Revisions.get().mostCurrent().isPresent(), is(true));
+
+        Optional<ObjectHistory> inetnum2Revisions = history.historyForObject(new ObjectKey(ObjectClass.IP_NETWORK,
+                INETNUM2));
+        assertThat(inetnum2Revisions.isPresent(), is(true));
+        assertThat(inetnum2Revisions.get().mostCurrent().isPresent(), is(true));
+    }
+
     private RpslLoader createRpslLoader(History history, String rpslFile) {
         URL resource = getClass().getClassLoader().getResource(rpslFile);
         RpslConfig config = new RpslConfig();
