@@ -24,10 +24,12 @@ country:        KR
 admin-c:        IM3083-KR
 tech-c:         IM3083-KR
 status:         ALLOCATED PORTABLE
+# Another comment
 mnt-by:         MNT-KRNIC-AP
 mnt-irt:        IRT-KRNIC-KR
 changed:        hostmaster@nic.or.kr 20190725
 source:         KRNIC
+#[TEMPLATES END]#
 
 
 #[TEMPLATES END]#
