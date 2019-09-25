@@ -4,10 +4,23 @@
 
 replicaCount: 1
 
+deploymentKind: StatefulSet
+
 image:
   repository: rdap/rdapd/master
   tag: 0
   pullPolicy: IfNotPresent
+
+# Controls the autoscaling behaviour of rdapd, disabled by default
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      targetAverageUtilization: 80
 
 livenessProbe:
   failureThreshold: 3
@@ -22,7 +35,7 @@ readinessProbe:
   initialDelaySeconds: 60
   timeoutSeconds: 45
 
-updateStrategy: {}
+strategy: {}
   # type: RollingUpdate
   # rollingUpdate:
   #   partition: 0
