@@ -8,6 +8,7 @@ metadata:
     app.kubernetes.io/instance: {{ .Release.Name }}
     helm.sh/chart: {{ template "application.chart" . }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
+    apnic.net/team: pt-registry
   {{- with .Values.ingress.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
