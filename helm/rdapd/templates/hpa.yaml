@@ -8,6 +8,7 @@ metadata:
     helm.sh/chart: {{ template "application.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
+    apnic.net/team: pt-registry
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
