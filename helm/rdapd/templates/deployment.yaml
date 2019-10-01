@@ -1,7 +1,6 @@
-{{- if eq .Values.deploymentKind "StatefulSet" }}
+{{- if eq .Values.deploymentKind "Deployment" }}
 apiVersion: apps/v1
-# TODO: refactor app for faster, lighter, loading to allow changing back to deployment resource
-kind: StatefulSet
+kind: Deployment
 metadata:
   name: {{ template "application.fullname" . }}
   labels:
@@ -11,14 +10,13 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     apnic.net/team: pt-registry
 spec:
-  serviceName: {{ template "application.fullname" . }}
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
       app.kubernetes.io/name: {{ template "application.fullname" . }}
       app.kubernetes.io/instance: {{ .Release.Name }}
   {{- with .Values.strategy }}
-  updateStrategy:
+  strategy:
     {{- . | toYaml | trim | nindent 4 }}
   {{- end }}
   template:
