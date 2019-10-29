@@ -16,10 +16,12 @@ service:
   port: 8080
 
 ingress:
+    annotations:
+      kubernetes.io/ingress.class: traefik
+      certmanager.k8s.io/cluster-issuer: kluster
     hosts:
       - rdapd.tst.xyz.apnic.net
     enabled: true
-    class: traefik
 resources:
   requests:
     memory: "1024Mi"
