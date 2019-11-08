@@ -4,6 +4,7 @@ import net.apnic.rdapd.history.History;
 import net.apnic.rdapd.history.ObjectClass;
 import net.apnic.rdapd.history.ObjectHistory;
 import net.apnic.rdapd.history.ObjectKey;
+import net.apnic.rdapd.loaders.LoaderStatus;
 import org.junit.Test;
 
 import java.net.URL;
@@ -130,6 +131,43 @@ public class RpslLoaderTest {
                 INETNUM2));
         assertThat(inetnum2Revisions.isPresent(), is(true));
         assertThat(inetnum2Revisions.get().mostCurrent().isPresent(), is(true));
+    }
+
+    @Test
+    public void testStatusWithValidFile() {
+        // Given a valid RPSL file
+        final History history = new History();
+        final RpslLoader rpslLoader = createRpslLoader(history, "rpsl/inetnum_with_comments.db");
+
+        // assert that status is pending
+        assertThat(rpslLoader.getLoaderStatus().getStatus(), is(LoaderStatus.Status.PENDING));
+
+        // When
+        rpslLoader.initialise();
+
+        // Then
+        assertThat(rpslLoader.getLoaderStatus().getStatus(), is(LoaderStatus.Status.SUCCESS));
+        assertThat(rpslLoader.getLoaderStatus().getLastSuccessfulDateTime().isPresent(), is(true));
+    }
+
+    @Test
+    public void testStatusWithInvalidFile() {
+        // Given a valid RPSL file
+        final History history = new History();
+        RpslConfig config = new RpslConfig();
+        config.setUri("rpsl/non_existing_file.db");
+        final RpslLoader rpslLoader = new RpslLoader(history, config);
+
+        // assert that status is pending
+        assertThat(rpslLoader.getLoaderStatus().getStatus(), is(LoaderStatus.Status.PENDING));
+
+        // When
+        try {
+            rpslLoader.initialise();
+        } catch (Exception e) { /* do nothing */ }
+
+        // Then
+        assertThat(rpslLoader.getLoaderStatus().getStatus(), is(LoaderStatus.Status.FAILURE));
     }
 
     private RpslLoader createRpslLoader(History history, String rpslFile) {

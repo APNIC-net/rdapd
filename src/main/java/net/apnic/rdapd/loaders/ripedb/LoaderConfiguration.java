@@ -4,9 +4,11 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.time.ZonedDateTime;
 import java.time.ZoneId;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
@@ -16,6 +18,9 @@ import java.util.zip.InflaterInputStream;
 import javax.annotation.PostConstruct;
 
 import net.apnic.rdapd.history.History;
+import net.apnic.rdapd.loaders.LoaderStatus;
+import net.apnic.rdapd.loaders.LoaderStatus.Status;
+import net.apnic.rdapd.loaders.LoaderStatusProvider;
 import net.apnic.rdapd.progress.Bar;
 import net.apnic.rdapd.search.SearchEngine;
 
@@ -40,8 +45,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 @Configuration
 @EnableScheduling
 @Profile("!rpsl-data")
-public class LoaderConfiguration
-{
+public class LoaderConfiguration implements LoaderStatusProvider {
+
     private final static Logger LOGGER = LoggerFactory.getLogger(LoaderConfiguration.class);
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
@@ -50,7 +55,7 @@ public class LoaderConfiguration
     @Autowired
     private ApplicationContext context;
     private RipeDbLoader dbLoader;
-    private LoaderHealthIndicator loaderHealthIndicator = new LoaderHealthIndicator();
+    private LoaderStatus loaderStatus;
 
     @Value("${snapshot.file:#{null}}")
     private String snapshotFile;
@@ -63,6 +68,10 @@ public class LoaderConfiguration
 
     @Autowired
     SearchEngine searchEngine;
+
+    public LoaderStatus getLoaderStatus() {
+        return loaderStatus;
+    }
 
     private void buildTree()
     {
@@ -96,27 +105,23 @@ public class LoaderConfiguration
                 history.addRevision(k, r);
                 searchEngine.putIndexEntry(r, k);
             });
+            loaderStatus = new LoaderStatus(Status.SUCCESS, Optional.of(LocalDateTime.now()));
         } catch (Exception ex) {
             LOGGER.error("Failed to load data: {}", ex.getLocalizedMessage(), ex);
+            loaderStatus = new LoaderStatus(Status.FAILURE, Optional.empty());
         }
         finally
         {
             searchEngine.commit();
-            loaderHealthIndicator.setFinishedLoading();
         }
     }
 
     @PostConstruct
     public void initialise()
     {
+        loaderStatus = new LoaderStatus(Status.PENDING, Optional.empty());
         dbLoader = new RipeDbLoader(jdbcOperations, -1L);
         executorService.execute(this::buildTree);
-    }
-
-    @Bean
-    public LoaderHealthIndicator loaderHealthIndicator()
-    {
-        return loaderHealthIndicator;
     }
 
     @Scheduled(fixedRate = 15000L)
@@ -131,8 +136,11 @@ public class LoaderConfiguration
                         history.addRevision(key, revision);
                         searchEngine.putIndexEntry(revision, key);
                     });
+                    loaderStatus = new LoaderStatus(Status.SUCCESS, Optional.of(LocalDateTime.now()));
                 } catch (Exception ex) {
                     LOGGER.error("Error refreshing data: {}", ex.getLocalizedMessage(), ex);
+                    Optional<LocalDateTime> lastSuccessful = loaderStatus.getLastSuccessfulDateTime();
+                    loaderStatus = new LoaderStatus(Status.FAILURE, lastSuccessful);
                 }
                 finally
                 {
