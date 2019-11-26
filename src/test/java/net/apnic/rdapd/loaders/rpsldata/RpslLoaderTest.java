@@ -152,7 +152,7 @@ public class RpslLoaderTest {
 
     @Test
     public void testStatusWithInvalidFile() {
-        // Given a valid RPSL file
+        // Given a RPSLoader configured to use a non existing file
         final History history = new History();
         RpslConfig config = new RpslConfig();
         config.setUri("rpsl/non_existing_file.db");
