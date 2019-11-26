@@ -4,6 +4,8 @@ import net.apnic.rdapd.history.History;
 import net.apnic.rdapd.history.ObjectClass;
 import net.apnic.rdapd.history.ObjectKey;
 import net.apnic.rdapd.history.Revision;
+import net.apnic.rdapd.loaders.LoaderStatus;
+import net.apnic.rdapd.loaders.LoaderStatusProvider;
 import net.apnic.rdapd.rdap.RdapObject;
 import net.apnic.rdapd.rpsl.RpslObject;
 import net.apnic.rdapd.rpsl.rdap.RpslToRdap;
@@ -24,9 +26,12 @@ import javax.annotation.PostConstruct;
 import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.regex.Pattern;
+
+import static net.apnic.rdapd.loaders.LoaderStatus.Status.*;
 
 /**
  * Loads RPSl data from a file. It provided an alternative to the database loader
@@ -35,7 +40,7 @@ import java.util.regex.Pattern;
 @EnableScheduling
 @Profile("rpsl-data")
 @Component
-public class RpslLoader {
+public class RpslLoader implements LoaderStatusProvider {
     private final static Logger LOGGER = LoggerFactory.getLogger(RpslLoader.class);
     private static final Pattern RPSL_OBJECT_PATTERN = Pattern.compile("(^(.+)\\n)*(^\\w.+\\n)(^(.+)\\n)*", Pattern.MULTILINE);
     private static final Map<String, ObjectClass> ATTR_TO_CLASS_MAP;
@@ -43,11 +48,13 @@ public class RpslLoader {
     private final History history;
     private final RpslConfig rpslConfig;
     private String previousProcessedFileMD5;
+    private LoaderStatus loaderStatus;
 
     @Autowired
     public RpslLoader(History history, RpslConfig rpslConfig) {
         this.history = history;
         this.rpslConfig = rpslConfig;
+        this.loaderStatus = new LoaderStatus(PENDING, Optional.empty());
     }
 
     @PostConstruct
@@ -58,6 +65,10 @@ public class RpslLoader {
     @Scheduled(cron = "${rpslData.updateCronExpr}")
     void periodicUpdate() {
         updateHistory();
+    }
+
+    public LoaderStatus getLoaderStatus() {
+        return loaderStatus;
     }
 
     private synchronized void updateHistory() {
@@ -83,6 +94,8 @@ public class RpslLoader {
                 }
             } catch (IOException e) {
                 LOGGER.error("Error retrieving RPSL file.", e);
+                Optional<LocalDateTime> previousSuccessfulLocalDateTime = loaderStatus.getLastSuccessfulDateTime();
+                loaderStatus = new LoaderStatus(FAILURE, previousSuccessfulLocalDateTime);
                 throw new RuntimeException(e);
             }
 
@@ -104,12 +117,14 @@ public class RpslLoader {
             }
         } catch (FileSystemException | RuntimeException e) {
             LOGGER.error("Error loading RPSL data.", e);
+            Optional<LocalDateTime> previousSuccessfulLocalDateTime = loaderStatus.getLastSuccessfulDateTime();
+            loaderStatus = new LoaderStatus(FAILURE, previousSuccessfulLocalDateTime);
             throw (e instanceof RuntimeException ? (RuntimeException) e : new RuntimeException(e));
         } finally {
             if (localFile != null && localFile.exists()) {
-                boolean deletionSucceded = localFile.delete();
+                boolean deletionSucceeded = localFile.delete();
 
-                if (!deletionSucceded) {
+                if (!deletionSucceeded) {
                     LOGGER.warn("Error deleting temporary file: " + localFile.getPath());
                 }
             }
@@ -117,6 +132,7 @@ public class RpslLoader {
 
         previousProcessedFileMD5 = md5;
         history.overwriteHistory(newHistory);
+        loaderStatus = new LoaderStatus(SUCCESS, Optional.of(LocalDateTime.now()));
         LOGGER.info("RPSL data updated.");
     }
 

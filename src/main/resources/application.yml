@@ -44,6 +44,9 @@ spring:
 
 management:
   port: 8081
+  security:
+    # required for displaying health endpoint details
+    enabled: false
 
 info:
   build:
