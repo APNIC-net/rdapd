@@ -2,10 +2,13 @@ package net.apnic.rdapd;
 
 import java.util.Properties;
 
+import io.prometheus.client.hotspot.DefaultExports;
+import io.prometheus.client.spring.boot.EnablePrometheusEndpoint;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
+@EnablePrometheusEndpoint
 public class App {
 
     public static void main(String[] args)
@@ -20,5 +23,7 @@ public class App {
         defaultProps.setProperty("management.add-application-context-header", "false");
         app.setDefaultProperties(defaultProps);
         app.run(args);
+        // initialise prometheus hotspot metrics
+        DefaultExports.initialize();
     }
 }
