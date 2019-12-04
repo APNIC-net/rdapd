@@ -28,7 +28,7 @@ spec:
         checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
         prometheus.io/scrape: 'true'
         prometheus.io/port: '8081'
-        prometheus.io/path: 'prometheus'
+        prometheus.io/path: '/prometheus'
     spec:
       containers:
         - name: {{ .Chart.Name }}
