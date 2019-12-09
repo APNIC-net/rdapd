@@ -54,7 +54,7 @@ public class RpslLoader implements LoaderStatusProvider {
     public RpslLoader(History history, RpslConfig rpslConfig) {
         this.history = history;
         this.rpslConfig = rpslConfig;
-        this.loaderStatus = new LoaderStatus(PENDING, Optional.empty());
+        this.loaderStatus = new LoaderStatus(INITIALISING, Optional.empty());
     }
 
     @PostConstruct
@@ -94,8 +94,6 @@ public class RpslLoader implements LoaderStatusProvider {
                 }
             } catch (IOException e) {
                 LOGGER.error("Error retrieving RPSL file.", e);
-                Optional<LocalDateTime> previousSuccessfulLocalDateTime = loaderStatus.getLastSuccessfulDateTime();
-                loaderStatus = new LoaderStatus(FAILURE, previousSuccessfulLocalDateTime);
                 throw new RuntimeException(e);
             }
 
@@ -118,7 +116,10 @@ public class RpslLoader implements LoaderStatusProvider {
         } catch (FileSystemException | RuntimeException e) {
             LOGGER.error("Error loading RPSL data.", e);
             Optional<LocalDateTime> previousSuccessfulLocalDateTime = loaderStatus.getLastSuccessfulDateTime();
-            loaderStatus = new LoaderStatus(FAILURE, previousSuccessfulLocalDateTime);
+            LoaderStatus.Status lastStatus = loaderStatus.getStatus();
+            loaderStatus = new LoaderStatus(
+                    lastStatus.equals(INITIALISING) ? INITIALISATION_FAILED : OUT_OF_DATE,
+                    previousSuccessfulLocalDateTime);
             throw (e instanceof RuntimeException ? (RuntimeException) e : new RuntimeException(e));
         } finally {
             if (localFile != null && localFile.exists()) {
@@ -132,7 +133,7 @@ public class RpslLoader implements LoaderStatusProvider {
 
         previousProcessedFileMD5 = md5;
         history.overwriteHistory(newHistory);
-        loaderStatus = new LoaderStatus(SUCCESS, Optional.of(LocalDateTime.now()));
+        loaderStatus = new LoaderStatus(UP_TO_DATE, Optional.of(LocalDateTime.now()));
         LOGGER.info("RPSL data updated.");
     }
 

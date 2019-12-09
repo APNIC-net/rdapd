@@ -140,13 +140,13 @@ public class RpslLoaderTest {
         final RpslLoader rpslLoader = createRpslLoader(history, "rpsl/inetnum_with_comments.db");
 
         // assert that status is pending
-        assertThat(rpslLoader.getLoaderStatus().getStatus(), is(LoaderStatus.Status.PENDING));
+        assertThat(rpslLoader.getLoaderStatus().getStatus(), is(LoaderStatus.Status.INITIALISING));
 
         // When
         rpslLoader.initialise();
 
         // Then
-        assertThat(rpslLoader.getLoaderStatus().getStatus(), is(LoaderStatus.Status.SUCCESS));
+        assertThat(rpslLoader.getLoaderStatus().getStatus(), is(LoaderStatus.Status.UP_TO_DATE));
         assertThat(rpslLoader.getLoaderStatus().getLastSuccessfulDateTime().isPresent(), is(true));
     }
 
@@ -159,7 +159,7 @@ public class RpslLoaderTest {
         final RpslLoader rpslLoader = new RpslLoader(history, config);
 
         // assert that status is pending
-        assertThat(rpslLoader.getLoaderStatus().getStatus(), is(LoaderStatus.Status.PENDING));
+        assertThat(rpslLoader.getLoaderStatus().getStatus(), is(LoaderStatus.Status.INITIALISING));
 
         // When
         try {
@@ -167,7 +167,7 @@ public class RpslLoaderTest {
         } catch (Exception e) { /* do nothing */ }
 
         // Then
-        assertThat(rpslLoader.getLoaderStatus().getStatus(), is(LoaderStatus.Status.FAILURE));
+        assertThat(rpslLoader.getLoaderStatus().getStatus(), is(LoaderStatus.Status.INITIALISATION_FAILED));
     }
 
     private RpslLoader createRpslLoader(History history, String rpslFile) {

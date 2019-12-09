@@ -7,6 +7,8 @@ import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.time.format.DateTimeFormatter;
+
 /**
  * {@link HealthIndicator} implementation for {@link LoaderStatusProvider}s.
  */
@@ -29,15 +31,13 @@ public class LoaderHealthIndicator implements HealthIndicator {
 
     @Override
     public Health health() {
-        return Health.up().withDetail("Loader:", toJson(loaderStatusProvider.getLoaderStatus())).build();
-    }
-
-    private String toJson(LoaderStatus loaderStatus) {
-        return "{" +
-                "lastSuccessfulDateTime=" + (loaderStatus.getLastSuccessfulDateTime().isPresent()
-                                                ? loaderStatus.getLastSuccessfulDateTime().get() : "never") +
-                ", status=" + loaderStatus.getStatus() +
-                '}';
+        LoaderStatus loaderStatus = loaderStatusProvider.getLoaderStatus();
+        return new Health.Builder()
+                .status(loaderStatus.getStatus().toString())
+                .withDetail("lastSuccessfulDateTime", (loaderStatus.getLastSuccessfulDateTime().isPresent()
+                        ? DateTimeFormatter.ISO_DATE_TIME.format(loaderStatus.getLastSuccessfulDateTime().get())
+                        : "never"))
+                .build();
     }
 
     @Scheduled(fixedRate = 60 * 1000 /* 1 min */)
