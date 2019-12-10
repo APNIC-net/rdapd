@@ -42,6 +42,8 @@ import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 
+import static net.apnic.rdapd.loaders.LoaderStatus.Status.*;
+
 @Configuration
 @EnableScheduling
 @Profile("!rpsl-data")
@@ -105,10 +107,10 @@ public class LoaderConfiguration implements LoaderStatusProvider {
                 history.addRevision(k, r);
                 searchEngine.putIndexEntry(r, k);
             });
-            loaderStatus = new LoaderStatus(Status.SUCCESS, Optional.of(LocalDateTime.now()));
+            loaderStatus = new LoaderStatus(UP_TO_DATE, Optional.of(LocalDateTime.now()));
         } catch (Exception ex) {
             LOGGER.error("Failed to load data: {}", ex.getLocalizedMessage(), ex);
-            loaderStatus = new LoaderStatus(Status.FAILURE, Optional.empty());
+            loaderStatus = new LoaderStatus(INITIALISATION_FAILED, Optional.empty());
         }
         finally
         {
@@ -119,7 +121,7 @@ public class LoaderConfiguration implements LoaderStatusProvider {
     @PostConstruct
     public void initialise()
     {
-        loaderStatus = new LoaderStatus(Status.PENDING, Optional.empty());
+        loaderStatus = new LoaderStatus(INITIALISING, Optional.empty());
         dbLoader = new RipeDbLoader(jdbcOperations, -1L);
         executorService.execute(this::buildTree);
     }
@@ -136,11 +138,15 @@ public class LoaderConfiguration implements LoaderStatusProvider {
                         history.addRevision(key, revision);
                         searchEngine.putIndexEntry(revision, key);
                     });
-                    loaderStatus = new LoaderStatus(Status.SUCCESS, Optional.of(LocalDateTime.now()));
+                    loaderStatus = new LoaderStatus(UP_TO_DATE, Optional.of(LocalDateTime.now()));
+                    LOGGER.info("Data refreshed successfully");
                 } catch (Exception ex) {
                     LOGGER.error("Error refreshing data: {}", ex.getLocalizedMessage(), ex);
                     Optional<LocalDateTime> lastSuccessful = loaderStatus.getLastSuccessfulDateTime();
-                    loaderStatus = new LoaderStatus(Status.FAILURE, lastSuccessful);
+                    Status lastStatus = loaderStatus.getStatus();
+                    loaderStatus = new LoaderStatus(
+                            lastStatus.equals(INITIALISING) ? INITIALISATION_FAILED : OUT_OF_DATE,
+                            lastSuccessful);
                 }
                 finally
                 {

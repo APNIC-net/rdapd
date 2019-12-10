@@ -15,7 +15,7 @@ public class LoaderStatus {
         this.lastSuccessfulDateTime = lastSuccessfulDateTime;
     }
 
-    public enum Status { SUCCESS, FAILURE, PENDING }
+    public enum Status {UP_TO_DATE, OUT_OF_DATE, INITIALISING, INITIALISATION_FAILED}
 
     public Status getStatus() {
         return status;
