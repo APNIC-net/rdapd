@@ -97,10 +97,11 @@ spec:
             successThreshold: {{ .Values.livenessProbe.successThreshold }}
             timeoutSeconds: {{.Values.livenessProbe.timeoutSeconds }}
           readinessProbe:
-            httpGet:
-              path: /health
-              port: http-manage
-              scheme: HTTP
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - curl localhost:8081/prometheus | grep ^rdapd_loader_status | cut -d " " -f 2 | grep "0\.0\|1\.0"
             failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
             initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
