@@ -1,0 +1,21 @@
+{{- if .Values.loaderOutdatedPrometheusRule.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    app: prometheus-operator
+    release: prometheus-operator
+    role: alert-rules
+  name: rdapd-loader-outdated
+spec:
+  groups:
+    - name: registry
+      rules:
+        - alert: RdapdLoaderOutdated
+          annotations:
+            message: {{ .Values.loaderOutdatedPrometheusRule.message }}
+            description: {{ .Values.loaderOutdatedPrometheusRule.description }}
+          expr: rdapd_loader_status==1
+          labels:
+            {{- toYaml .Values.loaderOutdatedPrometheusRule.labels | nindent 12 }}
+{{- end }}
