@@ -134,3 +134,14 @@ ingress:
   #  - secretName: chart-example-tls
   #    hosts:
   #      - chart-example.local
+
+prometheus:
+  serviceMonitor:
+    # Create prometheus-operator ServiceMonitor
+    enabled: false
+    # Interval at which the metrics endpoint is scraped
+    interval: 30s
+    # Path on service which exposes metrics
+    path: /prometheus
+    # Alternative namespace to install the ServiceMonitor in
+    namespace: ""
