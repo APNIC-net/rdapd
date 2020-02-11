@@ -22,6 +22,7 @@ ingress:
     hosts:
       - rdapd.tst.xyz.apnic.net
     enabled: true
+
 resources:
   requests:
     memory: "1024Mi"
@@ -29,6 +30,11 @@ resources:
   limits:
     memory: "4096Mi"
     cpu: "500m"
+
+loaderOutdatedPrometheusRule:
+  enabled: true
+  message: TEST - rdapd loader outdated
+
 livenessProbe:
   failureThreshold: 3
   successThreshold: 1

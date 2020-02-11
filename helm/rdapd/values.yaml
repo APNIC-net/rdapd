@@ -60,6 +60,16 @@ service:
   type: ClusterIP
   port: 8080
 
+# Allows configuring the prometheus rule for monitoring the loader. Disabled by default.
+loaderOutdatedPrometheusRule:
+  enabled: false
+  message: rdapd loader outdated
+  description: The loader in the pod {{ $labels.kubernetes_pod_name }} is outdated.
+  labels:
+    channel: email
+    team: registry
+    severity: warning
+
 rdapd:
   whoisDB:
     host: ""
@@ -124,3 +134,14 @@ ingress:
   #  - secretName: chart-example-tls
   #    hosts:
   #      - chart-example.local
+
+prometheus:
+  serviceMonitor:
+    # Create prometheus-operator ServiceMonitor
+    enabled: false
+    # Interval at which the metrics endpoint is scraped
+    interval: 30s
+    # Path on service which exposes metrics
+    path: /prometheus
+    # Alternative namespace to install the ServiceMonitor in
+    namespace: ""

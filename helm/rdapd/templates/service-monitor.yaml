@@ -1,0 +1,28 @@
+{{- if .Values.prometheus.serviceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ template "application.fullname" . }}
+  {{- if .Values.prometheus.serviceMonitor.namespace }}
+  namespace: {{ .Values.prometheus.serviceMonitor.namespace }}
+  {{- end }}
+  labels:
+    app.kubernetes.io/name: {{ template "application.fullname" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    helm.sh/chart: {{ template "application.chart" . }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    apnic.net/team: pt-registry
+spec:
+  endpoints:
+  - port: http
+    interval: {{ default "30s" .Values.prometheus.serviceMonitor.interval }}
+    path: {{ default "/metrics" .Values.prometheus.serviceMonitor.path }}
+  jobLabel: {{ template "application.fullname" . }}
+  namespaceSelector:
+    matchNames:
+    - {{ .Release.Namespace }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ template "application.fullname" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end -}}
