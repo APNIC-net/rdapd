@@ -138,7 +138,7 @@ ingress:
 prometheus:
   serviceMonitor:
     # Create prometheus-operator ServiceMonitor
-    enabled: false
+    enabled: true
     # Interval at which the metrics endpoint is scraped
     interval: 30s
     # Path on service which exposes metrics
