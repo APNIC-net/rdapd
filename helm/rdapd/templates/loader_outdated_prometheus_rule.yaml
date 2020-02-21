@@ -6,12 +6,12 @@ metadata:
     app: prometheus-operator
     release: prometheus-operator
     role: alert-rules
-  name: rdapd-loader-outdated
+  name: rdapd-loader-outdated-{{ .Release.Name }}
 spec:
   groups:
     - name: registry
       rules:
-        - alert: RdapdLoaderOutdated
+        - alert: RdapdLoaderOutdated-{{ .Release.Name }}
           annotations:
             message: {{ .Values.loaderOutdatedPrometheusRule.message }}
             description: {{ .Values.loaderOutdatedPrometheusRule.description }}
