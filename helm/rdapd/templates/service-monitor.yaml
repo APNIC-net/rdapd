@@ -14,7 +14,7 @@ metadata:
     apnic.net/team: pt-registry
 spec:
   endpoints:
-  - port: http
+  - port: {{ default "http" .Values.prometheus.serviceMonitor.port }}
     interval: {{ default "30s" .Values.prometheus.serviceMonitor.interval }}
     path: {{ default "/metrics" .Values.prometheus.serviceMonitor.path }}
   jobLabel: {{ template "application.fullname" . }}
