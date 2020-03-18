@@ -21,4 +21,8 @@ spec:
       protocol: TCP
       port: {{ .Values.service.port }}
       targetPort: http
+    - name: http-manage
+      protocol: TCP
+      port: {{ .Values.service.managePort }}
+      targetPort: http-manage
   type: {{ .Values.service.type }}

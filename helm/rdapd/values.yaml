@@ -59,6 +59,7 @@ javaOpts: ~
 service:
   type: ClusterIP
   port: 8080
+  managePort: 8081
 
 # Allows configuring the prometheus rule for monitoring the loader. Disabled by default.
 loaderOutdatedPrometheusRule:
@@ -141,6 +142,8 @@ prometheus:
     enabled: true
     # Interval at which the metrics endpoint is scraped
     interval: 30s
+    # Port on service which exposes metrics
+    port: http-manage
     # Path on service which exposes metrics
     path: /prometheus
     # Alternative namespace to install the ServiceMonitor in
