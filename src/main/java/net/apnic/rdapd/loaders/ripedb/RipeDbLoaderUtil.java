@@ -23,7 +23,7 @@ public class RipeDbLoaderUtil
          "FROM last l, serials s\n" +
          "WHERE l.object_type in (0, 2, 3, 5, 6, 9, 10, 11, 17, 18)\n" +
          "AND l.object_id = s.object_id\n" +
-         "AND l.sequence_id = s.sequence_id\n" +
+         "AND (l.sequence_id = s.sequence_id OR l.sequence_id = 0)\n" +
          "AND s.serial_id > ?)\n" +
 
         "UNION\n" +
