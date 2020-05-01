@@ -46,6 +46,7 @@ spec:
               value: {{ .Values.rdapd.whoisDB.host | quote }}
             - name: RDAPD_DB_NAME
               value: {{ .Values.rdapd.whoisDB.db | quote }}
+            {{- if and .Values.rdapd.whoisDB.username .Values.rdapd.whoisDB.password }}
             - name: RDAPD_DB_USERNAME
               valueFrom:
                 secretKeyRef:
@@ -56,6 +57,7 @@ spec:
                 secretKeyRef:
                   name: {{ template "application.fullname" . }}
                   key: rdapd-whoisdb-password
+            {{- end }}
             - name: RDAPD_HISTORY_ENDPOINTS_ENABLED
               value: {{ default "true" .Values.rdapd.historyEndpointsEnabled  | quote }}
             {{- with .Values.rdapd.rpslData }}
