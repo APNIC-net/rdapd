@@ -25,7 +25,7 @@ public abstract class GenericObject
     private String country = null;
     private boolean deleted = false;
     private List<Event> events = Collections.emptyList();
-    private final ObjectKey objectKey;
+    private ObjectKey objectKey;
     private String name = null;
     private Collection<RelatedEntity> relatedEntities;
     private ArrayNode remarks = null;
@@ -223,6 +223,10 @@ public abstract class GenericObject
     public void setName(String name)
     {
         this.name = name;
+    }
+
+    public void setObjectKey(ObjectKey objectKey) {
+        this.objectKey = objectKey;
     }
 
     public void setRelatedEntities(Collection<RelatedEntity> relatedEntities)

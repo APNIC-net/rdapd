@@ -60,24 +60,22 @@ public class IpInterval implements Interval<IP>, Serializable {
     }
 
     /**
+     * Returns the CIDR representation for rounded intervals or the range representation (e.g. "10.0.0.50 - 10.0.0.255")
+     * otherwise.
+     */
+    public String toCanonicalString() {
+        return convertToIpRange().isLegalPrefix() ?
+            toCIDRString() :
+            low().toString() + RANGE_DELIMITER + high().toString() ;
+    }
+
+    /**
      * Returns the set of prefixes contained in this interval (that can be represented by the CIDR notation). If the
      * interval is already a prefix, it will return a set containing a copy of the same interval.
      * @return a {@link Set} with the prefixes contained in the interval
      */
     public Set<IpInterval> prefixes() {
-        final IpAddress low, high;
-        final boolean isIPv4 = low().getAddressFamily() == IP.AddressFamily.IPv4;
-
-
-        if (isIPv4) {
-            low = new Ipv4Address(new BigInteger(1, low().getAddress().getAddress()).longValue());
-            high = new Ipv4Address(new BigInteger(1, high().getAddress().getAddress()).longValue());
-        } else { // IPv6
-            low = new Ipv6Address(new BigInteger(1, low().getAddress().getAddress()));
-            high = new Ipv6Address(new BigInteger(1, high().getAddress().getAddress()));
-        }
-
-        return IpRange.range(low, high)
+        return convertToIpRange()
                 .splitToPrefixes().stream()
                 .map(r -> {
                         try {
@@ -89,6 +87,28 @@ public class IpInterval implements Interval<IP>, Serializable {
                         }
                     })
                 .collect(Collectors.toSet());
+    }
+
+    public boolean isIpv4() {
+        return low().getAddressFamily() == IP.AddressFamily.IPv4;
+    }
+
+    public boolean isIpv6() {
+        return low().getAddressFamily() == IP.AddressFamily.IPv6;
+    }
+
+    private IpRange convertToIpRange() {
+        final IpAddress low, high;
+
+        if (isIpv4()) {
+            low = new Ipv4Address(new BigInteger(1, low().getAddress().getAddress()).longValue());
+            high = new Ipv4Address(new BigInteger(1, high().getAddress().getAddress()).longValue());
+        } else { // IPv6
+            low = new Ipv6Address(new BigInteger(1, low().getAddress().getAddress()));
+            high = new Ipv6Address(new BigInteger(1, high().getAddress().getAddress()));
+        }
+
+        return IpRange.range(low, high);
     }
 
     @Override
