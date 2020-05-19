@@ -96,6 +96,19 @@ public final class History implements Externalizable, ObjectIndex {
         AvlTree<IP, ObjectKey, IpInterval> nextIPNetworkTree = ipNetworkTree;
         AvlTree<ASN, ObjectKey, ASNInterval> nextAutNumTree = autnumTree;
 
+        if (objectKey.getObjectClass().equals(ObjectClass.IP_NETWORK) &&
+                ((IpNetwork) revision.getContents()).getIpInterval().isIpv6()) {
+            // IPv6 object keys can change over revisions, so searching the "histories" hashmap doesn't work
+            // retrieving equivalent existing object key from IP tree (if existent)
+            IpInterval revisionInterval = ((IpNetwork) revision.getContents()).getIpInterval();
+            Optional<ObjectKey> existingKey = nextIPNetworkTree.exact(revisionInterval);
+
+            if (existingKey.isPresent()) {
+                objectKey = existingKey.get();
+                ((IpNetwork) revision.getContents()).setObjectKey(objectKey);
+            }
+        }
+
         // Obtain a new object history with this revision included
         ObjectHistory objectHistory = Optional.ofNullable(histories.get(objectKey))
             .orElse(new ObjectHistory(objectKey));

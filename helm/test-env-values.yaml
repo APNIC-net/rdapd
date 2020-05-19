@@ -18,7 +18,7 @@ service:
 ingress:
     annotations:
       kubernetes.io/ingress.class: traefik
-      certmanager.k8s.io/cluster-issuer: kluster
+      certmanager.k8s.io/cluster-issuer: letsencrypt
     hosts:
       - rdapd.tst.xyz.apnic.net
     enabled: true

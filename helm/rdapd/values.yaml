@@ -57,7 +57,7 @@ proxy:
 javaOpts: ~
 
 service:
-  type: ClusterIP
+  type: NodePort
   port: 8080
   managePort: 8081
 
