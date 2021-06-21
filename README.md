@@ -52,3 +52,4 @@ subdirectory:
 # Licensing
 
 rdapd is licensed under the BSD licence. See the [LICENSE file](LICENSE.txt).
+
